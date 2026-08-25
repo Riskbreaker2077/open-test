@@ -358,3 +358,49 @@ code {
   color: var(--exito);
   text-transform: uppercase;
 }
+
+.rejilla {
+  display: grid;
+  gap: 0 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 40rem) {
+  .rejilla {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+fieldset.campo {
+  padding: 0;
+  border: 0;
+  margin-bottom: 1rem;
+}
+
+.casillas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.casilla {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: var(--toque);
+  padding: 0.4rem 0.8rem;
+  background: var(--papel);
+  border: 2px solid var(--borde);
+  border-radius: var(--radio);
+  cursor: pointer;
+}
+
+.casilla:has(input:checked) {
+  border-color: var(--acento);
+  background: var(--acento-suave);
+}
+
+.casilla input {
+  width: 1.1rem;
+  height: 1.1rem;
+}

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenTest — Evaluaciones</title>
+  <link rel="stylesheet" href="/shared/base.css">
+</head>
+<body>
+  <header class="barra">
+    <a href="/docente/">← Panel</a>
+    <button class="boton boton--secundario boton--pequeno" id="salir">Cerrar sesión</button>
+  </header>
+
+  <main class="contenedor">
+    <h1>Evaluaciones</h1>
+
+    <section class="tarjeta">
+      <h2>Convocar una evaluación</h2>
+      <p>
+        Se crea en borrador: puedes cambiarlo todo hasta que la abras.
+        Una vez abierta, los parámetros quedan congelados.
+      </p>
+
+      <form id="formulario">
+        <label class="campo">
+          <span>Nombre</span>
+          <input type="text" id="nombre" placeholder="Ciencias · Parcial 2" required>
+        </label>
+
+        <label class="campo">
+          <span>Banco de preguntas</span>
+          <select id="banco" required></select>
+        </label>
+
+        <fieldset class="campo">
+          <span>Cursos convocados</span>
+          <div id="cursos" class="casillas"></div>
+          <p class="apunte" id="sin-cursos" hidden>
+            Todavía no hay estudiantes cargados. Cárgalos primero.
+          </p>
+        </fieldset>
+
+        <div class="rejilla">
+          <label class="campo">
+            <span>Preguntas por estudiante</span>
+            <input type="number" id="n_preguntas" min="1" value="20">
+          </label>
+          <label class="campo">
+            <span>Duración (minutos)</span>
+            <input type="number" id="duracion_minutos" min="1" value="60">
+          </label>
+          <label class="campo">
+            <span>Segundos mínimos por pregunta</span>
+            <input type="number" id="segundos_minimos_pregunta" min="0" value="10">
+          </label>
+          <label class="campo">
+            <span>Qué ve el estudiante al terminar</span>
+            <select id="nivel_feedback">
+              <option value="aciertos">Su puntaje y en qué falló</option>
+              <option value="solo_puntaje">Solo su puntaje</option>
+              <option value="completo">Todo, con las respuestas correctas</option>
+            </select>
+          </label>
+        </div>
+
+        <p class="aviso" id="aviso-feedback" hidden>
+          Con «Todo», el primero en terminar sale del aula sabiendo las respuestas.
+          Úsalo solo si todos entregan a la vez.
+        </p>
+
+        <p class="aviso" id="error" role="alert" hidden></p>
+        <button class="boton" type="submit">Crear evaluación</button>
+      </form>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Evaluaciones creadas</h2>
+      <p id="vacio" hidden class="apunte">Todavía no has creado ninguna.</p>
+      <table class="tabla" id="listado"></table>
+    </section>
+  </main>
+
+  <script type="module" src="/docente/sesiones.js"></script>
+</body>
+</html>

@@ -9,6 +9,17 @@ import {
   obtenerBanco,
 } from '../services/bancos.js';
 import {
+  abrirSesion,
+  borrarSesion,
+  cerrarSesion,
+  crearSesion,
+  listarSesiones,
+  obtenerSesion,
+  POR_DEFECTO,
+  actualizarSesion,
+} from '../services/sesiones.js';
+import { contarIntentos } from '../services/intentos.js';
+import {
   guardarImagen,
   listarImagenes,
   MAX_BYTES_IMAGEN,
@@ -144,6 +155,50 @@ export function rutasDocente(db) {
     } catch (err) {
       res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
     }
+  });
+
+  // --- Sesiones de examen ------------------------------------------------
+  const responder = (res, accion) => {
+    try {
+      res.json({ ok: true, ...accion() });
+    } catch (err) {
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  };
+
+  router.get('/sesiones', (req, res) => {
+    res.json({
+      ok: true,
+      sesiones: listarSesiones(db).map((sesion) => ({
+        ...sesion,
+        ...contarIntentos(db, sesion.id),
+      })),
+      porDefecto: POR_DEFECTO,
+    });
+  });
+
+  router.post('/sesiones', (req, res) => {
+    responder(res, () => ({ sesion: crearSesion(db, req.body ?? {}) }));
+  });
+
+  router.get('/sesiones/:id', (req, res) => {
+    responder(res, () => ({ sesion: obtenerSesion(db, Number(req.params.id)) }));
+  });
+
+  router.put('/sesiones/:id', (req, res) => {
+    responder(res, () => ({ sesion: actualizarSesion(db, Number(req.params.id), req.body ?? {}) }));
+  });
+
+  router.post('/sesiones/:id/abrir', (req, res) => {
+    responder(res, () => ({ sesion: abrirSesion(db, Number(req.params.id)) }));
+  });
+
+  router.post('/sesiones/:id/cerrar', (req, res) => {
+    responder(res, () => ({ sesion: cerrarSesion(db, Number(req.params.id)) }));
+  });
+
+  router.delete('/sesiones/:id', (req, res) => {
+    responder(res, () => ({ sesion: borrarSesion(db, Number(req.params.id)) }));
   });
 
   return router;

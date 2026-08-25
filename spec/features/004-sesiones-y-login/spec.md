@@ -1,6 +1,6 @@
 # 004 · Sesiones y login
 
-**Estado:** propuesta
+**Estado:** implementado ✅
 
 ## Qué hace
 
@@ -14,20 +14,21 @@ La sesión es lo que convierte un banco de preguntas y una lista de estudiantes 
 
 ## Criterios de aceptación
 
-- [ ] El docente puede crear una sesión eligiendo banco, cursos, `n_preguntas`, `duracion_minutos` (plazo del **reloj global**), `segundos_minimos_pregunta` y `nivel_feedback`.
-- [ ] Los valores por defecto son 20 preguntas, 60 minutos, 10 segundos mínimos y feedback `aciertos`.
-- [ ] No se puede abrir una sesión cuyo banco tenga menos preguntas que `n_preguntas`; se explica por qué.
-- [ ] Pueden coexistir varias sesiones abiertas a la vez (10A en Ciencias mientras 10B está en Matemáticas).
-- [ ] Los parámetros de una sesión abierta **no se pueden modificar**; la interfaz los muestra en solo lectura y la API los rechaza.
-- [ ] El estudiante entra escribiendo únicamente su código.
-- [ ] Un código inexistente muestra "No encontramos ese código. Revísalo con tu docente." y no revela si el código existe en otro curso.
-- [ ] Un estudiante cuyo curso no está convocado no puede entrar y se le explica.
-- [ ] El estudiante elige a qué sesión entra entre las disponibles para su curso; la mecánica del portal está en la feature [013](../013-portal-estudiante/spec.md).
-- [ ] Al entrar por primera vez se crea su intento con una semilla propia y se le devuelve un token que la tablet guarda.
-- [ ] Si recarga la página o se le apaga la tablet, volver a entrar con su código lo devuelve a **su mismo intento**, no a uno nuevo.
-- [ ] Un estudiante que ya entregó no puede volver a entrar: ve su resultado, no un examen nuevo.
-- [ ] Dos estudiantes distintos nunca reciben el mismo token.
-- [ ] El código se recorta de espacios antes de comparar, y espacios sobrantes no impiden entrar.
+- [x] El docente puede crear una sesión eligiendo banco, cursos, `n_preguntas`, `duracion_minutos` (plazo del **reloj global**), `segundos_minimos_pregunta` y `nivel_feedback`.
+- [x] Los valores por defecto son 20 preguntas, 60 minutos, 10 segundos mínimos y feedback `aciertos`.
+- [x] No se puede abrir una sesión cuyo banco tenga menos preguntas que `n_preguntas`; se explica por qué.
+- [x] Pueden coexistir varias sesiones abiertas a la vez (10A en Ciencias mientras 10B está en Matemáticas).
+- [x] Los parámetros de una sesión abierta **no se pueden modificar**; la interfaz los muestra en solo lectura y la API los rechaza.
+- [x] El estudiante entra escribiendo únicamente su código.
+- [x] Un código inexistente muestra "No encontramos ese código. Revísalo con tu docente." y no revela si el código existe en otro curso.
+- [x] Un estudiante cuyo curso no está convocado no puede entrar y se le explica.
+- [x] El estudiante elige a qué sesión entra entre las disponibles para su curso; la mecánica del portal está en la feature [013](../013-portal-estudiante/spec.md).
+- [x] Al entrar por primera vez se crea su intento con una semilla propia y se le devuelve un token que la tablet guarda.
+- [x] Si recarga la página o se le apaga la tablet, volver a entrar con su código lo devuelve a **su mismo intento**, no a uno nuevo.
+- [x] El token se renueva en cada entrada: la última tablet en la que se identificó es la única que sigue valiendo.
+- [ ] Un estudiante que ya entregó no puede volver a entrar: ve su resultado, no un examen nuevo. _(el intento se marca como entregado y el estado lo refleja; la pantalla de resultado llega en la feature 007.)_
+- [x] Dos estudiantes distintos nunca reciben el mismo token.
+- [x] El código se recorta de espacios antes de comparar, y espacios sobrantes no impiden entrar.
 
 ## Fuera de alcance
 

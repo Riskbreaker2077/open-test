@@ -5,6 +5,7 @@ import express from 'express';
 import { cookies, protegerApi, protegerPaginas } from './middleware/protegido.js';
 import { rutasAuth } from './routes/auth.js';
 import { rutasDocente } from './routes/docente.js';
+import { rutasExamen } from './routes/examen.js';
 import { carpetaDeImagenes } from './services/imagenes.js';
 
 const aqui = dirname(fileURLToPath(import.meta.url));
@@ -29,6 +30,9 @@ export function crearApp(db) {
 
   // Entrada al panel: pública por necesidad, es la puerta.
   app.use('/api/auth', rutasAuth(db));
+
+  // El examen es del estudiante: abierto, sin contraseña.
+  app.use('/api/examen', rutasExamen(db));
 
   // La protección se aplica sobre el prefijo, no ruta por ruta: cualquier
   // endpoint que se añada aquí nace protegido, sin depender de que alguien
