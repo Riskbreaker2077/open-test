@@ -1,4 +1,6 @@
 import { randomBytes } from 'node:crypto';
+import { idsDePreguntasYOpciones } from './bancos.js';
+import { generarPrueba } from './personalizacion.js';
 import { puedeEntrar } from './sesiones.js';
 
 const error = (mensaje, estado = 400) => Object.assign(new Error(mensaje), { estado });
@@ -42,8 +44,58 @@ export function iniciarOReanudarIntento(db, sesion, estudiante) {
         new Date().toISOString(),
       ).lastInsertRowid;
 
-    return { intento: db.prepare('SELECT * FROM intentos WHERE id = ?').get(id), nuevo: true };
+    const intento = db.prepare('SELECT * FROM intentos WHERE id = ?').get(id);
+    // Su prueba queda fijada aquí y no se vuelve a tocar.
+    materializarPrueba(db, intento);
+
+    return { intento, nuevo: true };
   })();
+}
+
+/**
+ * Escribe la prueba de este estudiante: qué preguntas le tocan y en qué orden
+ * van sus opciones.
+ *
+ * **Se escribe una sola vez y nunca se regenera.** Podría haberse guardado
+ * solo la semilla y recalculado en cada petición, pero entonces bastaría con
+ * borrar una pregunta del banco para que la prueba de un estudiante cambiara a
+ * mitad de examen. Estas filas son un registro histórico, no una caché: son lo
+ * que permite reanudar tras una caída y auditar meses después qué vio quien
+ * reclama su nota.
+ */
+export function materializarPrueba(db, intento) {
+  return db.transaction(() => {
+    const yaMaterializada = db
+      .prepare('SELECT count(*) AS total FROM intento_preguntas WHERE intento_id = ?')
+      .get(intento.id).total;
+
+    if (yaMaterializada > 0) return { generada: false, preguntas: yaMaterializada };
+
+    const sesion = db.prepare('SELECT * FROM sesiones WHERE id = ?').get(intento.sesion_id);
+    const prueba = generarPrueba({
+      preguntas: idsDePreguntasYOpciones(db, sesion.banco_id),
+      nPreguntas: sesion.n_preguntas,
+      semilla: intento.semilla,
+    });
+
+    const insertar = db.prepare(`
+      INSERT INTO intento_preguntas (intento_id, orden, pregunta_id, orden_opciones)
+      VALUES (?, ?, ?, ?)
+    `);
+    for (const fila of prueba) {
+      insertar.run(intento.id, fila.orden, fila.preguntaId, fila.ordenOpciones.join(','));
+    }
+
+    return { generada: true, preguntas: prueba.length };
+  })();
+}
+
+/** La prueba tal como se le mostró, en su orden. */
+export function pruebaDelIntento(db, intentoId) {
+  return db
+    .prepare('SELECT * FROM intento_preguntas WHERE intento_id = ? ORDER BY orden')
+    .all(intentoId)
+    .map((fila) => ({ ...fila, ordenOpciones: fila.orden_opciones.split(',').map(Number) }));
 }
 
 export function intentoPorToken(db, token) {

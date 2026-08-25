@@ -1,6 +1,6 @@
 # 005 · Motor de personalización
 
-**Estado:** propuesta
+**Estado:** implementado ✅
 
 ## Qué hace
 
@@ -16,17 +16,17 @@ El determinismo importa por dos razones distintas: permite reanudar un examen tr
 
 ## Criterios de aceptación
 
-- [ ] Al iniciar un intento se materializan `n_preguntas` filas en `intento_preguntas`, con su `orden` y su `orden_opciones`.
-- [ ] Las preguntas sorteadas son **todas distintas** (muestreo sin reemplazo): ninguna se repite dentro de un intento.
-- [ ] Todas las preguntas sorteadas pertenecen al banco de la sesión.
-- [ ] `orden_opciones` contiene exactamente los 4 ids de opción de esa pregunta, sin faltar ni repetir ninguno.
-- [ ] Dada la misma semilla y el mismo banco, el motor produce **exactamente** la misma selección y las mismas permutaciones (test de determinismo).
-- [ ] Semillas distintas producen pruebas distintas: con un banco de 50 y 20 preguntas, sobre 100 intentos simulados, ningún par comparte la selección completa y el promedio de preguntas compartidas entre dos intentos se aproxima al valor teórico (8 de 20).
-- [ ] La posición de la respuesta correcta se reparte entre las cuatro posiciones: sobre 1000 preguntas generadas, ninguna posición se lleva más del 30% ni menos del 20%.
-- [ ] La materialización ocurre **una sola vez por intento**: llamar de nuevo al motor sobre un intento existente no altera ni una fila (test explícito).
-- [ ] Si el banco tiene exactamente `n_preguntas`, funciona (se usan todas, solo cambia el orden).
-- [ ] Si el banco tiene menos de `n_preguntas`, el motor falla con un error claro y el intento no se crea a medias.
-- [ ] Generar la prueba de un intento tarda menos de 50 ms con un banco de 50 preguntas.
+- [x] Al iniciar un intento se materializan `n_preguntas` filas en `intento_preguntas`, con su `orden` y su `orden_opciones`.
+- [x] Las preguntas sorteadas son **todas distintas** (muestreo sin reemplazo): ninguna se repite dentro de un intento.
+- [x] Todas las preguntas sorteadas pertenecen al banco de la sesión.
+- [x] `orden_opciones` contiene exactamente los 4 ids de opción de esa pregunta, sin faltar ni repetir ninguno.
+- [x] Dada la misma semilla y el mismo banco, el motor produce **exactamente** la misma selección y las mismas permutaciones (test de determinismo).
+- [x] Semillas distintas producen pruebas distintas: con un banco de 50 y 20 preguntas, sobre 100 intentos simulados, ningún par comparte la selección completa y el promedio de preguntas compartidas entre dos intentos se aproxima al valor teórico (8 de 20).
+- [x] La posición de la respuesta correcta se reparte entre las cuatro posiciones: sobre 1000 preguntas generadas, ninguna posición se lleva más del 30% ni menos del 20%.
+- [x] La materialización ocurre **una sola vez por intento**: llamar de nuevo al motor sobre un intento existente no altera ni una fila (test explícito).
+- [x] Si el banco tiene exactamente `n_preguntas`, funciona (se usan todas, solo cambia el orden).
+- [x] Si el banco tiene menos de `n_preguntas`, el motor falla con un error claro y el intento no se crea a medias.
+- [x] Generar la prueba de un intento tarda menos de 50 ms con un banco de 50 preguntas.
 
 ## Fuera de alcance
 

@@ -19,6 +19,7 @@ import {
   actualizarSesion,
 } from '../services/sesiones.js';
 import { contarIntentos } from '../services/intentos.js';
+import { solapamientoEsperado } from '../services/personalizacion.js';
 import {
   guardarImagen,
   listarImagenes,
@@ -172,6 +173,11 @@ export function rutasDocente(db) {
       sesiones: listarSesiones(db).map((sesion) => ({
         ...sesion,
         ...contarIntentos(db, sesion.id),
+        // Para que el docente vea el efecto del tamaño de su banco antes de
+        // abrir, en vez de descubrirlo el día del examen.
+        solapamiento: Number(
+          solapamientoEsperado(sesion.preguntas_banco, sesion.n_preguntas).toFixed(1),
+        ),
       })),
       porDefecto: POR_DEFECTO,
     });

@@ -165,3 +165,26 @@ test('todas las rutas de evaluaciones exigen contraseña', async () => {
     assert.equal(res.status, 401, `${metodo} ${ruta} debería exigir contraseña`);
   }
 });
+
+test('el panel muestra el solapamiento esperado según el tamaño del banco', async () => {
+  await post('/api/docente/sesiones', { ...NUEVA, n_preguntas: 20 });
+  const { sesiones } = await (await llamar('/api/docente/sesiones')).json();
+
+  // 20 sorteadas de un banco de 25: comparten 16 de 20.
+  assert.equal(sesiones[0].solapamiento, 16);
+});
+
+test('al entrar, el estudiante recibe su prueba ya materializada', async () => {
+  const { sesion } = await post('/api/docente/sesiones', NUEVA);
+  await post(`/api/docente/sesiones/${sesion.id}/abrir`);
+
+  await fetch(`${base}/api/examen/entrar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ codigo: '2024001', sesionId: sesion.id }),
+  });
+
+  const filas = db.prepare('SELECT * FROM intento_preguntas ORDER BY orden').all();
+  assert.equal(filas.length, 20);
+  assert.match(filas[0].orden_opciones, /^\d+,\d+,\d+,\d+$/);
+});

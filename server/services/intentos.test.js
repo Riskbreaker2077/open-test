@@ -4,7 +4,14 @@ import { abrirBd, cerrarBd } from '../db.js';
 import { guardarBanco } from './bancos.js';
 import { guardarEstudiantes } from './estudiantes.js';
 import { abrirSesion, cerrarSesion, crearSesion, obtenerSesion } from './sesiones.js';
-import { contarIntentos, entregado, iniciarOReanudarIntento, intentoPorToken } from './intentos.js';
+import {
+  contarIntentos,
+  entregado,
+  iniciarOReanudarIntento,
+  intentoPorToken,
+  materializarPrueba,
+  pruebaDelIntento,
+} from './intentos.js';
 
 const ANA = { codigo: '2024001', nombres: 'Ana', apellidos: 'Gómez', curso: '10A' };
 const LUIS = { codigo: '2024002', nombres: 'Luis', apellidos: 'Pérez', curso: '10B' };
@@ -149,5 +156,115 @@ test('un token inventado no resuelve a ningún intento', () => {
   assert.equal(intentoPorToken(db, 'a'.repeat(64)), null);
   assert.equal(intentoPorToken(db, ''), null);
   assert.equal(intentoPorToken(db, undefined), null);
+  cerrarBd(db);
+});
+
+// --- Materialización de la prueba (feature 005) ----------------------------
+
+test('al entrar, la prueba queda escrita con sus preguntas y su orden', () => {
+  const { db, sesion } = preparar();
+  const { intento } = iniciarOReanudarIntento(db, sesion, ANA);
+  const prueba = pruebaDelIntento(db, intento.id);
+
+  assert.equal(prueba.length, sesion.n_preguntas);
+  assert.deepEqual(prueba.map((f) => f.orden), Array.from({ length: 20 }, (_, i) => i + 1));
+
+  for (const fila of prueba) {
+    assert.equal(fila.ordenOpciones.length, 4);
+    assert.equal(new Set(fila.ordenOpciones).size, 4);
+  }
+});
+
+test('materializar dos veces NO altera ni una fila', () => {
+  const { db, sesion } = preparar();
+  const { intento } = iniciarOReanudarIntento(db, sesion, ANA);
+  const antes = pruebaDelIntento(db, intento.id);
+
+  const segunda = materializarPrueba(db, intento);
+  assert.equal(segunda.generada, false, 'no debe volver a generar');
+  assert.deepEqual(pruebaDelIntento(db, intento.id), antes);
+});
+
+test('reanudar devuelve la MISMA prueba: es lo que salva una tablet caída', () => {
+  const { db, sesion } = preparar();
+  const primera = iniciarOReanudarIntento(db, sesion, ANA);
+  const antes = pruebaDelIntento(db, primera.intento.id);
+
+  const segunda = iniciarOReanudarIntento(db, sesion, ANA);
+  assert.deepEqual(pruebaDelIntento(db, segunda.intento.id), antes);
+});
+
+test('borrar una pregunta del banco no cambia la prueba ya materializada', () => {
+  // El motivo de guardar las filas en vez de recalcular desde la semilla.
+  const { db, sesion } = preparar();
+  const { intento } = iniciarOReanudarIntento(db, sesion, ANA);
+  const antes = pruebaDelIntento(db, intento.id);
+
+  const noUsada = db
+    .prepare(
+      'SELECT id FROM preguntas WHERE id NOT IN (SELECT pregunta_id FROM intento_preguntas) LIMIT 1',
+    )
+    .get();
+  db.prepare('DELETE FROM preguntas WHERE id = ?').run(noUsada.id);
+
+  assert.deepEqual(pruebaDelIntento(db, intento.id), antes);
+});
+
+test('dos estudiantes reciben pruebas distintas en la misma sesión', () => {
+  const { db, sesion } = preparar();
+  guardarEstudiantes(db, [{ ...LUIS, curso: '10A' }]);
+
+  const deAna = iniciarOReanudarIntento(db, sesion, ANA).intento;
+  const deLuis = iniciarOReanudarIntento(db, sesion, { ...LUIS, curso: '10A' }).intento;
+
+  const claves = (id) => pruebaDelIntento(db, id).map((f) => `${f.pregunta_id}:${f.orden_opciones}`);
+  assert.notDeepEqual(claves(deAna.id), claves(deLuis.id));
+});
+
+test('la prueba materializada solo usa preguntas del banco de su sesión', () => {
+  const { db, sesion } = preparar();
+  guardarBanco(db, 'Otro banco', [
+    { contexto: '', imagen: '', enunciado: '¿Intrusa?', opciones: ['a', 'b', 'c', 'd'], correcta: 0, explicacion: '' },
+  ]);
+
+  const { intento } = iniciarOReanudarIntento(db, sesion, ANA);
+  const delBanco = new Set(
+    db.prepare('SELECT id FROM preguntas WHERE banco_id = ?').all(sesion.banco_id).map((p) => p.id),
+  );
+
+  for (const fila of pruebaDelIntento(db, intento.id)) {
+    assert.ok(delBanco.has(fila.pregunta_id), 'no puede colarse una pregunta de otro banco');
+  }
+});
+
+test('las opciones guardadas son exactamente las de su pregunta', () => {
+  const { db, sesion } = preparar();
+  const { intento } = iniciarOReanudarIntento(db, sesion, ANA);
+
+  for (const fila of pruebaDelIntento(db, intento.id)) {
+    const suyas = db
+      .prepare('SELECT id FROM opciones WHERE pregunta_id = ? ORDER BY id')
+      .all(fila.pregunta_id)
+      .map((o) => o.id);
+
+    assert.deepEqual([...fila.ordenOpciones].sort((a, b) => a - b), suyas);
+  }
+});
+
+test('si la prueba no se puede generar, no queda un intento a medias', () => {
+  const db = abrirBd(':memory:');
+  guardarBanco(db, 'Corto', [
+    { contexto: '', imagen: '', enunciado: '¿Única?', opciones: ['a', 'b', 'c', 'd'], correcta: 0, explicacion: '' },
+  ]);
+  guardarEstudiantes(db, [ANA]);
+
+  // Se fuerza el estado saltándose la validación de apertura, que ya lo impide.
+  db.prepare(
+    "INSERT INTO sesiones (nombre, banco_id, cursos, n_preguntas, estado, creado_en) VALUES ('X', 1, '10A', 20, 'abierta', '2026-01-01')",
+  ).run();
+
+  assert.throws(() => iniciarOReanudarIntento(db, obtenerSesion(db, 1), ANA), /tiene 1 pregunta/);
+  assert.equal(db.prepare('SELECT count(*) AS t FROM intentos').get().t, 0, 'sin intento huérfano');
+  assert.equal(db.prepare('SELECT count(*) AS t FROM intento_preguntas').get().t, 0);
   cerrarBd(db);
 });

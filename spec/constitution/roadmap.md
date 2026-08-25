@@ -9,16 +9,16 @@ _Orden y estado de las features. Cada entrada apunta a su carpeta en `../feature
 3. **002 · [Importar estudiantes](../features/002-importar-estudiantes/spec.md)** — carga de la lista desde CSV o JSON, con previsualización y todo-o-nada.
 4. **003 · [Banco de preguntas](../features/003-banco-de-preguntas/spec.md)** — carga de paquetes de preguntas con imágenes, invariantes validadas y vista previa.
 5. **004 · [Sesiones y login](../features/004-sesiones-y-login/spec.md)** — convocar evaluaciones, abrirlas y cerrarlas; el estudiante entra con su código.
+6. **005 · [Motor de personalización](../features/005-motor-personalizacion/spec.md)** — sorteo determinista de preguntas y barajado de opciones, materializado una sola vez por intento.
 
 > **Revisión de arquitectura (24/08/2026).** El producto pasa a tener tres superficies separadas —portal del estudiante, pantalla de proyección y panel del docente con contraseña—, pueden coexistir varias sesiones abiertas y el temporizador pasa a ser un reloj global de sesión. Eso añade las features 011, 012 y 013, y revisa las specs de 001, 004, 006, 008 y 010. El orden de abajo es el de ejecución; los números son identidad, no secuencia.
 
 ## Siguiente 🔜
 
-6. **013 · [Portal del estudiante](../features/013-portal-estudiante/spec.md)** — la raíz pasa a ser la dirección estable del estudiante, con la lista de evaluaciones disponibles para su curso.
+7. **013 · [Portal del estudiante](../features/013-portal-estudiante/spec.md)** — la raíz pasa a ser la dirección estable del estudiante, con la lista de evaluaciones disponibles para su curso.
 
 ## Pendientes 📋
 
-7. **005 · [Motor de personalización](../features/005-motor-personalizacion/spec.md)** — sortea las N preguntas de cada estudiante y baraja sus opciones, de forma determinista.
 8. **012 · [Pantalla de proyección](../features/012-pantalla-proyeccion/spec.md)** — QR, dirección, reloj global y avance para todo el aula, con los controles Comenzar, Pausar y Cerrar.
 9. **006 · [Presentación del examen](../features/006-presentacion-examen/spec.md)** — una pregunta a la vez, saltar, temporizador, tiempo mínimo por pregunta, terminar cuando quiera, reanudar tras una caída.
 10. **007 · [Calificación y retroalimentación](../features/007-calificacion-feedback/spec.md)** — puntaje al entregar y pantalla de resultado con el detalle que el docente configuró.

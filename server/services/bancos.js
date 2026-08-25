@@ -61,6 +61,17 @@ export function preguntasDeBanco(db, bancoId) {
   }));
 }
 
+/**
+ * Solo los identificadores: es lo único que el motor de personalización
+ * necesita para sortear, y evita arrastrar enunciados de mil caracteres.
+ */
+export function idsDePreguntasYOpciones(db, bancoId) {
+  const preguntas = db.prepare('SELECT id FROM preguntas WHERE banco_id = ? ORDER BY id').all(bancoId);
+  const opciones = db.prepare('SELECT id FROM opciones WHERE pregunta_id = ? ORDER BY id');
+
+  return preguntas.map((pregunta) => ({ id: pregunta.id, opciones: opciones.all(pregunta.id) }));
+}
+
 export function obtenerBanco(db, bancoId) {
   const banco = db.prepare('SELECT * FROM bancos WHERE id = ?').get(bancoId);
   if (!banco) throw Object.assign(new Error('Ese banco no existe.'), { estado: 404 });

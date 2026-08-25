@@ -7,6 +7,7 @@ const sinCursos = document.getElementById('sin-cursos');
 const nivelFeedback = document.getElementById('nivel_feedback');
 const avisoFeedback = document.getElementById('aviso-feedback');
 const error = document.getElementById('error');
+const solapamiento = document.getElementById('solapamiento');
 const listado = document.getElementById('listado');
 const vacio = document.getElementById('vacio');
 
@@ -29,6 +30,38 @@ nivelFeedback.addEventListener('change', () => {
   avisoFeedback.hidden = nivelFeedback.value !== 'completo';
 });
 
+let preguntasPorBanco = new Map();
+
+/**
+ * El docente tiene que ver el efecto del tamaño de su banco antes de abrir,
+ * no descubrirlo el día del examen: con 25 preguntas y 20 sorteadas, dos
+ * compañeros comparten 16 y la protección se desploma.
+ */
+function actualizarSolapamiento() {
+  const total = preguntasPorBanco.get(Number(banco.value));
+  const n = Number(document.getElementById('n_preguntas').value);
+
+  if (!total || !n) {
+    solapamiento.textContent = '';
+    return;
+  }
+
+  if (total < n) {
+    solapamiento.textContent =
+      `Este banco tiene ${total} preguntas y no alcanza para sortear ${n}. No podrás abrirla.`;
+    return;
+  }
+
+  const comunes = (n * n) / total;
+  solapamiento.textContent =
+    `Con ${total} preguntas en el banco y ${n} por estudiante, dos compañeros ` +
+    `compartirán unas ${comunes.toFixed(1)} preguntas de ${n}` +
+    (comunes > n / 2 ? ' — un banco más grande protegería bastante más.' : '.');
+}
+
+banco.addEventListener('change', actualizarSolapamiento);
+document.getElementById('n_preguntas').addEventListener('input', actualizarSolapamiento);
+
 // Los cursos salen de los estudiantes que existen de verdad: escribirlos a
 // mano acabaría en «10 A» contra «10A» y en un aula entera que no puede entrar.
 async function cargarOpciones() {
@@ -37,9 +70,11 @@ async function cargarOpciones() {
     api('/api/docente/estudiantes'),
   ]);
 
+  preguntasPorBanco = new Map(bancos.map((b) => [b.id, b.preguntas]));
   banco.replaceChildren(
     ...bancos.map((b) => new Option(`${b.nombre} (${b.preguntas} preguntas)`, b.id)),
   );
+  actualizarSolapamiento();
   if (bancos.length === 0) banco.append(new Option('Carga un banco primero', ''));
 
   sinCursos.hidden = disponibles.length > 0;
@@ -138,7 +173,7 @@ async function recargar() {
   const thead = document.createElement('thead');
   thead.innerHTML =
     '<tr><th>Evaluación</th><th>Banco</th><th>Cursos</th><th>Preguntas</th>' +
-    '<th>Estado</th><th>Dentro</th><th>Entregados</th><th></th></tr>';
+    '<th>Comparten</th><th>Estado</th><th>Dentro</th><th>Entregados</th><th></th></tr>';
 
   const tbody = document.createElement('tbody');
   for (const sesion of sesiones) {
@@ -148,6 +183,7 @@ async function recargar() {
       sesion.banco,
       sesion.cursos.replaceAll(',', ', '),
       `${sesion.n_preguntas} de ${sesion.preguntas_banco}`,
+      `~${sesion.solapamiento}`,
       ETIQUETAS[sesion.estado] ?? sesion.estado,
       sesion.dentro,
       sesion.entregados ?? 0,
