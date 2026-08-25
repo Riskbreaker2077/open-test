@@ -2,7 +2,31 @@
 
 **OpenTest** es una aplicación de evaluación para el aula: corre en un servidor local, las tablets se conectan por intranet y cada estudiante recibe una prueba distinta (preguntas sorteadas de un banco y opciones barajadas), de modo que copiarle al de al lado no sirve.
 
-**Estado actual:** solo documentación. No existe código todavía. La primera feature a implementar es `spec/features/001-servidor-local/`.
+---
+
+## Dónde estamos (última actualización: 24/08/2026)
+
+**Seis features implementadas, 234 tests en verde.** El docente ya puede: crear su contraseña, cargar estudiantes, cargar bancos de preguntas, convocar y abrir evaluaciones. El estudiante ya puede entrar por API y su prueba personalizada se materializa sola.
+
+**Lo que todavía no existe: ninguna pantalla para el estudiante.** No hay dónde escriba su código, ni dónde vea las preguntas.
+
+| Hecho ✅ | Siguiente 🔜 |
+|---|---|
+| 001 servidor · 011 contraseña · 002 estudiantes · 003 bancos · 004 sesiones · 005 motor | **013 portal del estudiante**, luego 012 proyección, 006 examen, 007 resultado, 008 panel, 009 export, 010 empaquetado |
+
+### Para retomar, en este orden
+
+1. Lee `spec/constitution/roadmap.md`: dice qué está hecho y qué toca ahora.
+2. Lee la feature marcada como *Siguiente*: su `spec.md`, su `plan.md` y su `tasks.md`.
+3. `npm install && npm test` — deben pasar los 234.
+4. `npm start` y entra a `http://localhost:3000/docente/` para ver el estado real.
+
+### Contexto que no está en el código
+
+- **La API del estudiante ya está lista** para la feature 013: `POST /api/examen/sesiones` lista lo disponible para un código y `POST /api/examen/entrar` crea o reanuda el intento. Solo falta la interfaz.
+- **El reloj global (`comenzada_en`, `pausada_en`, `segundos_pausados`) existe en el esquema pero nadie lo usa todavía.** Lo estrenan las features 012 y 006. Las transiciones `en_curso` y `pausada` aún no están implementadas en `services/sesiones.js`.
+- **Si desarrollas en WSL2**, el servidor queda en una red NAT que el wifi no ve y ninguna tablet lo alcanza. Hace falta `networkingMode=mirrored` en `.wslconfig` o un `netsh portproxy` desde Windows. No afecta al producto: el docente ejecutará el binario en Windows.
+- **El esquema evoluciona con `server/migraciones.js`**, no editando `schema.sql` a secas. Un `.db` que ya existe no recibe columnas nuevas por su cuenta.
 
 ---
 
@@ -67,6 +91,16 @@ Antes de trabajar en cualquier cosa, en este orden:
 - **La API del estudiante nunca revela cuál es la respuesta correcta** antes de que entregue. Ni en un campo extra, ni en el orden, ni en un comentario del HTML.
 - **Toda la interfaz en español**, redactada para alguien que no es informático.
 - No borrar `data/opentest.db` desde código, bajo ninguna circunstancia.
+
+## Cuando termines una feature
+
+Deja el repositorio listo para la siguiente sesión:
+
+1. Marca `[x]` en `tasks.md` y en los criterios de `spec.md` **que hayas verificado de verdad**. Lo que no puedas comprobar, déjalo sin marcar y anota por qué.
+2. Cambia el estado en la cabecera de su `spec.md` a *implementado ✅*.
+3. Muévela a "Hecho" en `spec/constitution/roadmap.md` y pon la siguiente en "Siguiente".
+4. Actualiza la sección **Dónde estamos** de este archivo.
+5. Commit y push.
 
 ## Cómo se marca el progreso
 

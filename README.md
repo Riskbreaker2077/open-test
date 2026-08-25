@@ -4,7 +4,7 @@ Evaluación en el aula con **pruebas personalizadas**, sobre un servidor local y
 
 El docente arranca OpenTest en su portátil, las tablets se conectan por la intranet del colegio y **cada estudiante recibe una prueba distinta**: preguntas sorteadas al azar de un banco común y opciones de respuesta barajadas. Mirar la pantalla del compañero no sirve de nada.
 
-> **Estado: en construcción.** Ya funcionan el servidor, la contraseña del panel, la carga de estudiantes y la de bancos de preguntas. El examen en sí todavía no. Ver el [roadmap](spec/constitution/roadmap.md).
+> **Estado: en construcción.** Funciona todo el lado del docente —contraseña, carga de estudiantes, bancos de preguntas, convocar y abrir evaluaciones— y el motor que personaliza la prueba de cada estudiante. Falta la interfaz del estudiante y la pantalla de proyección. Ver el [roadmap](spec/constitution/roadmap.md).
 
 ## Por qué existe
 
@@ -59,6 +59,7 @@ spec/
 - **Sin dependencias más allá de Express y SQLite.** Ni framework de frontend, ni paso de compilación, ni CDNs. El aula no tiene internet y el docente no es informático.
 - **Cero red en tiempo de ejecución.** Ninguna petición sale de la máquina. Un test lo verifica.
 - **La prueba de cada estudiante se materializa en la base al empezar** y nunca se regenera: es lo que permite reanudar tras una caída y auditar meses después qué vio exactamente quien reclama su nota.
+- **El sorteo es determinista**, a partir de una semilla por estudiante. Medido sobre 200 estudiantes con un banco de 50 y 20 preguntas por prueba: 200 pruebas únicas, 8 preguntas compartidas de media entre dos compañeros, y la respuesta correcta repartida al 25 % entre las cuatro posiciones.
 - **Los datos son del docente.** Todo vive en un archivo SQLite que puede copiar a una USB, y sale en CSV y JSON abiertos.
 
 ## Licencia
