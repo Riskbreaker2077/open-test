@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenTest — Panel del docente</title>
+  <link rel="stylesheet" href="/shared/base.css">
+</head>
+<body>
+  <header class="barra">
+    <strong>OpenTest</strong>
+    <button class="boton boton--secundario boton--pequeno" id="salir">Cerrar sesión</button>
+  </header>
+
+  <main class="contenedor">
+    <h1>Panel del docente</h1>
+
+    <nav class="accesos">
+      <a class="acceso" href="/docente/estudiantes.html">
+        <strong>Estudiantes</strong>
+        Cargar la lista del colegio y consultarla por curso.
+      </a>
+      <a class="acceso" href="/docente/bancos.html">
+        <strong>Bancos de preguntas</strong>
+        Cargar los paquetes de preguntas de los que saldrá cada prueba.
+      </a>
+    </nav>
+
+    <p class="apunte" id="resumen"></p>
+  </main>
+
+  <script type="module" src="/docente/panel.js"></script>
+</body>
+</html>

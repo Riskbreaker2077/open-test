@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenTest — Entrar</title>
+  <link rel="stylesheet" href="/shared/base.css">
+</head>
+<body>
+  <main class="tarjeta" id="tarjeta" hidden>
+    <h1 id="titulo">Entrar</h1>
+    <p id="explicacion"></p>
+
+    <form id="formulario" novalidate>
+      <label class="campo">
+        <span id="etiqueta-clave">Contraseña</span>
+        <input id="contrasena" type="password" autocomplete="current-password" required>
+      </label>
+
+      <label class="campo" id="campo-confirmar" hidden>
+        <span>Repite la contraseña</span>
+        <input id="confirmar" type="password" autocomplete="new-password">
+      </label>
+
+      <p class="aviso" id="aviso" role="alert" hidden></p>
+
+      <button class="boton" type="submit" id="enviar">Entrar</button>
+    </form>
+  </main>
+
+  <script type="module" src="/docente/entrar.js"></script>
+</body>
+</html>

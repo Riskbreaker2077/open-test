@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenTest — Estudiantes</title>
+  <link rel="stylesheet" href="/shared/base.css">
+</head>
+<body>
+  <header class="barra">
+    <a href="/docente/">← Panel</a>
+    <button class="boton boton--secundario boton--pequeno" id="salir">Cerrar sesión</button>
+  </header>
+
+  <main class="contenedor">
+    <h1>Estudiantes</h1>
+
+    <section class="tarjeta">
+      <h2>Cargar la lista</h2>
+      <p>
+        Un archivo CSV o JSON con las columnas
+        <code>codigo</code>, <code>nombres</code>, <code>apellidos</code> y <code>curso</code>.
+        Sirve el CSV que exporta Excel. Esta carga se hace una vez por periodo.
+      </p>
+
+      <label class="campo">
+        <span>Archivo de estudiantes</span>
+        <input type="file" id="archivo" accept=".csv,.json,text/csv,application/json">
+      </label>
+
+      <div id="errores" hidden>
+        <p class="aviso">No se importó nada. Corrige estos puntos y vuelve a intentarlo:</p>
+        <ul class="lista-errores" id="lista-errores"></ul>
+      </div>
+
+      <div id="previsualizacion" hidden>
+        <p class="exito" id="resumen-carga"></p>
+        <table class="tabla" id="muestra"></table>
+        <button class="boton" id="confirmar">Confirmar e importar</button>
+        <button class="boton boton--secundario" id="cancelar">Cancelar</button>
+      </div>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Lista cargada</h2>
+      <label class="campo">
+        <span>Curso</span>
+        <select id="filtro-curso"><option value="">Todos</option></select>
+      </label>
+      <p id="vacio" hidden class="apunte">Todavía no hay estudiantes cargados.</p>
+      <table class="tabla" id="listado"></table>
+    </section>
+  </main>
+
+  <script type="module" src="/docente/estudiantes.js"></script>
+</body>
+</html>

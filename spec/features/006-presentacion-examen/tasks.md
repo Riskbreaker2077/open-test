@@ -1,0 +1,25 @@
+# 006 · Presentación del examen — Tareas
+
+- [ ] Implementar `server/services/examen.js` (`estadoDeIntento`, `verificarTiempo` con entrega automática).
+- [ ] Invocar `verificarTiempo` al inicio de todas las rutas de `/api/examen/*`.
+- [ ] Implementar `GET /api/examen/pregunta/:n` respetando `orden_opciones` y sin exponer `es_correcta`.
+- [ ] Implementar `POST /api/examen/responder` con validación de tiempo, mínimo por pregunta e intento vivo.
+- [ ] Implementar `POST /api/examen/entregar`, idempotente, con `motivo_entrega`.
+- [ ] Construir `public/estudiante/examen.html` y `examen.css` (táctil, sin scroll horizontal, 44 px).
+- [ ] Implementar `examen.js`: carga de estado, navegación por índice, guardado antes de avanzar.
+- [ ] Implementar el bloqueo visual del avance con cuenta atrás del mínimo por pregunta.
+- [ ] Implementar el temporizador global con resincronización en cada petición.
+- [ ] Implementar el indicador de guardado y el reintento con aviso visible ante fallo de red.
+- [ ] Implementar el diálogo de terminar con el recuento de preguntas sin responder.
+- [ ] Implementar el cierre desde la última pregunta con `motivo_entrega = "ultima_pregunta"`.
+- [ ] Test: los cuatro valores de `motivo_entrega` se registran en su escenario correspondiente.
+- [ ] Test: respuesta antes del mínimo rechazada por el servidor.
+- [ ] Test: respuesta tras agotarse el tiempo rechazada; entrega automática con motivo `tiempo`.
+- [ ] Test: respuesta sobre intento entregado rechazada.
+- [ ] Test: el orden de opciones es idéntico en llamadas sucesivas a la misma pregunta.
+- [ ] Test: ninguna respuesta de `/api/examen/*` contiene `es_correcta` ni datos derivados.
+- [ ] Test: reanudación tras recarga devuelve la misma pregunta y conserva las respuestas.
+- [ ] Prueba manual en una tablet real: legibilidad, toque, imagen, cambio de orientación.
+- [ ] Prueba manual de corte de red a mitad de examen y de reanudación en otra tablet.
+- [ ] Validar contra los criterios de aceptación de `spec.md`.
+- [ ] Mover la feature a "Hecho" en `../../constitution/roadmap.md`.

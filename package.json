@@ -1,0 +1,20 @@
+{
+  "name": "opentest",
+  "version": "0.1.0",
+  "description": "Evaluación en aula con pruebas personalizadas, sobre servidor local e intranet.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test \"server/**/*.test.js\"",
+    "lint": "node scripts/lint.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "express": "^5.1.0"
+  }
+}

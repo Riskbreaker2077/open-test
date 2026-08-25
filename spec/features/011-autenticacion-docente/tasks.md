@@ -1,0 +1,21 @@
+# 011 · Autenticación del docente — Tareas
+
+- [x] Añadir la tabla `config` a `server/schema.sql`.
+- [x] Implementar `server/services/auth.js` (`derivar`, `establecerContrasena`, `verificar`, `hayContrasena`).
+- [x] Usar `timingSafeEqual` en la comparación y probarlo.
+- [x] Implementar `server/sesion.js` (crear, validar, destruir, caducidad y barrido).
+- [x] Implementar `server/middleware/protegido.js` (401 en API, redirección en páginas).
+- [x] Montar la protección sobre los prefijos `/api/docente`, `/docente` y `/proyeccion` en `server/app.js`.
+- [x] Implementar `POST /api/auth/establecer`, `POST /api/auth/entrar`, `POST /api/auth/salir`, `GET /api/auth/estado`.
+- [x] Implementar la espera creciente por IP tras intentos fallidos.
+- [x] Implementar el cambio de contraseña con verificación de la actual (`POST /api/auth/cambiar`; falta la pantalla en el panel).
+- [x] Construir `public/docente/entrar.html` con los dos modos: crear contraseña y entrar.
+- [x] Test: contraseña correcta entra, incorrecta no, y el mensaje no revela si había configuración.
+- [x] Test: la misma contraseña produce hashes distintos en dos instalaciones.
+- [x] Test que recorre **todas** las rutas `/api/docente/*` registradas y exige 401 sin cookie.
+- [x] Test: la cookie es `HttpOnly`, `SameSite=Lax` y caduca.
+- [x] Test: `/api/examen/*` y la raíz siguen abiertas sin contraseña.
+- [x] Test: ningún archivo servido al estudiante menciona `/docente` ni enlaza a él.
+- [ ] Documentar el procedimiento de recuperación y probarlo de principio a fin. _(pendiente: va en `GUIA-DOCENTE.md`, feature 010.)_
+- [x] Validar contra los criterios de aceptación de `spec.md`.
+- [x] Mover la feature a "Hecho" en `../../constitution/roadmap.md`.
