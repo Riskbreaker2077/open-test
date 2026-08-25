@@ -5,17 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>OpenTest</title>
   <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="/portal.css">
 </head>
 <body>
   <header class="marca">
     <h1>OpenTest</h1>
-    <p class="apunte">Estás conectado al servidor del examen.</p>
   </header>
 
-  <main class="tarjeta tarjeta--centrada">
-    <h2>Aquí presentarás tu prueba</h2>
-    <p>Cuando tu docente abra la evaluación, escribirás tu código en esta pantalla.</p>
-    <p class="apunte">Esta dirección no cambia: es la misma para todas tus evaluaciones.</p>
+  <main class="tarjeta tarjeta--centrada" id="paso-codigo">
+    <h2>Escribe tu código</h2>
+    <p class="apunte">Es el mismo código con el que apareces en la lista de tu docente.</p>
+
+    <form id="formulario-codigo" novalidate>
+      <label class="campo">
+        <span>Tu código</span>
+        <input
+          id="codigo"
+          type="text"
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+          required
+        >
+      </label>
+
+      <p class="aviso" id="aviso-codigo" role="alert" hidden></p>
+
+      <button class="boton" type="submit" id="enviar-codigo">Continuar</button>
+    </form>
   </main>
+
+  <main class="tarjeta tarjeta--centrada" id="paso-elegir" hidden>
+    <h2 id="saludo-elegir"></h2>
+    <p>Elige tu evaluación:</p>
+
+    <div class="lista-sesiones" id="lista-sesiones"></div>
+
+    <p class="aviso" id="aviso-elegir" role="alert" hidden></p>
+  </main>
+
+  <main class="tarjeta tarjeta--centrada" id="paso-mensaje" hidden>
+    <h2 id="titulo-mensaje"></h2>
+    <p id="texto-mensaje"></p>
+    <p class="apunte" id="apunte-mensaje" hidden></p>
+  </main>
+
+  <script type="module" src="/portal.js"></script>
 </body>
 </html>

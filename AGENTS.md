@@ -4,27 +4,27 @@
 
 ---
 
-## Dónde estamos (última actualización: 24/08/2026)
+## Dónde estamos (última actualización: 25/08/2026)
 
-**Seis features implementadas, 234 tests en verde.** El docente ya puede: crear su contraseña, cargar estudiantes, cargar bancos de preguntas, convocar y abrir evaluaciones. El estudiante ya puede entrar por API y su prueba personalizada se materializa sola.
+**Seis features implementadas, 234 tests en verde, y la 013 (portal del estudiante) construida y en gran parte verificada.** El docente ya puede: crear su contraseña, cargar estudiantes, cargar bancos de preguntas, convocar y abrir evaluaciones. El estudiante ya tiene una pantalla real en la raíz `/`: escribe su código, entra directo si solo hay una evaluación de su curso (o elige si hay varias), y espera con su nombre en pantalla hasta que la sesión pase a `en_curso` — momento en el que la pantalla avanza sola, sin recargar.
 
-**Lo que todavía no existe: ninguna pantalla para el estudiante.** No hay dónde escriba su código, ni dónde vea las preguntas.
+**La 013 todavía no está en "Hecho".** Le faltan 6 de sus 15 criterios de aceptación, todos por depender de features que no existen: la 012 (el botón "Comenzar" real y el QR), y la 006/007 (qué ve el estudiante *después* de esas transiciones — ahora mismo ve un mensaje honesto tipo "esta pantalla la construye la feature 006", una decisión tomada a propósito, ver `spec/features/013-portal-estudiante/plan.md`). El detalle exacto de qué se verificó y qué falta está en `tasks.md` y `spec.md` de esa feature.
 
-| Hecho ✅ | Siguiente 🔜 |
-|---|---|
-| 001 servidor · 011 contraseña · 002 estudiantes · 003 bancos · 004 sesiones · 005 motor | **013 portal del estudiante**, luego 012 proyección, 006 examen, 007 resultado, 008 panel, 009 export, 010 empaquetado |
+| Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
+|---|---|---|
+| 001 servidor · 011 contraseña · 002 estudiantes · 003 bancos · 004 sesiones · 005 motor | **013 portal del estudiante** — falta verificación en tablet/QR real | 012 proyección, 006 examen, 007 resultado, 008 panel, 009 export, 010 empaquetado |
 
 ### Para retomar, en este orden
 
 1. Lee `spec/constitution/roadmap.md`: dice qué está hecho y qué toca ahora.
-2. Lee la feature marcada como *Siguiente*: su `spec.md`, su `plan.md` y su `tasks.md`.
+2. Lee `spec/features/013-portal-estudiante/tasks.md`: qué queda de esa feature y por qué.
 3. `npm install && npm test` — deben pasar los 234.
-4. `npm start` y entra a `http://localhost:3000/docente/` para ver el estado real.
+4. `npm start` y entra a `http://localhost:3000/` para ver el portal del estudiante, y a `/docente/` para el panel.
 
 ### Contexto que no está en el código
 
-- **La API del estudiante ya está lista** para la feature 013: `POST /api/examen/sesiones` lista lo disponible para un código y `POST /api/examen/entrar` crea o reanuda el intento. Solo falta la interfaz.
-- **El reloj global (`comenzada_en`, `pausada_en`, `segundos_pausados`) existe en el esquema pero nadie lo usa todavía.** Lo estrenan las features 012 y 006. Las transiciones `en_curso` y `pausada` aún no están implementadas en `services/sesiones.js`.
+- **El reloj global (`comenzada_en`, `pausada_en`, `segundos_pausados`) existe en el esquema pero nadie lo usa todavía.** Lo estrenan las features 012 y 006. Las transiciones `en_curso` y `pausada` aún no están implementadas en `services/sesiones.js` — no hay ningún botón "Comenzar" en ningún panel. Para probar el salto automático del portal hay que forzar el estado directamente en `data/opentest.db`.
+- **`ejemplos/estudiantes-ejemplo.csv` y `ejemplos/banco-ejemplo.csv`** ya traen datos listos para pruebas manuales (10 estudiantes en 10A/10B, 50 preguntas válidas). Úsalos en vez de inventar datos nuevos.
 - **Si desarrollas en WSL2**, el servidor queda en una red NAT que el wifi no ve y ninguna tablet lo alcanza. Hace falta `networkingMode=mirrored` en `.wslconfig` o un `netsh portproxy` desde Windows. No afecta al producto: el docente ejecutará el binario en Windows.
 - **El esquema evoluciona con `server/migraciones.js`**, no editando `schema.sql` a secas. Un `.db` que ya existe no recibe columnas nuevas por su cuenta.
 

@@ -27,6 +27,7 @@ La pantalla de espera consulta el estado cada 2 segundos; cuando el docente puls
 - **La espera salta sola al examen** — treinta recargas coordinadas a viva voz es exactamente el tipo de fricción que la misión prohíbe.
 - **Se elimina la portada de "Soy docente / Soy estudiante"** — enseñaba al estudiante dónde estaba la puerta del docente. La feature 001 queda parcialmente sustituida y así se anota en su spec.
 - **Sondeo de 2 s solo mientras se espera** — es el único momento en que la latencia se nota; durante el examen no hace falta.
+- **Placeholder honesto cuando la sesión pasa a `en_curso` o el intento ya se entregó** — la 013 detecta esas transiciones (lo necesita para no dejar al estudiante esperando para siempre) pero las pantallas de examen (006) y resultado (007) no existen todavía. En vez de simular una interfaz que no está construida, muestra un mensaje que dice qué falta y por qué, p. ej. "Tu examen ha comenzado — esta pantalla la construye la feature 006". Decisión tomada con el usuario el 25/08/2026.
 
 ## Riesgos
 

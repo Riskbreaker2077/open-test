@@ -4,7 +4,7 @@ Evaluación en el aula con **pruebas personalizadas**, sobre un servidor local y
 
 El docente arranca OpenTest en su portátil, las tablets se conectan por la intranet del colegio y **cada estudiante recibe una prueba distinta**: preguntas sorteadas al azar de un banco común y opciones de respuesta barajadas. Mirar la pantalla del compañero no sirve de nada.
 
-> **Estado: en construcción.** Funciona todo el lado del docente —contraseña, carga de estudiantes, bancos de preguntas, convocar y abrir evaluaciones— y el motor que personaliza la prueba de cada estudiante. Falta la interfaz del estudiante y la pantalla de proyección. Ver el [roadmap](spec/constitution/roadmap.md).
+> **Estado: en construcción.** Funciona todo el lado del docente —contraseña, carga de estudiantes, bancos de preguntas, convocar y abrir evaluaciones—, el motor que personaliza la prueba de cada estudiante, y el portal del estudiante para entrar con su código y esperar el inicio. Falta la pantalla de proyección (con el botón para comenzar de verdad) y la presentación del examen en sí. Ver el [roadmap](spec/constitution/roadmap.md).
 
 ## Por qué existe
 

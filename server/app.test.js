@@ -37,7 +37,7 @@ test('GET / entrega el portal del estudiante', async () => {
 
   const html = await res.text();
   assert.match(html, /lang="es"/);
-  assert.match(html, /presentar/i);
+  assert.match(html, /tu código/i);
   // La raíz es del estudiante: puede nombrar a su docente, pero nunca
   // enlazar al panel ni delatar su ruta.
   assert.doesNotMatch(html, /\/docente|\/proyeccion/);
