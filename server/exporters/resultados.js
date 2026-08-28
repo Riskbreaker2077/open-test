@@ -72,6 +72,15 @@ export function armarExportacion(db, sesionId, curso, ahora = new Date()) {
         }));
         const elegida = mostradas.find((opcion) => opcion.opcion_id === pregunta.opcion_id) ?? null;
         const correcta = mostradas.find((opcion) => opcion.es_correcta);
+        if (!correcta) {
+          // El banco cambió después de materializar la sesión (o el dato es
+          // anterior a la 016): ninguna de las opciones mostradas es la
+          // correcta. Mejor un error claro que un TypeError críptico.
+          throw error(
+            `La pregunta ${pregunta.pregunta_id} no tiene ninguna opción correcta entre las que se mostraron a ${intento.codigo_estudiante}.`,
+            500,
+          );
+        }
         return {
           n_pregunta: pregunta.orden,
           pregunta_id: pregunta.pregunta_id,

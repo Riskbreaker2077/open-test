@@ -50,6 +50,15 @@ test('cabeceras literales, BOM y formato_version coinciden con el contrato', () 
   cerrarBd(db);
 });
 
+test('una pregunta sin opción correcta entre las mostradas da un error claro', () => {
+  const { db, sesionId } = preparar();
+  const primera = db.prepare('SELECT pregunta_id FROM intento_preguntas LIMIT 1').get();
+  db.prepare('UPDATE opciones SET es_correcta = 0 WHERE pregunta_id = ?').run(primera.pregunta_id);
+  cerrarSesion(db, sesionId);
+  assert.throws(() => armarExportacion(db, sesionId), /no tiene ninguna opción correcta/);
+  cerrarBd(db);
+});
+
 test('incluye no alcanzadas, conserva orden de opciones y los totales cuadran', () => {
   const { db, sesionId, intentos } = preparar();
   const primera = db.prepare('SELECT * FROM intento_preguntas WHERE intento_id = ? ORDER BY orden LIMIT 1')

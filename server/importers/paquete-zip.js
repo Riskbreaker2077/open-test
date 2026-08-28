@@ -60,8 +60,16 @@ function descomprimir(buffer, entrada) {
   const comprimido = buffer.subarray(desde, hasta);
   let contenido;
   if (entrada.metodo === 0) contenido = Buffer.from(comprimido);
-  else if (entrada.metodo === 8) contenido = inflateRawSync(comprimido);
-  else throw fallo(`La entrada "${entrada.nombre}" usa una compresión no admitida.`);
+  else if (entrada.metodo === 8) {
+    try {
+      // El límite es el tamaño que la propia entrada declaró: si la entrada
+      // miente para esquivar el tope global (ver más abajo), la descompresión
+      // se corta aquí en vez de inflar sin control en memoria.
+      contenido = inflateRawSync(comprimido, { maxOutputLength: Math.max(1, entrada.descomprimidos) });
+    } catch {
+      throw fallo(`La entrada "${entrada.nombre}" está dañada.`);
+    }
+  } else throw fallo(`La entrada "${entrada.nombre}" usa una compresión no admitida.`);
 
   if (contenido.length !== entrada.descomprimidos || crc32(contenido) !== entrada.crc) {
     throw fallo(`La entrada "${entrada.nombre}" está dañada.`);

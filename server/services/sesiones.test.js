@@ -183,6 +183,23 @@ test('comenzar, pausar y reanudar respetan la máquina de estados', () => {
   cerrarBd(db);
 });
 
+test('pausar una evaluación sin tiempo restante la cierra en vez de dejarla en pausa', () => {
+  const db = preparar();
+  const sesion = crearSesion(db, { ...base, duracion_minutos: 1 });
+  abrirSesion(db, sesion.id);
+  db.prepare(`
+    INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en)
+    VALUES (?, '2024001', 's', 't', '2026-08-26T10:00:00.000Z')
+  `).run(sesion.id);
+  comenzarSesion(db, sesion.id, new Date('2026-08-26T10:00:00.000Z'));
+
+  const resultado = pausarSesion(db, sesion.id, new Date('2026-08-26T10:01:30.000Z'));
+  assert.equal(resultado.estado, 'cerrada');
+  const intento = db.prepare('SELECT * FROM intentos WHERE sesion_id = ?').get(sesion.id);
+  assert.equal(intento.motivo_entrega, 'tiempo');
+  cerrarBd(db);
+});
+
 test('el reloj sin comenzar muestra la duración completa', () => {
   const db = preparar();
   const sesion = crearSesion(db, { ...base, duracion_minutos: 45 });

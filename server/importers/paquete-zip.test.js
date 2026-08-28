@@ -67,6 +67,16 @@ test('lee entradas almacenadas y DEFLATE', () => {
   }
 });
 
+test('una entrada que miente su tamaño descomprimido se rechaza sin inflarla entera', () => {
+  const nombre = 'paquete.json';
+  const contenido = Buffer.alloc(200 * 1024, 'a'); // comprime a casi nada
+  const buffer = zip({ [nombre]: contenido }, { metodo: 8 });
+  const comprimido = deflateRawSync(contenido);
+  const posDescomprimidos = 30 + nombre.length + comprimido.length + 24;
+  buffer.writeUInt32LE(10, posDescomprimidos); // el directorio central ahora dice "10 bytes"
+  assert.throws(() => leerZip(buffer), /dañada/);
+});
+
 test('valida el paquete y sus imágenes como un solo conjunto', () => {
   const resultado = validarPaquete(zip({ 'paquete.json': conImagen, 'imagenes/cabildo.png': 'PNG' }));
   assert.deepEqual(resultado.errores, []);

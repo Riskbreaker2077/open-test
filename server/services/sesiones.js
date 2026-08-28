@@ -168,8 +168,13 @@ export function pausarSesion(db, id, ahora = new Date()) {
     throw error(`Solo se puede pausar una evaluación en curso (está "${sesion.estado}").`, 409);
   }
 
+  const instante = ahora instanceof Date ? ahora : new Date(ahora);
+  if (calcularRestantes(sesion, instante) <= 0) {
+    return cerrarSesion(db, id, { motivo: 'tiempo', ahora: instante });
+  }
+
   db.prepare("UPDATE sesiones SET estado = 'pausada', pausada_en = ? WHERE id = ?")
-    .run(fechaIso(ahora), id);
+    .run(fechaIso(instante), id);
   return obtenerSesion(db, id);
 }
 
@@ -222,6 +227,13 @@ export function actualizarNivelFeedback(db, id, nivel) {
   return obtenerSesion(db, id);
 }
 
+/** Segundos que le quedan a una sesión ya comenzada, sin efectos secundarios. */
+function calcularRestantes(sesion, referencia) {
+  if (!sesion.comenzada_en) return sesion.duracion_minutos * 60;
+  const transcurridos = Math.floor((referencia.getTime() - new Date(sesion.comenzada_en).getTime()) / 1000);
+  return sesion.duracion_minutos * 60 + sesion.segundos_pausados - transcurridos;
+}
+
 /**
  * Segundos del reloj global. Si vence, cierra la sesión y entrega los intentos
  * pendientes; así cualquier cliente que consulte el reloj aplica el plazo.
@@ -233,8 +245,7 @@ export function tiempoRestante(db, sesionOId, ahora = new Date()) {
 
   const referencia = sesion.estado === 'pausada' ? new Date(sesion.pausada_en) :
     (ahora instanceof Date ? ahora : new Date(ahora));
-  const transcurridos = Math.floor((referencia.getTime() - new Date(sesion.comenzada_en).getTime()) / 1000);
-  const restantes = sesion.duracion_minutos * 60 + sesion.segundos_pausados - transcurridos;
+  const restantes = calcularRestantes(sesion, referencia);
 
   if (restantes <= 0 && sesion.estado !== 'cerrada') {
     sesion = cerrarSesion(db, sesion.id, { motivo: 'tiempo', ahora: referencia });
