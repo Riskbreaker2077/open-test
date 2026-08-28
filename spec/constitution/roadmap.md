@@ -20,6 +20,7 @@ _Orden y estado de las features. Cada entrada apunta a su carpeta en `../feature
 14. **014 · [Línea gráfica institucional](../features/014-linea-grafica-institucional/spec.md)** — sistema visual de `portal-estudiantes` adaptado a portal, panel, examen, resultado y proyección de OpenTest, completamente local y adaptable.
 15. **015 · [Paquete de preguntas ZIP](../features/015-paquete-preguntas-zip/spec.md)** — carga unificada y segura de `banco.json` e imágenes, con paquete manual de participación ciudadana listo para usar.
 16. **016 · [Estándar preguntas-icfes](../features/016-estandar-preguntas-icfes/spec.md)** — el banco de preguntas adopta el estándar externo `preguntas-icfes`: metadata pedagógica por pregunta, contenido en bloques (texto/imagen/tabla) y justificación por cada opción; importación unificada en un único ZIP con `paquete.json`; exportación de resultados sube a `formato_version: 2`.
+17. **017 · [Sorteo balanceado por competencia](../features/017-sorteo-balanceado-competencia/spec.md)** — el motor de personalización reparte las preguntas de cada prueba entre las competencias del banco en proporción a su tamaño, en vez de sortear uniformemente sobre todo el banco; un banco sin metadata de competencia se comporta como antes.
 
 > **Revisión de arquitectura (24/08/2026).** El producto pasa a tener tres superficies separadas —portal del estudiante, pantalla de proyección y panel del docente con contraseña—, pueden coexistir varias sesiones abiertas y el temporizador pasa a ser un reloj global de sesión. Eso añade las features 011, 012 y 013, y revisa las specs de 001, 004, 006, 008 y 010. El orden de abajo es el de ejecución; los números son identidad, no secuencia.
 
@@ -34,7 +35,6 @@ Sesión final de validación en Windows/equipo destino, usando el set de partici
 
 - **Preguntas adicionales por rapidez** — el requisito original planteaba penalizar al que responde demasiado rápido añadiéndole preguntas extra. Se optó por el tiempo mínimo por pregunta como mecanismo activo; el campo `sesiones.preguntas_extra_por_rapidez` ya está previsto en el modelo con valor por defecto `0`. Activarlo requiere resolver antes qué pasa con el temporizador global y con la comparabilidad del puntaje entre estudiantes con distinto número de preguntas.
 - **Monitoreo en vivo enriquecido** — ritmo por estudiante, alertas de inactividad, distribución de avance.
-- **Sorteo balanceado por competencia** — desde la 016 cada pregunta ya trae `competencia`; falta que `personalizacion.js` la use para garantizar cobertura proporcional al sortear, en vez de puramente al azar sobre todo el banco.
 - **Estadísticas por pregunta y por competencia** — qué preguntas o competencias falla más el grupo, para revisar el banco.
 - **Exportación a Excel con diseño** — además de los CSV/JSON del contrato v2, un archivo `.xlsx` legible con puntaje, pregunta, respuesta y competencia.
 - **Copia de seguridad con un clic** — exportar `opentest.db` a una memoria USB desde el panel.

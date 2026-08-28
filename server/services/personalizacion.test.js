@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { crearPrng } from './prng.js';
-import { barajar, generarPrueba, muestrear, solapamientoEsperado } from './personalizacion.js';
+import { barajar, cuotasPorCompetencia, generarPrueba, muestrear, solapamientoEsperado } from './personalizacion.js';
 
 /** Banco de prueba: cada pregunta con sus cuatro opciones y la correcta marcada. */
 function banco(total = 50) {
@@ -181,4 +181,54 @@ test('el solapamiento esperado avisa al docente de un banco pequeño', () => {
   assert.equal(solapamientoEsperado(50, 20), 8);
   assert.equal(solapamientoEsperado(25, 20), 16, 'un banco pequeño protege poco');
   assert.equal(solapamientoEsperado(20, 20), 20, 'con el tamaño justo, todos comparten todo');
+});
+
+// --- Sorteo balanceado por competencia --------------------------------
+
+test('cuotasPorCompetencia reparte en proporción exacta al tamaño de cada grupo', () => {
+  const cuotas = cuotasPorCompetencia(new Map([['A', 40], ['B', 30], ['C', 30]]), 20);
+  assert.deepEqual([...cuotas], [['A', 8], ['B', 6], ['C', 6]]);
+});
+
+test('cuotasPorCompetencia reparte el resto por el mayor decimal, con empate alfabético', () => {
+  // 2/3 cada uno: la parte entera es 0 para las tres, y el resto empata.
+  const cuotas = cuotasPorCompetencia(new Map([['A', 1], ['B', 1], ['C', 1]]), 2);
+  assert.deepEqual([...cuotas], [['A', 1], ['B', 1], ['C', 0]]);
+});
+
+test('cuotasPorCompetencia nunca le da a un grupo más cupos de los que tiene', () => {
+  const cuotas = cuotasPorCompetencia(new Map([['A', 1], ['B', 100]]), 5);
+  assert.equal(cuotas.get('A') + cuotas.get('B'), 5);
+  for (const [nombre, cupo] of cuotas) {
+    assert.ok(cupo <= new Map([['A', 1], ['B', 100]]).get(nombre));
+  }
+});
+
+function bancoPorCompetencia(porCompetencia) {
+  let id = 1;
+  return Object.entries(porCompetencia).flatMap(([competencia, cuantas]) =>
+    Array.from({ length: cuantas }, () => ({
+      id: id++,
+      competencia,
+      opciones: [0, 1, 2, 3].map((j) => ({ id: id * 10 + j, correcta: j === 0 })),
+    })));
+}
+
+test('generarPrueba garantiza cobertura proporcional por competencia en cada intento', () => {
+  const preguntas = bancoPorCompetencia({ lectura: 10, ciencias: 10, matematicas: 10, sociales: 10 });
+
+  for (const semilla of ['ana', 'beto', 'caro', 'dani', 'elsa']) {
+    const generada = generarPrueba({ preguntas, nPreguntas: 20, semilla });
+    const porId = new Map(preguntas.map((p) => [p.id, p.competencia]));
+    const conteo = { lectura: 0, ciencias: 0, matematicas: 0, sociales: 0 };
+    for (const fila of generada) conteo[porId.get(fila.preguntaId)] += 1;
+    assert.deepEqual(conteo, { lectura: 5, ciencias: 5, matematicas: 5, sociales: 5 }, `semilla ${semilla}`);
+  }
+});
+
+test('un banco sin competencia (anterior a la 016) se sortea como antes: al azar sobre todo', () => {
+  const preguntas = banco(); // fixture sin campo `competencia`
+  const generada = generarPrueba({ preguntas, nPreguntas: 20, semilla: 'compat' });
+  assert.equal(generada.length, 20);
+  assert.equal(new Set(generada.map((f) => f.preguntaId)).size, 20);
 });

@@ -109,3 +109,38 @@ archivos sin errores. No se hizo la prueba manual en navegador (fuera del
 alcance de este cambio, que es de datos/backend) ni commit: los cambios
 quedan pendientes de revisión y aprobación explícita del usuario antes de
 confirmarlos.
+
+## 28/08/2026 — Commit de 014-016, correcciones de revisión y feature 017
+
+Se revisó y aprobó todo el trabajo acumulado de las features 014, 015 y 016,
+y se comiteó en un solo commit (`1b42496`) porque los cambios de archivo
+estaban entrelazados entre las tres. `main` quedó por delante de
+`origin/main`, sin `push`.
+
+Una revisión de código sobre ese commit encontró tres problemas reales, que
+se corrigieron y comitearon aparte (`5d29fcf`): `pausarSesion` no comprobaba
+el tiempo restante antes de pausar, así que pausar justo cuando el reloj ya
+había llegado a cero dejaba la sesión aparentemente pausada hasta que el
+siguiente sondeo la cerraba en silencio — ahora pausar con el reloj vencido
+cierra la sesión de una vez, igual que el vencimiento normal. `leerZip()`
+confiaba en el tamaño descomprimido que el propio ZIP declara para el tope
+global de 50 MB, pero `inflateRawSync()` descomprimía cada entrada entera
+antes de comparar ese tamaño contra el real: una entrada que mintiera su
+tamaño declarado podía inflar sin límite en memoria; ahora cada entrada se
+descomprime con un tope igual a su propio tamaño declarado. Y
+`armarExportacion()` asumía que siempre hay una opción correcta entre las
+mostradas, lo que ya no es cierto si el banco cambia después de materializar
+la sesión; ahora lanza un error claro en vez de un `TypeError` críptico.
+
+Se implementó además la feature 017, sorteo balanceado por competencia:
+`personalizacion.js` agrupa las preguntas del banco por `competencia` y
+reparte los cupos de cada prueba en proporción al tamaño de cada grupo
+(método del resto mayor), en vez de sortear uniformemente sobre todo el
+banco. Un banco sin metadata de competencia (anterior a la 016) cae entero
+en un único grupo y se comporta exactamente como antes. `bancos.js` ganó
+`competencia` en `idsDePreguntasYOpciones` para que el dato llegue hasta el
+motor. Toda la suite existente de la 005 quedó intacta sin tocar un solo
+assert, que es la prueba de que no se rompió nada.
+
+La suite completa terminó con 304 de 304 tests aprobados y lint sobre 79
+archivos sin errores.

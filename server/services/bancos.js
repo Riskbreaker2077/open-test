@@ -96,10 +96,16 @@ export function preguntasDeBanco(db, bancoId) {
  * necesita para sortear, y evita arrastrar enunciados de mil caracteres.
  */
 export function idsDePreguntasYOpciones(db, bancoId) {
-  const preguntas = db.prepare('SELECT id FROM preguntas WHERE banco_id = ? ORDER BY id').all(bancoId);
+  const preguntas = db
+    .prepare('SELECT id, competencia FROM preguntas WHERE banco_id = ? ORDER BY id')
+    .all(bancoId);
   const opciones = db.prepare('SELECT id FROM opciones WHERE pregunta_id = ? ORDER BY id');
 
-  return preguntas.map((pregunta) => ({ id: pregunta.id, opciones: opciones.all(pregunta.id) }));
+  return preguntas.map((pregunta) => ({
+    id: pregunta.id,
+    competencia: pregunta.competencia,
+    opciones: opciones.all(pregunta.id),
+  }));
 }
 
 export function obtenerBanco(db, bancoId) {

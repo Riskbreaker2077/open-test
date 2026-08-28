@@ -32,5 +32,5 @@ El determinismo importa por dos razones distintas: permite reanudar un examen tr
 
 - Mostrar las preguntas al estudiante (feature 006).
 - Preguntas extra por rapidez: el campo existe en el modelo con valor `0` y el motor no lo implementa (backlog).
-- Sorteo estratificado por tema o dificultad (backlog): en v1 el muestreo es uniforme.
+- Sorteo estratificado por competencia: implementado en la [feature 017](../017-sorteo-balanceado-competencia/spec.md).
 - Calificar (feature 007).
