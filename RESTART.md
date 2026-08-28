@@ -17,7 +17,7 @@
 
 ## Estado
 
-- Git: working tree con los cambios de la 018 sin commit (nuevos: `server/exporters/zip-escritor.js`, `.test.js`, `xlsx.js`, `.test.js`, `spec/features/018-exportacion-excel/`; modificados: `resultados.js`, `resultados.test.js`, `docente.js`, `docente.sesiones.test.js`, `resultados.html`, `resultados.js` del panel, `AGENTS.md`, `spec/bitacora.md`, `spec/constitution/roadmap.md`, este archivo). Falta decidir con el usuario si se comitea y se hace `push`.
+- Git: feature 018 comiteada (`e16de7c`). `main` queda un commit por delante de `origin/main`; falta decidir el `push`.
 - Tests: 315/315 en verde (304 antes de esta sesión; 11 nuevos: escritor de ZIP, libro Excel, `aExcel`, ruta `/export/excel`).
 - Lint: 83 archivos revisados, sin errores.
 - Build: no se tocó.
@@ -26,7 +26,7 @@
 
 ## Siguiente tarea
 
-1. Decidir con el usuario si se comitea la feature 018 y si se hace `push`.
+1. Decidir con el usuario si se hace `push` de `main` a `origin/main`.
 2. Si se va a usar la sesión "Participación ciudadana" local, reimportar el banco con el `paquete.json` regenerado para que tenga metadata y justificación (pendiente desde la 016).
 3. Transferir el estado a la máquina Windows y ejecutar `npm test`.
 4. Ejecutar en conjunto las verificaciones físicas pendientes de 012, 013, 006, 007, 009, 010, y ahora también abrir el `.xlsx` de la 018 en Excel/LibreOffice reales.
@@ -35,5 +35,5 @@
 
 - Hace falta el equipo Windows con tablets/proyector para QR, red wifi, orientación, legibilidad y pérdida real de conexión.
 - Falta construir/probar el SEA en Windows sin Node, revisar SmartScreen/cortafuegos y abrir los CSV y el nuevo `.xlsx` en Excel.
-- Falta decidir el commit y el `push` de la feature 018.
+- Falta decidir el `push` de la feature 018.
 - Backlog abierto: monitoreo en vivo enriquecido, estadísticas por pregunta/competencia, backup con un clic, y decidir si/cómo migrar bancos anteriores a la 016 (ver roadmap).
