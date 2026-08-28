@@ -6,13 +6,17 @@
   <title>OpenTest — Panel del docente</title>
   <link rel="stylesheet" href="/shared/base.css">
 </head>
-<body>
+<body class="superficie-docente docente-inicio">
   <header class="barra">
-    <strong>OpenTest</strong>
+    <a class="marca marca--compacta" href="/docente/">
+      <span class="marca__logo"><img src="/assets/logo-institucional.png" alt=""></span>
+      <span class="marca__texto"><strong>OpenTest</strong><small>Panel del docente</small></span>
+    </a>
     <button class="boton boton--secundario boton--pequeno" id="salir">Cerrar sesión</button>
   </header>
 
   <main class="contenedor">
+    <p class="sobretitulo">Gestión de evaluaciones</p>
     <h1>Panel del docente</h1>
 
     <nav class="accesos">
@@ -27,6 +31,14 @@
       <a class="acceso" href="/docente/sesiones.html">
         <strong>Evaluaciones</strong>
         Convocar una prueba para un curso y abrirla el día del examen.
+      </a>
+      <a class="acceso" href="/docente/monitoreo.html">
+        <strong>Monitorear evaluación</strong>
+        Ver quién entró, por dónde va y quién ya entregó.
+      </a>
+      <a class="acceso" href="/docente/resultados.html">
+        <strong>Descargar resultados</strong>
+        Obtener el resumen, el detalle o el archivo completo.
       </a>
     </nav>
 

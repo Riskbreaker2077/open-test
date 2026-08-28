@@ -20,10 +20,10 @@ _La referencia técnica que ningún plan de feature debería contradecir._
 - `server/migraciones.js` — lista ordenada de pasos idempotentes para poner al día una base ya creada.
 - `server/routes/docente.js` — API del panel del docente (`/api/docente/*`).
 - `server/routes/examen.js` — API del estudiante (`/api/examen/*`).
-- `server/services/` — lógica de dominio: `personalizacion.js`, `calificacion.js`, `sesiones.js`, `auth.js`.
+- `server/services/` — lógica de dominio: `personalizacion.js`, `calificacion.js`, `sesiones.js`, `auth.js`, `bancos.js`, `examen.js`, `bloques.js` (leer/escribir los bloques de contenido de una pregunta).
 - `server/qr.js` — generador de códigos QR sin dependencias, para la pantalla de proyección.
-- `server/importers/` — `estudiantes.js`, `preguntas.js`, y `csv.js` (parser propio compartido).
-- `server/exporters/` — `resultados.js`, que produce los tres archivos del contrato v1.
+- `server/importers/` — `estudiantes.js`, `preguntas.js`, `paquete-zip.js`, `csv.js` (parser propio compartido) y `estandar-preguntas-icfes.js` (validador del estándar externo, vendorizado).
+- `server/exporters/` — `resultados.js`, que produce los tres archivos del contrato v2.
 - `public/docente/` — interfaz del docente.
 - `public/proyeccion/` — la pantalla que se proyecta al aula.
 - `public/estudiante/` — interfaz del examen.
@@ -85,15 +85,36 @@ Tablas SQLite. Se documentan los campos no obvios y, sobre todo, **las invariant
 - Un banco es el paquete de 40–50 preguntas que el docente carga de una vez.
 
 ### `preguntas`
+Sigue el estándar externo **preguntas-icfes v1**
+(github.com/riskbreaker2077/preguntas-icfes; contrato local en
+`spec/contracts/paquete-preguntas-icfes.md`).
+
 - `id` INTEGER PK, `banco_id` FK → `bancos.id`.
-- `contexto` TEXT NULL — texto introductorio compartido (una lectura, un caso).
-- `imagen` TEXT NULL — nombre de archivo relativo a `data/uploads/imagenes/`.
-- `enunciado` TEXT NOT NULL — la pregunta en sí.
-- `explicacion` TEXT NULL — se muestra al estudiante solo si el nivel de feedback de la sesión lo permite.
+- `contexto` TEXT NOT NULL DEFAULT `'[]'` — JSON de un array de **bloques**
+  (`{tipo: "texto"|"imagen"|"tabla", ...}`), nunca texto plano. Array vacío =
+  sin contexto propio.
+- `enunciado` TEXT NOT NULL — igual que `contexto`, JSON de bloques; nunca vacío.
+- `imagen` TEXT NULL — **columna heredada, sin usar desde la 016.** Las
+  imágenes ahora son bloques dentro de `contexto`/`enunciado`/opciones.
+- `competencia`, `componente`, `afirmacion`, `evidencia`, `estandar_asociado`,
+  `que_evalua` TEXT NOT NULL DEFAULT `''` — la tabla de especificaciones de la
+  pregunta. En blanco solo en bancos cargados antes de la 016 y no
+  reimportados; el importador exige que un paquete nuevo los traiga todos.
+- Se leen con `server/services/bloques.js` (`analizarBloques`): si el
+  contenido no es JSON válido (banco anterior a la 016), se envuelve como un
+  único bloque de texto en vez de romper.
 
 ### `opciones`
-- `id` INTEGER PK, `pregunta_id` FK, `texto` TEXT NOT NULL, `es_correcta` INTEGER (0/1).
-- **Invariante: exactamente 4 opciones por pregunta y exactamente una con `es_correcta = 1`.** Se valida en la importación; un banco que la incumpla se rechaza entero.
+- `id` INTEGER PK, `pregunta_id` FK, `texto` TEXT NOT NULL, `es_correcta` INTEGER (0/1), `justificacion` TEXT NOT NULL DEFAULT `''`.
+- `texto` guarda JSON de bloques, igual que `contexto`/`enunciado` (el nombre
+  de columna no cambió, pero ya no es texto plano).
+- `justificacion` es la razón de esa opción en particular, correcta o no —
+  **no** una única explicación general de la pregunta. En blanco solo en
+  opciones de un banco anterior a la 016.
+- **Invariante: exactamente 4 opciones por pregunta, exactamente una con
+  `es_correcta = 1`, y las 4 con `justificacion` no vacía en un banco
+  cargado desde la 016.** Se valida en la importación; un banco que la
+  incumpla se rechaza entero.
 
 ### `sesiones`
 - `id` INTEGER PK, `nombre` TEXT, `banco_id` FK.
@@ -119,6 +140,8 @@ Tablas SQLite. Se documentan los campos no obvios y, sobre todo, **las invariant
 - `iniciado_en`, `entregado_en` TEXT (ISO 8601, `entregado_en` NULL mientras presenta).
 - `motivo_entrega` TEXT — `manual` | `tiempo` | `ultima_pregunta` | `forzada_docente`.
 - `puntaje`, `aciertos` INTEGER — se calculan al entregar.
+- `pregunta_actual` INTEGER — orden que estaba viendo; permite recargar o cambiar de tablet y retomar exactamente ahí.
+- `pregunta_mostrada_en` TEXT NULL — inicio de la vista actual según el servidor; hace exigible el tiempo mínimo sin confiar en la tablet.
 - Invariante: un `(sesion_id, codigo_estudiante)` como máximo. Un estudiante que ya entregó no puede volver a entrar.
 
 ### `intento_preguntas`

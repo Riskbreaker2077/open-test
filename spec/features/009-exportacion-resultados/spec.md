@@ -1,6 +1,6 @@
 # 009 · Exportación de resultados
 
-**Estado:** propuesta
+**Estado:** implementado ✅
 
 ## Qué hace
 
@@ -18,22 +18,26 @@ El detalle pregunta a pregunta es lo que hace posible la retroalimentación real
 
 ## Criterios de aceptación
 
-- [ ] Se pueden descargar los tres archivos para una sesión cerrada.
-- [ ] Se puede filtrar la descarga por curso; sin filtro, salen todos los cursos convocados.
-- [ ] Las cabeceras de los CSV coinciden **exactamente** con las del contrato, en el mismo orden (test que las compara literalmente).
-- [ ] `formato_version` vale `1` en los tres archivos.
+- [x] Se pueden descargar los tres archivos para una sesión cerrada.
+- [x] Se puede filtrar la descarga por curso; sin filtro, salen todos los cursos convocados.
+- [x] Las cabeceras de los CSV coinciden **exactamente** con las del contrato, en el mismo orden (test que las compara literalmente).
+- [x] `formato_version` vale `1` en los tres archivos.
 - [ ] Los CSV se generan en UTF-8 **con BOM** y las tildes se ven bien al abrirlos en Excel en Windows.
-- [ ] Los campos con comas, comillas o saltos de línea se escapan correctamente y el archivo sigue siendo válido.
-- [ ] Cada fila del detalle corresponde a una pregunta asignada; una pregunta a la que el estudiante nunca llegó aparece con `saltada = 1` y `segundos = 0`.
-- [ ] Una pregunta saltada tiene `opcion_elegida_texto` vacío y `acierto = 0`.
-- [ ] `opcion_correcta_texto` siempre trae la correcta, aunque el estudiante fallara.
-- [ ] En el resumen, `respondidas + saltadas = total_preguntas` para todos los estudiantes.
-- [ ] `porcentaje` coincide con `aciertos / total_preguntas * 100` con un decimal.
-- [ ] En el JSON, `opciones_mostradas` respeta el orden real que vio el estudiante, verificable contra `intento_preguntas.orden_opciones`.
-- [ ] Se exportan también los intentos sin entregar, con `entrega` vacía.
-- [ ] Los nombres de archivo descargados siguen el patrón `opentest_<sesion>_<curso>_<tipo>_<fecha>.csv`.
-- [ ] Exportar una sesión con 40 estudiantes y 20 preguntas tarda menos de 2 segundos.
-- [ ] Se puede exportar una sesión antigua ya cerrada, no solo la última.
+- [x] Los campos con comas, comillas o saltos de línea se escapan correctamente y el archivo sigue siendo válido.
+- [x] Cada fila del detalle corresponde a una pregunta asignada; una pregunta a la que el estudiante nunca llegó aparece con `saltada = 1` y `segundos = 0`.
+- [x] Una pregunta saltada tiene `opcion_elegida_texto` vacío y `acierto = 0`.
+- [x] `opcion_correcta_texto` siempre trae la correcta, aunque el estudiante fallara.
+- [x] En el resumen, `respondidas + saltadas = total_preguntas` para todos los estudiantes.
+- [x] `porcentaje` coincide con `aciertos / total_preguntas * 100` con un decimal.
+- [x] En el JSON, `opciones_mostradas` respeta el orden real que vio el estudiante, verificable contra `intento_preguntas.orden_opciones`.
+- [x] Se exportan también los intentos sin entregar, con `entrega` vacía.
+- [x] Los nombres de archivo descargados siguen el patrón `opentest_<sesion>_<curso>_<tipo>_<fecha>.<csv|json>`.
+- [x] Exportar una sesión con 40 estudiantes y 20 preguntas tarda menos de 2 segundos.
+- [x] Se puede exportar una sesión antigua ya cerrada, no solo la última.
+
+## Cierre
+
+Implementación cerrada con 15 de 16 criterios verificados. Abrir los CSV en Excel sobre Windows para confirmar visualmente tildes y columnas queda aplazado a la sesión final con el equipo destino; la presencia del BOM UTF-8 sí está verificada byte a byte.
 
 ## Fuera de alcance
 

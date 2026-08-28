@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { idsDePreguntasYOpciones } from './bancos.js';
 import { generarPrueba } from './personalizacion.js';
 import { puedeEntrar } from './sesiones.js';
+import { entregarIntentoCalificado } from './calificacion.js';
 
 const error = (mensaje, estado = 400) => Object.assign(new Error(mensaje), { estado });
 
@@ -16,9 +17,6 @@ const error = (mensaje, estado = 400) => Object.assign(new Error(mensaje), { est
  * identificó es la única que sigue valiendo.
  */
 export function iniciarOReanudarIntento(db, sesion, estudiante) {
-  const motivo = puedeEntrar(sesion, estudiante);
-  if (motivo) throw error(motivo, 409);
-
   const token = randomBytes(32).toString('hex');
 
   return db.transaction(() => {
@@ -27,9 +25,14 @@ export function iniciarOReanudarIntento(db, sesion, estudiante) {
       .get(sesion.id, estudiante.codigo);
 
     if (existente) {
+      const motivo = puedeEntrar(sesion, estudiante);
+      if (motivo && !existente.entregado_en) throw error(motivo, 409);
       db.prepare('UPDATE intentos SET token = ? WHERE id = ?').run(token, existente.id);
       return { intento: { ...existente, token }, nuevo: false };
     }
+
+    const motivo = puedeEntrar(sesion, estudiante);
+    if (motivo) throw error(motivo, 409);
 
     const id = db
       .prepare(`
@@ -115,4 +118,19 @@ export function contarIntentos(db, sesionId) {
       FROM intentos WHERE sesion_id = ?
     `)
     .get(sesionId);
+}
+
+export function forzarEntrega(db, intentoId, ahora = new Date()) {
+  const intento = db.prepare('SELECT * FROM intentos WHERE id = ?').get(intentoId);
+  if (!intento) throw error('Ese intento no existe.', 404);
+  if (intento.entregado_en) return { intento, nueva: false };
+  const sesion = db.prepare('SELECT * FROM sesiones WHERE id = ?').get(intento.sesion_id);
+  if (sesion.estado === 'cerrada' || sesion.estado === 'borrador') {
+    throw error('No se puede forzar una entrega en el estado actual de la evaluación.', 409);
+  }
+  const entregadoEn = (ahora instanceof Date ? ahora : new Date(ahora)).toISOString();
+  return {
+    intento: entregarIntentoCalificado(db, intento.id, 'forzada_docente', entregadoEn),
+    nueva: true,
+  };
 }

@@ -1,6 +1,6 @@
 # 008 · Panel del docente
 
-**Estado:** propuesta
+**Estado:** implementado ✅
 
 ## Qué hace
 
@@ -18,20 +18,24 @@ Es también el contrapeso práctico a que el login no tenga contraseña: ver el 
 
 ## Criterios de aceptación
 
-- [ ] El panel permite elegir entre las sesiones abiertas o en curso, ya que puede haber varias, y muestra la elegida con su nombre, banco, cursos y parámetros.
-- [ ] Enlaza a la pantalla de proyección (feature [012](../012-pantalla-proyeccion/spec.md)), que es donde viven el QR y el reloj para el aula.
-- [ ] Exige sesión de docente (feature [011](../011-autenticacion-docente/spec.md)): sin contraseña no es alcanzable desde una tablet.
-- [ ] Lista los estudiantes convocados con su estado: `sin entrar`, `presentando` o `entregado`.
-- [ ] De quien está presentando, muestra por qué pregunta va y cuánto tiempo le queda.
-- [ ] De quien entregó, muestra su puntaje, su porcentaje y el motivo de entrega.
-- [ ] Muestra los contadores agregados: convocados, dentro, entregados, sin entrar.
-- [ ] La vista se actualiza sola al menos cada 5 segundos, sin que el docente recargue.
-- [ ] Se puede forzar la entrega de un estudiante concreto, con confirmación; queda con `motivo_entrega = "forzada_docente"`.
-- [ ] Se puede cerrar la sesión, con confirmación que indica cuántos siguen presentando.
-- [ ] Al cerrar la sesión, todos los intentos vivos se entregan y se califican automáticamente.
-- [ ] Una vez cerrada, ningún estudiante puede entrar ni responder.
-- [ ] El panel funciona con 40 estudiantes presentando a la vez sin degradarse de forma perceptible.
-- [ ] Si no hay ninguna sesión abierta, el panel lo dice y ofrece crear una, en lugar de mostrarse vacío.
+- [x] El panel permite elegir entre las sesiones abiertas o en curso, ya que puede haber varias, y muestra la elegida con su nombre, banco, cursos y parámetros.
+- [x] Enlaza a la pantalla de proyección (feature [012](../012-pantalla-proyeccion/spec.md)), que es donde viven el QR y el reloj para el aula.
+- [x] Exige sesión de docente (feature [011](../011-autenticacion-docente/spec.md)): sin contraseña no es alcanzable desde una tablet.
+- [x] Lista los estudiantes convocados con su estado: `sin entrar`, `presentando` o `entregado`.
+- [x] De quien está presentando, muestra por qué pregunta va y cuánto tiempo le queda.
+- [x] De quien entregó, muestra su puntaje, su porcentaje y el motivo de entrega.
+- [x] Muestra los contadores agregados: convocados, dentro, entregados, sin entrar.
+- [x] La vista se actualiza sola al menos cada 5 segundos, sin que el docente recargue.
+- [x] Se puede forzar la entrega de un estudiante concreto, con confirmación; queda con `motivo_entrega = "forzada_docente"`.
+- [x] Se puede cerrar la sesión, con confirmación que indica cuántos siguen presentando.
+- [x] Al cerrar la sesión, todos los intentos vivos se entregan y se califican automáticamente.
+- [x] Una vez cerrada, ningún estudiante puede entrar ni responder.
+- [x] El panel funciona con 40 estudiantes presentando a la vez sin degradarse de forma perceptible.
+- [x] Si no hay ninguna sesión abierta, el panel lo dice y ofrece crear una, en lugar de mostrarse vacío.
+
+## Cierre
+
+Implementación cerrada con los 14 criterios verificados. La consulta de 40 convocados se mantiene ampliamente por debajo del límite de 200 ms en la prueba automatizada.
 
 ## Fuera de alcance
 

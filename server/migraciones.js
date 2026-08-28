@@ -74,6 +74,32 @@ const MIGRACIONES = [
       db.exec('DROP INDEX IF EXISTS idx_una_sesion_abierta');
     },
   },
+  {
+    version: 2,
+    descripcion: 'Posición y tiempo de vista del examen por intento',
+    aplicar(db) {
+      anadirColumna(db, 'intentos', 'pregunta_actual', 'INTEGER NOT NULL DEFAULT 1');
+      anadirColumna(db, 'intentos', 'pregunta_mostrada_en', 'TEXT');
+    },
+  },
+  {
+    version: 3,
+    descripcion: 'Estándar preguntas-icfes: metadata pedagógica y justificación por opción',
+    aplicar(db) {
+      // Un banco ya cargado no tiene esta metadata y no se puede inventar
+      // retroactivamente: queda en '' hasta que el docente reimporte con el
+      // paquete nuevo. `contexto`/`texto` ya guardaban texto plano; una base
+      // vieja sigue teniendo ese texto plano en la columna hasta que se
+      // reimporte, momento en el que preguntas.js escribe JSON de bloques.
+      anadirColumna(db, 'preguntas', 'competencia', "TEXT NOT NULL DEFAULT ''");
+      anadirColumna(db, 'preguntas', 'componente', "TEXT NOT NULL DEFAULT ''");
+      anadirColumna(db, 'preguntas', 'afirmacion', "TEXT NOT NULL DEFAULT ''");
+      anadirColumna(db, 'preguntas', 'evidencia', "TEXT NOT NULL DEFAULT ''");
+      anadirColumna(db, 'preguntas', 'estandar_asociado', "TEXT NOT NULL DEFAULT ''");
+      anadirColumna(db, 'preguntas', 'que_evalua', "TEXT NOT NULL DEFAULT ''");
+      anadirColumna(db, 'opciones', 'justificacion', "TEXT NOT NULL DEFAULT ''");
+    },
+  },
 ];
 
 export const ULTIMA_VERSION = MIGRACIONES.at(-1)?.version ?? 0;

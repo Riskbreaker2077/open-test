@@ -14,16 +14,17 @@ El renderizado reutiliza `public/shared/pregunta.js`, el mismo módulo que ya us
    - `GET /api/examen/pregunta/:n` — devuelve contexto, imagen, enunciado y opciones **en el orden guardado**, la respuesta previa si la hay, el progreso y los segundos restantes del examen. **Nunca `es_correcta`.**
    - `POST /api/examen/responder` — `{ n, opcionId | null, segundos }`. Valida que el intento esté vivo, que el tiempo no se haya agotado y que se cumpla el mínimo por pregunta. Guarda con `INSERT ... ON CONFLICT DO UPDATE` sobre `intento_pregunta_id`.
    - `POST /api/examen/entregar` — cierra el intento con `motivo_entrega`.
-2. `server/services/examen.js` — `estadoDeIntento(db, intento)`: calcula pregunta actual, restantes y segundos que quedan a partir del **reloj global de la sesión** (`comenzada_en`, `duracion_minutos`, `segundos_pausados`), no del momento en que entró el estudiante. `verificarTiempo(db, intento)`: si el plazo venció, entrega automáticamente con motivo `tiempo`; se invoca al principio de **toda** ruta del examen, de modo que el corte no dependa de que el navegador avise.
-3. `public/estudiante/examen.html` + `examen.js`:
+2. `server/services/examen.js` — `estadoDeIntento(db, intento)`: calcula pregunta actual, restantes y segundos que quedan a partir del **reloj global de la sesión** (`comenzada_en`, `duracion_minutos`, `segundos_pausados`), no del momento en que entró el estudiante. `verificarTiempo(db, intento)`: si el plazo venció, entrega automáticamente con motivo `tiempo`; se invoca al principio de toda ruta que opere sobre un intento, de modo que el corte no dependa de que el navegador avise.
+3. `server/schema.sql` + `server/migraciones.js` — el intento persiste `pregunta_actual` y `pregunta_mostrada_en`. La primera permite recargar exactamente donde iba; la segunda permite que el servidor compruebe el mínimo sin confiar en el reloj de la tablet. Una migración idempotente añade ambas columnas a bases existentes.
+4. `public/estudiante/examen.html` + `examen.js`:
    - carga el estado al abrir y navega a la pregunta que corresponda;
    - deshabilita "Siguiente" y muestra la cuenta atrás del mínimo por pregunta;
    - envía la respuesta y **solo entonces** avanza, con indicador de "guardando" y reintento con aviso visible si falla;
    - temporizador global que se **resincroniza con el servidor** en cada petición, en lugar de contar solo en local;
    - diálogo de "Terminar la prueba" con el recuento de no respondidas;
    - en la última pregunta, el botón de avanzar se convierte en "Terminar", que entrega con motivo `ultima_pregunta`.
-4. `public/estudiante/examen.css` — tipografía grande, opciones como tarjetas táctiles, sin scroll horizontal, área de toque generosa.
-5. Tests de servidor: rechazo de respuesta antes del mínimo, rechazo tras agotarse el tiempo, entrega automática por tiempo, respuesta sobre intento ya entregado rechazada, orden de opciones estable entre llamadas, ausencia de `es_correcta` en todas las respuestas, y reanudación devolviendo la misma pregunta y las mismas respuestas.
+5. `public/estudiante/examen.css` — tipografía grande, opciones como tarjetas táctiles, sin scroll horizontal, área de toque generosa.
+6. Tests de servidor: rechazo de respuesta antes del mínimo, rechazo tras agotarse el tiempo, entrega automática por tiempo, respuesta sobre intento ya entregado rechazada, orden de opciones estable entre llamadas, ausencia de `es_correcta` en todas las respuestas, y reanudación devolviendo la misma pregunta y las mismas respuestas.
 
 ## Decisiones
 
@@ -32,6 +33,7 @@ El renderizado reutiliza `public/shared/pregunta.js`, el mismo módulo que ya us
 - **Guardado inmediato por respuesta, sin cola offline** — la intranet del aula está a metros del portátil; una cola offline añadiría una clase entera de errores de sincronización a cambio de cubrir un escenario que la propia arquitectura ya asume disponible. Se documenta como límite.
 - **Permitir volver atrás y cambiar la respuesta** — el requisito pedía poder saltar; saltar sin poder volver haría la función inútil. La navegación libre entre las preguntas asignadas es la lectura razonable.
 - **Los segundos por pregunta los reporta el cliente y los acota el servidor** — el cliente sabe cuánto estuvo la pregunta en pantalla; el servidor recorta valores imposibles para que el dato exportado sea útil sin ser manipulable.
+- **La posición actual y el comienzo de la vista viven en el intento** — no se infieren de la primera pregunta sin respuesta: el estudiante puede saltar, volver atrás o cambiar una respuesta. Guardarlas explícitamente hace que una recarga retome la pantalla exacta y permite validar el mínimo con tiempo del servidor.
 - **Renderizado compartido con la previsualización del docente** — garantiza que lo que el docente revisó es lo que el estudiante ve.
 
 ## Riesgos

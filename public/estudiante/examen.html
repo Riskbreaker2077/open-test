@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenTest — Examen</title>
+  <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="/estudiante/examen.css">
+</head>
+<body class="superficie-estudiante">
+  <header class="cabecera-examen">
+    <strong id="progreso">Pregunta — de —</strong>
+    <span class="reloj-examen" id="reloj">--:--</span>
+  </header>
+
+  <main class="examen" id="examen" hidden>
+    <div id="pregunta"></div>
+    <p class="estado-guardado" id="estado-guardado" role="status">Sin cambios pendientes.</p>
+    <p class="aviso" id="error" role="alert" hidden></p>
+
+    <nav class="navegacion" aria-label="Navegación del examen">
+      <button class="boton boton--secundario" id="anterior" type="button">Anterior</button>
+      <button class="boton boton--secundario" id="saltar" type="button">Saltar</button>
+      <button class="boton" id="siguiente" type="button">Siguiente</button>
+    </nav>
+    <p class="cuenta-minima" id="cuenta-minima"></p>
+    <button class="terminar" id="terminar" type="button">Terminar la prueba</button>
+  </main>
+
+  <main class="tarjeta tarjeta--centrada espera-examen" id="espera">
+    <h1 id="titulo-espera">Preparando tu prueba…</h1>
+    <p id="texto-espera">Espera un momento.</p>
+  </main>
+
+  <script type="module" src="/estudiante/examen.js"></script>
+</body>
+</html>

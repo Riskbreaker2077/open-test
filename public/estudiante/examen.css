@@ -1,0 +1,107 @@
+body {
+  padding-top: 5.5rem;
+  overflow-x: hidden;
+}
+
+.cabecera-examen {
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 100%;
+  min-height: 4.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem max(1rem, calc((100vw - var(--ancho)) / 2));
+  color: #fff;
+  border-bottom: 3px solid var(--dorado-500);
+  background:
+    linear-gradient(90deg, rgb(255 255 255 / 4%) 1px, transparent 1px),
+    var(--azul-950);
+  background-size: 4.5rem 100%, auto;
+}
+
+.reloj-examen {
+  font-size: 1.55rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.examen {
+  width: 100%;
+  max-width: var(--ancho);
+  margin: 0 auto;
+}
+
+.estado-guardado {
+  min-height: 1.6em;
+  margin: 1rem 0 0.5rem;
+  color: var(--tinta-suave);
+  font-weight: 600;
+}
+
+.estado-guardado--guardando {
+  color: var(--dorado-600);
+}
+
+.estado-guardado--guardado {
+  color: var(--exito);
+}
+
+.navegacion {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.navegacion .boton {
+  width: 100%;
+  min-width: 0;
+  padding-inline: 0.5rem;
+}
+
+.cuenta-minima {
+  min-height: 1.6em;
+  margin: 0.55rem 0;
+  text-align: right;
+  color: var(--tinta-suave);
+}
+
+.terminar {
+  display: block;
+  min-height: var(--toque);
+  margin: 1.5rem auto 0;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  color: var(--error);
+  background: transparent;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.espera-examen {
+  margin-top: 10vh;
+}
+
+.superficie-estudiante .examen > #pregunta {
+  padding: clamp(1.15rem, 3vw, 2rem);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--papel);
+  box-shadow: var(--sombra);
+}
+
+@media (max-width: 32rem) {
+  .navegacion {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #siguiente {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+}

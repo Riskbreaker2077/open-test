@@ -24,24 +24,38 @@ CREATE TABLE IF NOT EXISTS bancos (
   creado_en TEXT NOT NULL
 );
 
+-- Sigue el estándar externo preguntas-icfes v1
+-- (https://github.com/riskbreaker2077/preguntas-icfes, ver
+-- spec/contracts/paquete-preguntas-icfes.md). `contexto` y `enunciado`
+-- guardan JSON serializado: un array de bloques `{tipo: texto|imagen|tabla, ...}`,
+-- nunca texto plano. `imagen` queda como columna heredada, sin usar desde la
+-- 016: las imágenes ahora son bloques dentro de contexto/enunciado/opciones.
 CREATE TABLE IF NOT EXISTS preguntas (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  banco_id    INTEGER NOT NULL REFERENCES bancos (id) ON DELETE CASCADE,
-  contexto    TEXT,
-  imagen      TEXT,
-  enunciado   TEXT NOT NULL,
-  explicacion TEXT
+  id                INTEGER PRIMARY KEY AUTOINCREMENT,
+  banco_id          INTEGER NOT NULL REFERENCES bancos (id) ON DELETE CASCADE,
+  contexto          TEXT NOT NULL DEFAULT '[]',
+  imagen            TEXT,
+  enunciado         TEXT NOT NULL,
+  competencia       TEXT NOT NULL DEFAULT '',
+  componente        TEXT NOT NULL DEFAULT '',
+  afirmacion        TEXT NOT NULL DEFAULT '',
+  evidencia         TEXT NOT NULL DEFAULT '',
+  estandar_asociado TEXT NOT NULL DEFAULT '',
+  que_evalua        TEXT NOT NULL DEFAULT ''
 );
 
 CREATE INDEX IF NOT EXISTS idx_preguntas_banco ON preguntas (banco_id);
 
--- Invariante: exactamente 4 opciones por pregunta y exactamente una correcta.
--- No es expresable en SQL; la garantiza el importador (feature 003).
+-- Invariante: exactamente 4 opciones por pregunta y exactamente una correcta,
+-- y cada opción trae su propia justificación (incluidas las incorrectas). No
+-- es expresable en SQL; lo garantiza el importador (features 003 y 016).
+-- `texto` guarda JSON serializado: un array de bloques, igual que `contexto`.
 CREATE TABLE IF NOT EXISTS opciones (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  pregunta_id INTEGER NOT NULL REFERENCES preguntas (id) ON DELETE CASCADE,
-  texto       TEXT NOT NULL,
-  es_correcta INTEGER NOT NULL CHECK (es_correcta IN (0, 1))
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  pregunta_id   INTEGER NOT NULL REFERENCES preguntas (id) ON DELETE CASCADE,
+  texto         TEXT NOT NULL,
+  es_correcta   INTEGER NOT NULL CHECK (es_correcta IN (0, 1)),
+  justificacion TEXT NOT NULL DEFAULT ''
 );
 
 CREATE INDEX IF NOT EXISTS idx_opciones_pregunta ON opciones (pregunta_id);
@@ -82,6 +96,8 @@ CREATE TABLE IF NOT EXISTS intentos (
                       ('manual', 'tiempo', 'ultima_pregunta', 'forzada_docente')),
   aciertos          INTEGER,
   puntaje           INTEGER,
+  pregunta_actual   INTEGER NOT NULL DEFAULT 1 CHECK (pregunta_actual > 0),
+  pregunta_mostrada_en TEXT,
   UNIQUE (sesion_id, codigo_estudiante)
 );
 

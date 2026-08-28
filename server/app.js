@@ -1,17 +1,13 @@
 import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { cookies, protegerApi, protegerPaginas } from './middleware/protegido.js';
 import { rutasAuth } from './routes/auth.js';
 import { rutasDocente } from './routes/docente.js';
 import { rutasExamen } from './routes/examen.js';
 import { carpetaDeImagenes } from './services/imagenes.js';
+import { RUTAS } from './rutas.js';
 
-const aqui = dirname(fileURLToPath(import.meta.url));
-const RAIZ_PUBLICA = join(aqui, '..', 'public');
-
-const { version } = JSON.parse(readFileSync(join(aqui, '..', 'package.json'), 'utf8'));
+const { version } = JSON.parse(readFileSync(RUTAS.paquete, 'utf8'));
 
 /**
  * Construye la aplicación. No escucha: eso lo hace index.js, así los tests
@@ -47,7 +43,7 @@ export function crearApp(db) {
   // tiene que verlas durante el examen.
   app.use('/imagenes', express.static(carpetaDeImagenes(), { fallthrough: true }));
 
-  app.use(express.static(RAIZ_PUBLICA));
+  app.use(express.static(RUTAS.estaticos));
 
   app.use((req, res) => {
     responder(req, res, 404, 'No encontramos esta página.');

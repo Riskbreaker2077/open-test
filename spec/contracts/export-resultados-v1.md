@@ -1,3 +1,8 @@
+> **Obsoleto desde la feature 016.** La exportación activa es
+> [`export-resultados-v2.md`](export-resultados-v2.md) (`formato_version: 2`).
+> Este archivo se conserva como referencia histórica: cualquier exportación
+> generada por OpenTest antes de la 016 sigue este formato.
+
 # Contrato · Exportación de resultados, versión 1
 
 `formato_version: 1`

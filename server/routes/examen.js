@@ -1,6 +1,13 @@
 import { Router } from 'express';
 import { entregado, iniciarOReanudarIntento, intentoPorToken } from '../services/intentos.js';
 import { obtenerSesion, sesionesDisponiblesPara } from '../services/sesiones.js';
+import {
+  entregarIntento,
+  estadoDelExamen,
+  guardarRespuesta,
+  obtenerPregunta,
+} from '../services/examen.js';
+import { obtenerResultado } from '../services/calificacion.js';
 
 export const NOMBRE_COOKIE_ESTUDIANTE = 'opentest_estudiante';
 
@@ -64,6 +71,39 @@ export function rutasExamen(db) {
     res.json({ ok: true, estado: estadoDeIntento(db, req.intento) });
   });
 
+  router.get('/pregunta/:n', conIntento(db), (req, res) => {
+    try {
+      res.json({ ok: true, pregunta: obtenerPregunta(db, req.intento, req.params.n) });
+    } catch (err) {
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
+  router.post('/responder', conIntento(db), (req, res) => {
+    try {
+      res.json({ ok: true, respuesta: guardarRespuesta(db, req.intento, req.body ?? {}) });
+    } catch (err) {
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
+  router.post('/entregar', conIntento(db), (req, res) => {
+    try {
+      const entrega = entregarIntento(db, req.intento, req.body?.motivo ?? 'manual');
+      res.json({ ok: true, nueva: entrega.nueva, estado: estadoDeIntento(db, entrega.intento) });
+    } catch (err) {
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
+  router.get('/resultado', conIntento(db), (req, res) => {
+    try {
+      res.json({ ok: true, resultado: obtenerResultado(db, req.intento.id) });
+    } catch (err) {
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
   router.post('/salir', (req, res) => {
     res.clearCookie(NOMBRE_COOKIE_ESTUDIANTE, { path: '/' });
     res.json({ ok: true });
@@ -93,7 +133,9 @@ export function conIntento(db) {
  * de lo que se deduzca una respuesta correcta.
  */
 export function estadoDeIntento(db, intento) {
-  const sesion = db.prepare('SELECT * FROM sesiones WHERE id = ?').get(intento.sesion_id);
+  const examen = estadoDelExamen(db, intento);
+  const { sesion } = examen;
+  intento = examen.intento;
   const estudiante = db
     .prepare('SELECT * FROM estudiantes WHERE codigo = ?')
     .get(intento.codigo_estudiante);
@@ -103,9 +145,13 @@ export function estadoDeIntento(db, intento) {
     estudiante: `${estudiante.nombres} ${estudiante.apellidos}`,
     curso: estudiante.curso,
     sesion: { id: sesion.id, nombre: sesion.nombre, estado: sesion.estado },
+    segundosRestantes: examen.segundosRestantes,
     entregado: entregado(intento),
     entregadoEn: intento.entregado_en,
     nPreguntas: sesion.n_preguntas,
     segundosMinimosPregunta: sesion.segundos_minimos_pregunta,
+    preguntaActual: examen.preguntaActual,
+    respondidas: examen.respondidas,
+    sinResponder: examen.sinResponder,
   };
 }

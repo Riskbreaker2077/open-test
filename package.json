@@ -11,10 +11,14 @@
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
     "test": "node --test \"server/**/*.test.js\"",
-    "lint": "node scripts/lint.js"
+    "lint": "node scripts/lint.js",
+    "build:exe": "node scripts/build-exe.js"
   },
   "dependencies": {
     "better-sqlite3": "^12.2.0",
     "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "postject": "^1.0.0-alpha.6"
   }
 }

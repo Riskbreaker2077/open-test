@@ -1,14 +1,24 @@
 import { crearApp } from './app.js';
 import { abrirBd, cerrarBd, RUTA_BD_POR_DEFECTO } from './db.js';
 import { urlsDeIntranet } from './red.js';
+import { abrirNavegador, siguientePuertoLibre } from './arranque.js';
 
-const puerto = Number(process.env.PORT) || 3000;
+const solicitado = Number(process.env.PORT) || 3000;
+const puerto = await siguientePuertoLibre(solicitado);
 
 const db = abrirBd();
 const app = crearApp(db);
 
 const servidor = app.listen(puerto, '0.0.0.0', () => {
+  if (puerto !== solicitado) {
+    console.log(`\n  El puerto ${solicitado} estaba ocupado; OpenTest usará el ${puerto}.`);
+  }
   imprimirArranque(puerto);
+  try {
+    abrirNavegador(`http://localhost:${puerto}/docente/`);
+  } catch (err) {
+    console.log(`  No se pudo abrir el navegador automáticamente: ${err.message}`);
+  }
 });
 
 servidor.on('error', (err) => {
@@ -49,7 +59,10 @@ function imprimirArranque(puerto) {
   console.log('\n  Para detener OpenTest, cierra esta ventana o pulsa Ctrl+C.\n');
 }
 
+let apagando = false;
 function apagar() {
+  if (apagando) return;
+  apagando = true;
   servidor.close(() => {
     cerrarBd(db);
     process.exit(0);
@@ -58,3 +71,4 @@ function apagar() {
 
 process.on('SIGINT', apagar);
 process.on('SIGTERM', apagar);
+process.on('SIGHUP', apagar);

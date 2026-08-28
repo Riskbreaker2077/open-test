@@ -1,6 +1,6 @@
 # 013 · Portal del estudiante
 
-**Estado:** propuesta
+**Estado:** implementado ✅
 
 ## Qué hace
 
@@ -31,14 +31,16 @@ La dirección estable es un requisito operativo: el docente proyecta siempre el 
 - [x] Nunca ve sesiones de otros cursos, ni en borrador, ni cerradas. _(misma garantía de `sesionesDisponiblesPara`, cubierta por la suite automatizada.)_
 - [x] Si su sesión está `abierta` pero no comenzada, ve la pantalla de espera con su nombre y **no puede responder**. _(verificado en vivo: "Espera a que tu docente inicie la prueba / Ya estás dentro, María Fernanda Gómez Ruiz." Nadie puede responder porque no existe ninguna pantalla de examen todavía.)_
 - [x] Cuando el docente pulsa Comenzar, la tablet pasa sola al examen sin que el estudiante recargue. _(verificado en vivo forzando la transición en la base de datos, porque el botón "Comenzar" en sí no existe aún — pertenece a la feature 012. El salto ocurrió solo, sin recargar; el contenido al que salta es el placeholder honesto acordado, no la presentación real del examen, que es de la 006.)_
-- [ ] Si ya entregó, ve su resultado, no un examen nuevo. _(el backend ya lo garantiza — un intento entregado nunca genera uno nuevo, verificado por `curl` — pero "su resultado" es, por diseño, la feature 007; ver la nota de alcance más abajo.)_
-- [ ] Si tenía un examen a medias, lo reanuda donde iba. _(el backend ya reanuda el mismo intento por cookie, verificado por `curl`; "donde iba" es la presentación del examen, feature 006. Ver la nota de alcance.)_
+- [x] Si ya entregó, ve su resultado, no un examen nuevo. _(integración completada por la feature 007: la reentrada con código recupera el mismo intento y redirige a su resultado.)_
+- [x] Si tenía un examen a medias, lo reanuda donde iba. _(la feature 006 persiste `pregunta_actual`; verificado por tests y recarga en navegador.)_
 - [x] Ninguna página del portal enlaza a `/docente/` ni a `/proyeccion/`, ni los menciona. _(cubierto por el test automatizado que escanea recursivamente todo `public/` fuera de `docente/` y `proyeccion/`.)_
 - [x] Intentar abrir `/docente/` desde una tablet lleva al inicio de sesión, no al panel. _(cubierto por el test automatizado de la feature 011.)_
 - [ ] La interfaz es usable con el dedo: campo de código grande, teclado adecuado, botones de 44 px o más. _(el CSS ya usa el mismo `--toque: 44px` que el resto del sitio; falta confirmarlo con el dedo en una tablet real.)_
-- [ ] Funciona igual llegando por el QR que escribiendo la dirección a mano. _(no hay QR que probar todavía — lo genera la feature 012.)_
+- [ ] Funciona igual llegando por el QR que escribiendo la dirección a mano. _(el QR ya apunta a la raíz por la feature 012; falta escanearlo con una tablet real.)_
 
-> **Nota de alcance (25/08/2026).** Los criterios de "ve su resultado" y "lo reanuda donde iba" describen una experiencia que solo se completa cuando existan las features 006 y 007, tal como dice "Fuera de alcance" más abajo. Lo que la 013 sí entrega y ya está verificado: el mecanismo nunca crea un intento nuevo ni pierde el que estaba a medias, y la transición de pantalla ocurre sola. Mientras 006/007 no existan, el estudiante ve un mensaje honesto en vez de esas pantallas.
+> **Nota de integración (26/08/2026).** Las features 006 y 007 completaron y probaron la reanudación del examen y el regreso al resultado con el mismo intento.
+
+> **Cierre (26/08/2026).** La feature se considera implementada dentro de su alcance. Los criterios aún sin marcar son verificaciones visuales o físicas y se harán en la sesión final con el equipo destino.
 
 ## Fuera de alcance
 

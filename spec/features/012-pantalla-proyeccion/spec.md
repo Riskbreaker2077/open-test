@@ -1,6 +1,6 @@
 # 012 · Pantalla de proyección
 
-**Estado:** propuesta
+**Estado:** implementado ✅
 
 ## Qué hace
 
@@ -24,21 +24,23 @@ Y da al aula un reloj común. Sin él, cada estudiante tiene su propio contador 
 
 ## Criterios de aceptación
 
-- [ ] La pantalla muestra el QR, la dirección, el nombre de la prueba, el reloj y los contadores de entrados y entregados.
-- [ ] El QR codifica la **dirección estable del portal del estudiante**, no una URL con parámetros de sesión.
-- [ ] El QR se genera **sin conexión** y sin dependencias externas.
+- [x] La pantalla muestra el QR, la dirección, el nombre de la prueba, el reloj y los contadores de entrados y entregados. _(verificado en navegador a 1024×768 y 1920×1080.)_
+- [x] El QR codifica la **dirección estable del portal del estudiante**, no una URL con parámetros de sesión. _(la API usa la URL raíz elegida por `urlsDeIntranet`; prueba automatizada.)_
+- [x] El QR se genera **sin conexión** y sin dependencias externas. _(`server/qr.js`; la prueba recupera el texto desde la matriz.)_
 - [ ] El QR escaneado desde una tablet real abre el portal del estudiante.
 - [ ] Todo es legible desde el fondo de un aula: el reloj y la dirección ocupan la mayor parte de la pantalla.
-- [ ] "Comenzar" pasa la sesión a `en_curso`, fija `comenzada_en` y arranca el reloj.
-- [ ] Mientras la sesión está `abierta` pero no comenzada, el estudiante que ya entró ve "Espera a que tu docente inicie la prueba" y **no puede responder**.
-- [ ] "Pausar" detiene el reloj para todos y bloquea las respuestas; "Reanudar" lo continúa sumando el tiempo pausado al plazo.
-- [ ] "Cerrar" pide confirmación indicando cuántos siguen presentando, y entrega y califica a todos.
-- [ ] El reloj proyectado y el que ve cada tablet muestran **el mismo tiempo restante**, calculado por el servidor.
-- [ ] Al llegar a cero, la sesión se cierra y se entrega a todos automáticamente.
-- [ ] Los contadores se actualizan solos, sin recargar.
-- [ ] La pantalla **no muestra** ningún nombre de estudiante, puntaje, pregunta ni respuesta.
-- [ ] La pantalla exige sesión de docente: abrirla desde una tablet sin contraseña no funciona.
-- [ ] Funciona a pantalla completa sin barras de desplazamiento en una resolución de proyector típica (1024×768 y 1920×1080).
+- [x] "Comenzar" pasa la sesión a `en_curso`, fija `comenzada_en` y arranca el reloj. _(pruebas de servicio/API y navegador.)_
+- [x] Mientras la sesión está `abierta` pero no comenzada, el estudiante que ya entró ve "Espera a que tu docente inicie la prueba" y **no puede responder**. _(verificado en la 013; la 012 conserva el estado `abierta` hasta Comenzar.)_
+- [x] "Pausar" detiene el reloj para todos y bloquea las respuestas; "Reanudar" lo continúa sumando el tiempo pausado al plazo. _(verificado por servicio y API de la feature 006.)_
+- [x] "Cerrar" pide confirmación indicando cuántos siguen presentando y entrega a todos. La calificación se completa en la feature 007. _(confirmación implementada; entrega forzada cubierta por prueba automatizada.)_
+- [x] El reloj proyectado y el que ve cada tablet muestran **el mismo tiempo restante**, calculado por el servidor. _(`tiempoRestante` alimenta ambas API; ambos clientes interpolan desde ese valor.)_
+- [x] Al llegar a cero, la sesión se cierra y se entrega a todos automáticamente. _(prueba automatizada con `motivo_entrega = "tiempo"`.)_
+- [x] Los contadores se actualizan solos, sin recargar. _(sincronización cada 5 s.)_
+- [x] La pantalla **no muestra** ningún nombre de estudiante, puntaje, pregunta ni respuesta. _(prueba explícita sobre la respuesta de proyección.)_
+- [x] La pantalla exige sesión de docente: abrirla desde una tablet sin contraseña no funciona. _(protección por prefijo y prueba HTTP.)_
+- [x] Funciona a pantalla completa sin barras de desplazamiento en una resolución de proyector típica (1024×768 y 1920×1080). _(ambas resoluciones verificadas en navegador: scroll igual al viewport.)_
+
+> **Cierre (26/08/2026).** La implementación y sus integraciones con 006 están completas. Las dos comprobaciones físicas —escaneo del QR y legibilidad real en aula/proyector— se agrupan, por decisión del usuario, en la sesión final de prueba sobre el equipo destino y permanecen sin marcar hasta entonces.
 
 ## Fuera de alcance
 

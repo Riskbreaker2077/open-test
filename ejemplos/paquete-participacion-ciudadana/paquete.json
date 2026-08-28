@@ -1,0 +1,846 @@
+{
+  "estandar": "preguntas-icfes",
+  "version_estandar": "1.0.0",
+  "nombre": "Mecanismos de participación ciudadana · Colombia",
+  "area": "Ciencias Sociales y Ciudadanas",
+  "preguntas": [
+    {
+      "id": "pc-01",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Reconoce los mecanismos de participación democrática consagrados en la Constitución",
+      "evidencia": "Selecciona el conjunto de mecanismos que corresponde exactamente al artículo 103",
+      "estandar_asociado": "Analizo críticamente los elementos constituyentes de la democracia y la participación ciudadana en Colombia.",
+      "que_evalua": "Si el estudiante identifica cuáles opciones son, todas, mecanismos de participación reconocidos en el artículo 103 de la Constitución.",
+      "contexto": [
+        { "tipo": "texto", "texto": "La Constitución Política de 1991 fortaleció la democracia participativa en Colombia." },
+        { "tipo": "imagen", "archivo": "votacion-ciudadana.png", "descripcion_accesible": "Personas votando en una mesa electoral" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Cuál conjunto contiene únicamente mecanismos mencionados en el artículo 103 de la Constitución?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Voto, referendo, cabildo abierto y revocatoria del mandato" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: el artículo 103 enumera voto, plebiscito, referendo, consulta popular, cabildo abierto, iniciativa legislativa y revocatoria del mandato."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Tutela, voto, acción popular y petición" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la tutela y la acción popular son mecanismos de protección de derechos, no de participación democrática del artículo 103."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Debate escolar, encuesta, referendo y tutela" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el debate escolar y la encuesta no son mecanismos constitucionales, y la tutela protege derechos, no es participación política."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Veeduría, huelga, voto y acción de cumplimiento" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la veeduría es control ciudadano, la huelga es un derecho laboral y la acción de cumplimiento es judicial; ninguna de las tres está en el artículo 103."
+        }
+      ]
+    },
+    {
+      "id": "pc-02",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Identifica la función del voto en la elección de representantes",
+      "evidencia": "Explica para qué sirve el voto en una elección ordinaria",
+      "estandar_asociado": "Analizo críticamente los elementos constituyentes de la democracia y la participación ciudadana en Colombia.",
+      "que_evalua": "Si el estudiante distingue la función del voto de la de otros mecanismos de participación.",
+      "contexto": [
+        { "tipo": "texto", "texto": "Una ciudadanía democrática interviene tanto al elegir representantes como al decidir directamente sobre asuntos públicos." },
+        { "tipo": "imagen", "archivo": "votacion-ciudadana.png", "descripcion_accesible": "Personas votando en una mesa electoral" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Qué función cumple principalmente el voto en una elección ordinaria?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Presentar un proyecto de ley" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: presentar un proyecto de ley corresponde a la iniciativa legislativa, no al voto."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Elegir representantes o autoridades" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: en las elecciones, el voto permite escoger representantes y autoridades mediante una decisión libre y secreta."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Reunir al concejo con la comunidad" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: reunir a una corporación pública con la comunidad describe el cabildo abierto, no el voto."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Terminar automáticamente un mandato" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: terminar un mandato es la revocatoria, y nunca es automática: exige un procedimiento y una votación aparte."
+        }
+      ]
+    },
+    {
+      "id": "pc-03",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Diferencia los mecanismos de participación según la decisión política que resuelven",
+      "evidencia": "Asocia una situación de decisión política del Ejecutivo con el plebiscito",
+      "estandar_asociado": "Analizo críticamente los elementos constituyentes de la democracia y la participación ciudadana en Colombia.",
+      "que_evalua": "Si el estudiante reconoce el plebiscito como el mecanismo para pronunciarse sobre una decisión política presidencial.",
+      "contexto": [
+        { "tipo": "texto", "texto": "El Gobierno nacional quiere que la ciudadanía se pronuncie sobre una decisión política del Ejecutivo que no consiste en aprobar una norma." }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Qué mecanismo corresponde mejor a esta situación?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Cabildo abierto" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el cabildo es una sesión de deliberación local, no un pronunciamiento sobre una decisión política del Ejecutivo."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Iniciativa legislativa" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la iniciativa es la ciudadanía proponiendo una norma, no respondiendo a una decisión ya tomada por el Ejecutivo."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Plebiscito" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: el plebiscito es el pronunciamiento popular convocado por el Presidente sobre una decisión política del Ejecutivo."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Revocatoria del mandato" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la revocatoria termina el mandato de un alcalde o gobernador; no es para pronunciarse sobre una decisión del Ejecutivo nacional."
+        }
+      ]
+    },
+    {
+      "id": "pc-04",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Diferencia los mecanismos de participación según el tipo de norma que resuelven",
+      "evidencia": "Asocia la aprobación o rechazo de un proyecto de norma con el referendo",
+      "estandar_asociado": "Analizo críticamente los elementos constituyentes de la democracia y la participación ciudadana en Colombia.",
+      "que_evalua": "Si el estudiante reconoce el referendo como el mecanismo para decidir sobre un texto normativo.",
+      "contexto": [
+        { "tipo": "texto", "texto": "Se propone que el pueblo apruebe o rechace un proyecto de norma jurídica." }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Cuál es el mecanismo adecuado?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Consulta popular" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la consulta popular plantea una pregunta general, no la aprobación de un texto normativo concreto."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Cabildo abierto" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el cabildo es un espacio de deliberación, no una votación sobre un proyecto de norma."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Voto programático" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el voto programático evalúa el cumplimiento del programa de gobierno, no aprueba normas."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Referendo" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: el referendo somete a decisión popular un proyecto de norma o una norma existente, para aprobarla, rechazarla o derogarla."
+        }
+      ]
+    },
+    {
+      "id": "pc-05",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Reconoce el cabildo abierto como espacio de deliberación directa con una corporación territorial",
+      "evidencia": "Asocia una necesidad de diálogo directo con el concejo con el cabildo abierto",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos.",
+      "que_evalua": "Si el estudiante identifica el cabildo abierto como el mecanismo de deliberación pública más directo.",
+      "contexto": [
+        { "tipo": "texto", "texto": "Los habitantes quieren debatir directamente con el concejo municipal un problema de movilidad del barrio." },
+        { "tipo": "imagen", "archivo": "cabildo-abierto.png", "descripcion_accesible": "Ciudadanos reunidos en una sesión de cabildo abierto" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Qué mecanismo ofrece el espacio público de deliberación más directo?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Cabildo abierto" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: el cabildo abierto permite que la comunidad participe directamente en una sesión de una corporación pública territorial."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Plebiscito" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el plebiscito es una consulta nacional convocada por el Presidente, no un diálogo directo con el concejo municipal."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Referendo constitucional" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el referendo decide sobre un texto normativo, no crea un espacio de deliberación sobre movilidad local."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Revocatoria del mandato" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la revocatoria retira a un funcionario electo; no ofrece un espacio de deliberación con el concejo."
+        }
+      ]
+    },
+    {
+      "id": "pc-06",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Reconoce el cabildo abierto como espacio de deliberación directa con una corporación territorial",
+      "evidencia": "Identifica el rasgo que distingue al cabildo abierto de otros mecanismos",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos.",
+      "que_evalua": "Si el estudiante reconoce qué es y qué no es el cabildo abierto.",
+      "contexto": [
+        { "tipo": "texto", "texto": "En la imagen, una ciudadana expone sus argumentos ante autoridades locales y otros habitantes." },
+        { "tipo": "imagen", "archivo": "cabildo-abierto.png", "descripcion_accesible": "Ciudadanos reunidos en una sesión de cabildo abierto" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Qué rasgo distingue al cabildo abierto?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Siempre modifica la Constitución" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el cabildo no modifica normas por sí mismo; es un espacio de deliberación, no un mecanismo normativo."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Es una reunión pública de deliberación con una corporación territorial" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: el cabildo es un escenario público para discutir asuntos de interés comunitario ante una corporación territorial."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Solo puede convocarlo el Presidente" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el cabildo abierto se convoca en el nivel territorial (municipal o departamental), no por el Presidente."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Su objetivo es elegir alcalde" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: elegir alcalde es una elección; el cabildo no elige autoridades, delibera sobre asuntos de interés."
+        }
+      ]
+    },
+    {
+      "id": "pc-07",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Aplica el mecanismo del cabildo abierto a una situación de planeación territorial",
+      "evidencia": "Elige la acción coherente con solicitar un cabildo abierto",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos.",
+      "que_evalua": "Si el estudiante puede aplicar, no solo definir, el mecanismo del cabildo abierto ante un caso concreto.",
+      "contexto": [
+        { "tipo": "texto", "texto": "Una comunidad desea plantear públicamente ante su concejo los efectos de un nuevo plan de uso del suelo." },
+        { "tipo": "imagen", "archivo": "cabildo-abierto.png", "descripcion_accesible": "Ciudadanos reunidos en una sesión de cabildo abierto" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Cuál acción es coherente con ese mecanismo?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Esperar la siguiente elección presidencial" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: una elección presidencial no atiende un plan de uso del suelo municipal ni en el corto plazo."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Presentar una tutela contra todos los concejales" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la tutela protege derechos fundamentales vulnerados; no es la vía para discutir un plan de uso del suelo."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Solicitar un cabildo abierto y preparar intervenciones ciudadanas" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: solicitar un cabildo y preparar intervenciones lleva el asunto a deliberación pública ante la corporación competente."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Convocar directamente un plebiscito nacional" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: un plebiscito nacional es desproporcionado y no corresponde a un asunto de planeación municipal."
+        }
+      ]
+    },
+    {
+      "id": "pc-08",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Reconoce el origen popular del cabildo abierto según la Ley 1757 de 2015",
+      "evidencia": "Clasifica el cabildo abierto según su origen",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos.",
+      "que_evalua": "Si el estudiante clasifica correctamente el origen del cabildo abierto.",
+      "contexto": [
+        { "tipo": "texto", "texto": "La Ley 1757 de 2015 clasifica mecanismos según tengan origen popular o en una autoridad pública." },
+        { "tipo": "imagen", "archivo": "cabildo-abierto.png", "descripcion_accesible": "Ciudadanos reunidos en una sesión de cabildo abierto" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Cómo se clasifica el origen del cabildo abierto?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Exclusivamente presidencial" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el cabildo abierto no es un mecanismo presidencial, es de iniciativa ciudadana en lo territorial."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Exclusivamente judicial" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el cabildo abierto no tiene origen judicial."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Empresarial" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el cabildo abierto no es un mecanismo de origen empresarial."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Popular" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: la Ley 1757 identifica el cabildo abierto como un mecanismo de origen popular."
+        }
+      ]
+    },
+    {
+      "id": "pc-09",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Reconoce la consulta popular como pregunta general sometida a decisión ciudadana",
+      "evidencia": "Asocia una pregunta general de trascendencia con la consulta popular",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos.",
+      "que_evalua": "Si el estudiante identifica la consulta popular frente a otros mecanismos de participación.",
+      "contexto": [
+        { "tipo": "texto", "texto": "Se quiere formular a la ciudadanía una pregunta general, clara y respondible con sí o no sobre un asunto territorial de gran importancia." },
+        { "tipo": "imagen", "archivo": "consulta-popular.png", "descripcion_accesible": "Urna de votación para una consulta popular" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Qué mecanismo describe el caso?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Consulta popular" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: la consulta popular somete una pregunta general de trascendencia nacional o territorial a la decisión ciudadana."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Iniciativa normativa" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la iniciativa normativa propone un proyecto de norma concreto, no una pregunta general de sí o no."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Cabildo abierto" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el cabildo es deliberación, no una votación formal sobre una pregunta."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Elección ordinaria" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: una elección escoge representantes, no decide sobre una pregunta de política pública."
+        }
+      ]
+    },
+    {
+      "id": "pc-10",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Reconoce que la consulta popular puede tener distintos orígenes según la Ley 1757",
+      "evidencia": "Selecciona la afirmación correcta sobre el origen de la consulta popular",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos.",
+      "que_evalua": "Si el estudiante reconoce que la consulta popular puede originarse en la ciudadanía o en una autoridad pública.",
+      "contexto": [
+        { "tipo": "texto", "texto": "La participación puede surgir de la ciudadanía o de instituciones públicas, según el mecanismo y los requisitos legales." },
+        { "tipo": "imagen", "archivo": "consulta-popular.png", "descripcion_accesible": "Urna de votación para una consulta popular" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "Según la Ley 1757, ¿qué afirmación sobre la consulta popular es correcta?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Solo puede originarse en una empresa" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: las empresas privadas no originan consultas populares."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Puede tener origen ciudadano o en una autoridad pública" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: la consulta popular puede originarse en autoridad pública o en iniciativa ciudadana, cumpliendo los requisitos legales."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Nunca requiere votación" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la consulta popular sí culmina en una votación ciudadana."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Solo existe en el nivel nacional" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: también puede convocarse en el nivel departamental o municipal."
+        }
+      ]
+    },
+    {
+      "id": "pc-11",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Diferencia la consulta popular del referendo según su objeto de decisión",
+      "evidencia": "Explica la diferencia básica entre consulta popular y referendo",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos.",
+      "que_evalua": "Si el estudiante distingue con precisión el objeto de la consulta popular frente al del referendo.",
+      "contexto": [
+        { "tipo": "texto", "texto": "Un grupo confunde consulta popular y referendo porque ambos pueden llevar a votación." },
+        { "tipo": "imagen", "archivo": "consulta-popular.png", "descripcion_accesible": "Urna de votación para una consulta popular" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Cuál diferencia básica ayuda a distinguirlos?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "La consulta siempre elige funcionarios" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la consulta popular no elige funcionarios, plantea una pregunta de política pública."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "El referendo nunca trata normas" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: es justo lo contrario, el referendo trata específicamente sobre normas."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "La consulta plantea una pregunta general; el referendo decide sobre un texto normativo" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: la consulta aborda una pregunta general de trascendencia, mientras el referendo aprueba, rechaza o deroga una norma."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "No existe ninguna diferencia" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: sí existe una diferencia clara en el objeto que cada mecanismo somete a votación."
+        }
+      ]
+    },
+    {
+      "id": "pc-12",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Identifica qué mecanismos culminan en votación popular según la Ley 1757",
+      "evidencia": "Selecciona el grupo de mecanismos que requiere votación popular",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos.",
+      "que_evalua": "Si el estudiante distingue los mecanismos que culminan en votación de los que no.",
+      "contexto": [
+        { "tipo": "texto", "texto": "Después de cumplir los requisitos legales, varios mecanismos pasan a una jornada en la que la ciudadanía decide." },
+        { "tipo": "imagen", "archivo": "consulta-popular.png", "descripcion_accesible": "Urna de votación para una consulta popular" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Cuál grupo requiere votación popular según la Ley 1757?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Cabildo, iniciativa y petición" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el cabildo es deliberación y la petición no es una votación; la iniciativa apenas propone la norma."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Tutela, cabildo y voto escolar" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la tutela es un mecanismo judicial y el voto escolar no es un mecanismo legal de participación."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Iniciativa, veeduría y audiencia" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: son herramientas de participación, pero no exigen una votación final por sí mismas."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Referendo, plebiscito, consulta popular y revocatoria" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: estos cuatro mecanismos culminan en votación popular cuando cumplen el procedimiento legal."
+        }
+      ]
+    },
+    {
+      "id": "pc-13",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Reconoce la iniciativa popular como la vía para presentar proyectos de norma",
+      "evidencia": "Asocia la redacción y presentación de una propuesta de norma con la iniciativa popular",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos.",
+      "que_evalua": "Si el estudiante reconoce la iniciativa popular legislativa o normativa frente a otros mecanismos.",
+      "contexto": [
+        { "tipo": "texto", "texto": "Un colectivo ciudadano redacta una propuesta de norma y busca presentarla ante una corporación pública." },
+        { "tipo": "imagen", "archivo": "iniciativa-popular.png", "descripcion_accesible": "Ciudadanos recolectando firmas para una iniciativa popular" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Qué mecanismo está ejerciendo?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Iniciativa popular legislativa o normativa" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: la iniciativa popular permite presentar proyectos de acto legislativo, ley, ordenanza, acuerdo o resolución."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Plebiscito" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el plebiscito lo convoca el Presidente sobre una decisión ya tomada, no consiste en redactar una propuesta."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Revocatoria del mandato" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la revocatoria remueve a un funcionario electo, no redacta ni presenta propuestas normativas."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Voto en blanco" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el voto en blanco es una opción electoral, no un mecanismo para presentar proyectos de norma."
+        }
+      ]
+    },
+    {
+      "id": "pc-14",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Reconoce el origen popular de la iniciativa legislativa o normativa",
+      "evidencia": "Clasifica el origen de la iniciativa popular legislativa o normativa",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos.",
+      "que_evalua": "Si el estudiante clasifica correctamente el origen de la iniciativa popular.",
+      "contexto": [
+        { "tipo": "texto", "texto": "La Ley 1757 diferencia los mecanismos impulsados por firmas ciudadanas de los promovidos por autoridades." },
+        { "tipo": "imagen", "archivo": "iniciativa-popular.png", "descripcion_accesible": "Ciudadanos recolectando firmas para una iniciativa popular" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Cuál es el origen de la iniciativa popular legislativa o normativa?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Judicial" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la iniciativa popular no nace de una decisión judicial."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Popular" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: por definición, la iniciativa popular legislativa o normativa nace de la ciudadanía."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Exclusivamente presidencial" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: no depende del Presidente, la promueven directamente los ciudadanos."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Internacional" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: es un mecanismo de participación interno, no de origen internacional."
+        }
+      ]
+    },
+    {
+      "id": "pc-15",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Explica el papel de las firmas ciudadanas en el trámite de una iniciativa",
+      "evidencia": "Explica qué representan los apoyos recogidos por un comité promotor",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos.",
+      "que_evalua": "Si el estudiante comprende la función de las firmas dentro del procedimiento de una iniciativa popular.",
+      "contexto": [
+        { "tipo": "texto", "texto": "Durante una iniciativa, un comité promotor reúne apoyos ciudadanos." },
+        { "tipo": "imagen", "archivo": "iniciativa-popular.png", "descripcion_accesible": "Ciudadanos recolectando firmas para una iniciativa popular" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Qué representan principalmente esas firmas?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "La aprobación definitiva de la norma" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: las firmas no aprueban la norma, solo permiten iniciar o continuar el trámite."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Una elección de representantes" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: reunir firmas no es un proceso electoral de representantes."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "El respaldo necesario para tramitar la propuesta" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: los apoyos acreditan respaldo ciudadano para iniciar o continuar el trámite de la propuesta."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Una sentencia judicial" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: recoger firmas es un procedimiento ciudadano, no un acto judicial."
+        }
+      ]
+    },
+    {
+      "id": "pc-16",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Aplica el mecanismo de la iniciativa popular normativa a un caso concreto",
+      "evidencia": "Elige la ruta correcta para proponer un proyecto de acuerdo municipal",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos.",
+      "que_evalua": "Si el estudiante aplica correctamente el mecanismo de iniciativa popular ante un caso concreto.",
+      "contexto": [
+        { "tipo": "texto", "texto": "Habitantes de un municipio quieren proponer directamente un proyecto de acuerdo al concejo." },
+        { "tipo": "imagen", "archivo": "iniciativa-popular.png", "descripcion_accesible": "Ciudadanos recolectando firmas para una iniciativa popular" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Cuál ruta corresponde mejor?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Pedir al Presidente un plebiscito" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: un plebiscito presidencial es de escala nacional y no corresponde a un proyecto de acuerdo municipal."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Solicitar una elección nacional" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: una elección nacional no sirve para proponer un acuerdo municipal."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Presentar una acción de tutela como proyecto" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la tutela protege derechos fundamentales, no es el vehículo para proponer normas."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Organizar una iniciativa normativa ciudadana y reunir los apoyos exigidos" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: la iniciativa normativa de origen ciudadano es la vía prevista para presentar un proyecto de acuerdo ante el concejo."
+        }
+      ]
+    },
+    {
+      "id": "pc-17",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Reconoce la revocatoria del mandato como mecanismo para terminar anticipadamente un mandato",
+      "evidencia": "Asocia el incumplimiento del programa de gobierno con la revocatoria del mandato",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos, y que puede controlarse mediante mecanismos legales.",
+      "que_evalua": "Si el estudiante identifica la revocatoria del mandato frente a otros mecanismos.",
+      "contexto": [
+        { "tipo": "texto", "texto": "Un grupo de ciudadanos considera que un alcalde elegido no ha cumplido el programa que motivó su elección." },
+        { "tipo": "imagen", "archivo": "revocatoria-mandato.png", "descripcion_accesible": "Ciudadanos firmando un formulario de revocatoria de mandato" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Qué mecanismo busca terminar anticipadamente ese mandato mediante decisión ciudadana?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Revocatoria del mandato" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: la revocatoria es el derecho político mediante el cual la ciudadanía puede terminar el mandato de un alcalde o gobernador."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Cabildo abierto" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el cabildo es un espacio de deliberación, no un mecanismo para terminar un mandato."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Referendo derogatorio" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el referendo derogatorio deroga una norma, no remueve a un funcionario de su cargo."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Iniciativa legislativa" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la iniciativa propone normas nuevas, no termina el mandato de un funcionario electo."
+        }
+      ]
+    },
+    {
+      "id": "pc-18",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Explica la revocatoria del mandato como forma de control político ciudadano",
+      "evidencia": "Selecciona el principio que mejor expresa la revocatoria del mandato",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos, y que puede controlarse mediante mecanismos legales.",
+      "que_evalua": "Si el estudiante comprende que la revocatoria es control político sujeto a un procedimiento, no una decisión automática.",
+      "contexto": [
+        { "tipo": "texto", "texto": "La participación democrática también permite controlar el ejercicio del poder político." },
+        { "tipo": "imagen", "archivo": "revocatoria-mandato.png", "descripcion_accesible": "Ciudadanos firmando un formulario de revocatoria de mandato" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Qué principio expresa mejor la revocatoria del mandato?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Las autoridades no rinden cuentas" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la revocatoria existe precisamente porque las autoridades sí pueden rendir cuentas ante la ciudadanía."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "La ciudadanía puede ejercer control político siguiendo un procedimiento legal" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: la revocatoria es control ciudadano, pero exige requisitos, apoyos y votación; no opera automáticamente."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Todo desacuerdo elimina automáticamente al gobernante" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: un desacuerdo por sí solo no revoca a nadie; se requiere cumplir el procedimiento legal completo."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Los jueces reemplazan siempre al electorado" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: es el electorado, mediante votación, quien decide la revocatoria, no los jueces."
+        }
+      ]
+    },
+    {
+      "id": "pc-19",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Reconoce a quién se aplica la revocatoria del mandato en el ámbito territorial",
+      "evidencia": "Selecciona el grupo de funcionarios al que se aplica la revocatoria",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos, y que puede controlarse mediante mecanismos legales.",
+      "que_evalua": "Si el estudiante distingue a qué funcionarios aplica específicamente la revocatoria del mandato.",
+      "contexto": [
+        { "tipo": "texto", "texto": "Un estudiante propone revocar directamente a cualquier servidor público, sin distinguir cómo llegó al cargo." },
+        { "tipo": "imagen", "archivo": "revocatoria-mandato.png", "descripcion_accesible": "Ciudadanos firmando un formulario de revocatoria de mandato" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿A quién se aplica este mecanismo en el ámbito territorial colombiano?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "A cualquier empleado público" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la revocatoria no aplica a cualquier empleado, solo a cargos elegidos popularmente."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "A magistrados y jueces" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: los jueces no son elegidos por voto popular y no están sujetos a revocatoria."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "A alcaldes y gobernadores elegidos por voto popular" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: la revocatoria del mandato se dirige a alcaldes y gobernadores elegidos popularmente."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "A docentes y rectores" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: docentes y rectores no son cargos de elección popular sujetos a este mecanismo."
+        }
+      ]
+    },
+    {
+      "id": "pc-20",
+      "competencia": "Pensamiento social",
+      "componente": "Sujeto, sociedad y estado",
+      "afirmacion": "Reconoce la votación popular como la etapa decisoria final de la revocatoria",
+      "evidencia": "Identifica la etapa que define el resultado de una revocatoria ya certificada",
+      "estandar_asociado": "Comprendo que el ejercicio político es el resultado de decisiones de individuos y grupos, y que puede controlarse mediante mecanismos legales.",
+      "que_evalua": "Si el estudiante identifica la votación popular como la etapa que decide la revocatoria, tras cumplirse los requisitos previos.",
+      "contexto": [
+        { "tipo": "texto", "texto": "Un comité promotor ya cumplió los requisitos y la Registraduría certificó los apoyos para una revocatoria." },
+        { "tipo": "imagen", "archivo": "revocatoria-mandato.png", "descripcion_accesible": "Ciudadanos firmando un formulario de revocatoria de mandato" }
+      ],
+      "enunciado": [
+        { "tipo": "texto", "texto": "¿Qué etapa permite que la ciudadanía tome la decisión final?" }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [{ "tipo": "texto", "texto": "Una encuesta privada" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: una encuesta privada no tiene efectos legales sobre el mandato del funcionario."
+        },
+        {
+          "id": "B",
+          "contenido": [{ "tipo": "texto", "texto": "Una sesión escolar" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: una sesión escolar no forma parte del procedimiento legal de revocatoria."
+        },
+        {
+          "id": "C",
+          "contenido": [{ "tipo": "texto", "texto": "Una decisión unilateral del comité" }],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: el comité promotor no decide por sí solo; debe convocarse a toda la ciudadanía a votar."
+        },
+        {
+          "id": "D",
+          "contenido": [{ "tipo": "texto", "texto": "Una votación popular convocada conforme a la ley" }],
+          "es_correcta": true,
+          "justificacion": "Correcta: la decisión final sobre la revocatoria se adopta mediante votación popular, tras cumplir el procedimiento legal."
+        }
+      ]
+    }
+  ]
+}

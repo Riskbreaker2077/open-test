@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenTest — Resultado</title>
+  <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="/estudiante/examen.css">
+  <link rel="stylesheet" href="/estudiante/resultado.css">
+</head>
+<body class="superficie-estudiante">
+  <main class="resultado contenedor" id="contenido" hidden>
+    <section class="tarjeta tarjeta--centrada resultado__resumen">
+      <p class="resultado__fin">Prueba terminada</p>
+      <h1 id="titulo">Tu resultado</h1>
+      <p class="resultado__puntaje" id="puntaje"></p>
+      <p id="porcentaje"></p>
+      <p class="resultado__salida">Tu respuesta quedó guardada. Ya puedes levantarte.</p>
+    </section>
+    <section id="detalle" aria-label="Detalle de respuestas"></section>
+  </main>
+  <main class="tarjeta tarjeta--centrada" id="espera">
+    <h1>Consultando tu resultado…</h1>
+    <p id="mensaje">Espera un momento.</p>
+    <a class="boton" id="volver" href="/" hidden>Volver al inicio</a>
+  </main>
+  <script type="module" src="/estudiante/resultado.js"></script>
+</body>
+</html>

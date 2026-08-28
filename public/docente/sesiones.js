@@ -116,6 +116,7 @@ formulario.addEventListener('submit', async (evento) => {
   }
   formulario.reset();
   avisoFeedback.hidden = true;
+  actualizarSolapamiento();
   await recargar();
 });
 
@@ -153,6 +154,12 @@ function acciones(sesion) {
     );
   } else if (sesion.estado !== 'cerrada') {
     grupo.append(
+      accion('Monitorear', () => {
+        window.location.href = `/docente/monitoreo.html?sesion=${sesion.id}`;
+      }),
+      accion('Proyectar', () => {
+        window.location.href = `/proyeccion/?sesion=${sesion.id}`;
+      }),
       accion('Cerrar', () =>
         transicion(
           `/api/docente/sesiones/${sesion.id}/cerrar`,
@@ -161,6 +168,35 @@ function acciones(sesion) {
         ),
       ),
     );
+  } else {
+    const resultados = document.createElement('a');
+    resultados.className = 'boton boton--secundario boton--pequeno';
+    resultados.href = `/docente/resultados.html?sesion=${sesion.id}`;
+    resultados.textContent = 'Descargar resultados';
+    const selector = document.createElement('select');
+    selector.setAttribute('aria-label', `Retroalimentación de ${sesion.nombre}`);
+    for (const [valor, texto] of [
+      ['solo_puntaje', 'Solo puntaje'],
+      ['aciertos', 'Puntaje y aciertos'],
+      ['completo', 'Completa'],
+    ]) {
+      selector.append(new Option(texto, valor, valor === sesion.nivel_feedback, valor === sesion.nivel_feedback));
+    }
+    selector.addEventListener('change', async () => {
+      if (selector.value === 'completo' && !window.confirm(
+        'La retroalimentación completa revela las respuestas correctas. ¿Continuar?',
+      )) {
+        selector.value = sesion.nivel_feedback;
+        return;
+      }
+      const respuesta = await api(`/api/docente/sesiones/${sesion.id}/feedback`, {
+        method: 'PATCH',
+        body: JSON.stringify({ nivel_feedback: selector.value }),
+      });
+      if (!respuesta.ok) window.alert(respuesta.mensaje);
+      await recargar();
+    });
+    grupo.append(resultados, selector);
   }
 
   return grupo;
@@ -173,7 +209,7 @@ async function recargar() {
   const thead = document.createElement('thead');
   thead.innerHTML =
     '<tr><th>Evaluación</th><th>Banco</th><th>Cursos</th><th>Preguntas</th>' +
-    '<th>Comparten</th><th>Estado</th><th>Dentro</th><th>Entregados</th><th></th></tr>';
+    '<th>Comparten</th><th>Estado</th><th>Dentro</th><th>Entregados</th><th>Acciones / feedback</th></tr>';
 
   const tbody = document.createElement('tbody');
   for (const sesion of sesiones) {

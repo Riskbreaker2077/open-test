@@ -1,13 +1,30 @@
+import { analizarBloques, serializarBloques } from './bloques.js';
+
+function conBloquesParseados(pregunta) {
+  return {
+    ...pregunta,
+    contexto: analizarBloques(pregunta.contexto),
+    enunciado: analizarBloques(pregunta.enunciado),
+  };
+}
+
+function opcionConContenidoParseado(opcion) {
+  const { texto, ...resto } = opcion;
+  return { ...resto, contenido: analizarBloques(texto) };
+}
+
 /** Guarda el paquete entero en una transacción: o entra todo, o nada. */
 export function guardarBanco(db, nombre, preguntas) {
   const insertarBanco = db.prepare('INSERT INTO bancos (nombre, creado_en) VALUES (?, ?)');
   const insertarPregunta = db.prepare(`
-    INSERT INTO preguntas (banco_id, contexto, imagen, enunciado, explicacion)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO preguntas (
+      banco_id, contexto, enunciado,
+      competencia, componente, afirmacion, evidencia, estandar_asociado, que_evalua
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
-  const insertarOpcion = db.prepare(
-    'INSERT INTO opciones (pregunta_id, texto, es_correcta) VALUES (?, ?, ?)',
-  );
+  const insertarOpcion = db.prepare(`
+    INSERT INTO opciones (pregunta_id, texto, es_correcta, justificacion) VALUES (?, ?, ?, ?)
+  `);
 
   return db.transaction(() => {
     const bancoId = insertarBanco.run(nombre, new Date().toISOString()).lastInsertRowid;
@@ -15,15 +32,24 @@ export function guardarBanco(db, nombre, preguntas) {
     for (const pregunta of preguntas) {
       const preguntaId = insertarPregunta.run(
         bancoId,
-        pregunta.contexto || null,
-        pregunta.imagen || null,
-        pregunta.enunciado,
-        pregunta.explicacion || null,
+        serializarBloques(pregunta.contexto),
+        serializarBloques(pregunta.enunciado),
+        pregunta.competencia,
+        pregunta.componente,
+        pregunta.afirmacion,
+        pregunta.evidencia,
+        pregunta.estandar_asociado,
+        pregunta.que_evalua,
       ).lastInsertRowid;
 
-      pregunta.opciones.forEach((texto, i) => {
-        insertarOpcion.run(preguntaId, texto, i === pregunta.correcta ? 1 : 0);
-      });
+      for (const opcion of pregunta.opciones) {
+        insertarOpcion.run(
+          preguntaId,
+          serializarBloques(opcion.contenido),
+          opcion.es_correcta ? 1 : 0,
+          opcion.justificacion,
+        );
+      }
     }
 
     return { bancoId, preguntas: preguntas.length };
@@ -48,16 +74,20 @@ export function contarBancos(db) {
   return db.prepare('SELECT count(*) AS total FROM bancos').get().total;
 }
 
-/** Las preguntas con sus opciones. Solo para el panel: incluye la correcta. */
+/** Las preguntas con sus opciones, bloques ya parseados. Solo para el panel: incluye la correcta. */
 export function preguntasDeBanco(db, bancoId) {
   const preguntas = db
-    .prepare('SELECT * FROM preguntas WHERE banco_id = ? ORDER BY id')
+    .prepare(`
+      SELECT id, banco_id, contexto, enunciado,
+             competencia, componente, afirmacion, evidencia, estandar_asociado, que_evalua
+      FROM preguntas WHERE banco_id = ? ORDER BY id
+    `)
     .all(bancoId);
-  const opciones = db.prepare('SELECT * FROM opciones WHERE pregunta_id = ? ORDER BY id');
+  const opciones = db.prepare('SELECT id, texto, es_correcta, justificacion FROM opciones WHERE pregunta_id = ? ORDER BY id');
 
   return preguntas.map((pregunta) => ({
-    ...pregunta,
-    opciones: opciones.all(pregunta.id),
+    ...conBloquesParseados(pregunta),
+    opciones: opciones.all(pregunta.id).map(opcionConContenidoParseado),
   }));
 }
 

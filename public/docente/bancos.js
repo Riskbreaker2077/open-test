@@ -4,7 +4,7 @@ import { renderizarPregunta } from '/shared/pregunta.js';
 const imagenes = document.getElementById('imagenes');
 const estadoImagenes = document.getElementById('estado-imagenes');
 const nombre = document.getElementById('nombre');
-const archivo = document.getElementById('archivo');
+const paquete = document.getElementById('paquete');
 const errores = document.getElementById('errores');
 const listaErrores = document.getElementById('lista-errores');
 const previsualizacion = document.getElementById('previsualizacion');
@@ -20,7 +20,7 @@ const detalleTitulo = document.getElementById('detalle-titulo');
 const detallePreguntas = document.getElementById('detalle-preguntas');
 const cerrarDetalle = document.getElementById('cerrar-detalle');
 
-let contenidoPendiente = null;
+let paquetePendiente = null;
 
 function limpiar() {
   errores.hidden = true;
@@ -28,7 +28,31 @@ function limpiar() {
   avisos.hidden = true;
   listaErrores.replaceChildren();
   muestra.replaceChildren();
-  contenidoPendiente = null;
+  paquetePendiente = null;
+}
+
+function mostrarPrevisualizacion(respuesta) {
+  if (!nombre.value) nombre.value = respuesta.nombre;
+
+  const { total, conContexto, conImagen, imagenesIncluidas } = respuesta.resumen;
+  resumenCarga.textContent =
+    `${total} pregunta(s): ${conContexto} con contexto y ${conImagen} con imagen.` +
+    (imagenesIncluidas === undefined ? '' : ` El ZIP incluye ${imagenesIncluidas} imagen(es).`);
+
+  if (respuesta.avisos.length > 0) {
+    avisos.textContent = respuesta.avisos.join(' ');
+    avisos.hidden = false;
+  }
+
+  muestra.replaceChildren(
+    ...respuesta.muestra.map((pregunta) =>
+      renderizarPregunta(pregunta, {
+        correcta: pregunta.opciones.findIndex((o) => o.es_correcta),
+        mostrarJustificacion: true,
+      }),
+    ),
+  );
+  previsualizacion.hidden = false;
 }
 
 function mostrarErrores(lista) {
@@ -72,58 +96,39 @@ imagenes.addEventListener('change', async () => {
   imagenes.value = '';
 });
 
-archivo.addEventListener('change', async () => {
+paquete.addEventListener('change', async () => {
   limpiar();
-  const fichero = archivo.files[0];
+  const fichero = paquete.files[0];
   if (!fichero) return;
 
-  const contenido = await fichero.text();
-  const respuesta = await api('/api/docente/bancos/validar', {
-    method: 'POST',
-    body: JSON.stringify({ contenido, nombre: nombre.value }),
-  });
-
+  const respuesta = await api(
+    `/api/docente/bancos/paquete/validar?nombre=${encodeURIComponent(nombre.value)}`,
+    { method: 'POST', headers: { 'content-type': 'application/zip' }, body: fichero },
+  );
   if (!respuesta.ok) {
     mostrarErrores(respuesta.errores);
     return;
   }
-
-  contenidoPendiente = contenido;
-  if (!nombre.value) nombre.value = respuesta.nombre;
-
-  const { total, conContexto, conImagen } = respuesta.resumen;
-  resumenCarga.textContent =
-    `${total} pregunta(s): ${conContexto} con contexto y ${conImagen} con imagen.`;
-
-  if (respuesta.avisos.length > 0) {
-    avisos.textContent = respuesta.avisos.join(' ');
-    avisos.hidden = false;
-  }
-
-  muestra.replaceChildren(
-    ...respuesta.muestra.map((pregunta) =>
-      renderizarPregunta(pregunta, { correcta: pregunta.correcta }),
-    ),
-  );
-  previsualizacion.hidden = false;
+  paquetePendiente = fichero;
+  mostrarPrevisualizacion(respuesta);
 });
 
 confirmar.addEventListener('click', async () => {
-  if (!contenidoPendiente) return;
+  if (!paquetePendiente) return;
 
   confirmar.disabled = true;
   try {
-    const respuesta = await api('/api/docente/bancos/confirmar', {
-      method: 'POST',
-      body: JSON.stringify({ contenido: contenidoPendiente, nombre: nombre.value }),
-    });
+    const respuesta = await api(
+      `/api/docente/bancos/paquete/confirmar?nombre=${encodeURIComponent(nombre.value)}`,
+      { method: 'POST', headers: { 'content-type': 'application/zip' }, body: paquetePendiente },
+    );
 
     if (!respuesta.ok) {
       mostrarErrores(respuesta.errores);
       return;
     }
     limpiar();
-    archivo.value = '';
+    paquete.value = '';
     nombre.value = '';
     await recargar();
   } finally {
@@ -133,7 +138,7 @@ confirmar.addEventListener('click', async () => {
 
 cancelar.addEventListener('click', () => {
   limpiar();
-  archivo.value = '';
+  paquete.value = '';
 });
 
 cerrarDetalle.addEventListener('click', () => {
@@ -146,10 +151,10 @@ async function verBanco(id) {
   detalleTitulo.textContent = `${banco.nombre} — ${banco.preguntas.length} preguntas`;
   detallePreguntas.replaceChildren(
     ...banco.preguntas.map((pregunta) =>
-      renderizarPregunta(
-        { ...pregunta, opciones: pregunta.opciones },
-        { correcta: pregunta.opciones.findIndex((o) => o.es_correcta === 1) },
-      ),
+      renderizarPregunta(pregunta, {
+        correcta: pregunta.opciones.findIndex((o) => o.es_correcta === 1),
+        mostrarJustificacion: true,
+      }),
     ),
   );
   detalle.hidden = false;

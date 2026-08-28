@@ -1,0 +1,176 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  padding: 0;
+  color: #fff;
+  background:
+    radial-gradient(circle at 12% 22%, rgb(209 128 55 / 13%), transparent 28%),
+    linear-gradient(145deg, var(--azul-900), var(--azul-950));
+}
+
+.proyeccion {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(15rem, 34vw) 1fr;
+  gap: clamp(1rem, 2.5vmin, 2.5rem);
+  width: 100vw;
+  height: 100vh;
+  padding: clamp(1rem, 2.5vmin, 2.5rem);
+}
+
+.entrada {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-width: 0;
+  padding: clamp(1rem, 2.5vmin, 2rem);
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: clamp(1rem, 2.5vmin, 2rem);
+  background: rgb(255 255 255 / 7%);
+}
+
+.qr {
+  width: min(30vw, 48vh);
+  height: min(30vw, 48vh);
+  object-fit: contain;
+  padding: 0.6rem;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.acceso-aula {
+  width: 100%;
+  text-align: center;
+}
+
+.etiqueta,
+.estado {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(1.1rem, 2.5vmin, 2rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.etiqueta { color: var(--dorado-100); }
+
+.direccion {
+  margin: 0.25em 0 0;
+  overflow-wrap: anywhere;
+  font-weight: 800;
+  font-size: clamp(1.35rem, 3.3vmin, 3rem);
+  line-height: 1.1;
+}
+
+.evaluacion {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.nombre {
+  margin: 0 0 0.25em;
+  font-weight: 800;
+  font-size: clamp(2rem, 5vmin, 4.5rem);
+  line-height: 1.05;
+}
+
+.estado {
+  color: rgb(255 255 255 / 70%);
+}
+
+.reloj {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  font-size: clamp(6rem, 19vmin, 17rem);
+  line-height: 0.95;
+  color: #fff;
+  text-shadow: 0 0.05em 0.3em rgb(0 0 0 / 18%);
+}
+
+.pie {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  min-width: 0;
+  padding-top: clamp(0.6rem, 1.5vmin, 1.5rem);
+  border-top: 2px solid var(--dorado-500);
+}
+
+.contadores,
+.controles {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2vmin, 2rem);
+}
+
+.contadores p {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  margin: 0;
+  font-size: clamp(1.1rem, 2.5vmin, 2rem);
+}
+
+.contadores strong {
+  font-size: 1.7em;
+  font-variant-numeric: tabular-nums;
+  color: var(--dorado-100);
+}
+
+.control {
+  min-height: clamp(3rem, 6vmin, 4.5rem);
+  padding: 0.5em 1.15em;
+  font-size: clamp(1rem, 2.2vmin, 1.7rem);
+}
+
+.control--cerrar {
+  color: #fff;
+  background: transparent;
+  border-color: rgb(255 255 255 / 45%);
+}
+
+.control--volver {
+  color: var(--azul-950);
+  border-color: var(--dorado-100);
+  background: var(--dorado-100);
+}
+
+.error {
+  position: fixed;
+  inset: 1rem;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 2rem;
+  font-size: clamp(1.5rem, 4vmin, 3rem);
+  text-align: center;
+  color: var(--rojo-700);
+  background: var(--papel-calido);
+  border: 4px solid var(--rojo-600);
+}
+
+.error[hidden] {
+  display: none;
+}
+
+@media (max-aspect-ratio: 4 / 3) {
+  .proyeccion {
+    grid-template-columns: minmax(14rem, 38vw) 1fr;
+  }
+
+  .reloj {
+    font-size: clamp(5rem, 16vmin, 11rem);
+  }
+}

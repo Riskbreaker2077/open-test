@@ -5,6 +5,8 @@ import { abrirBd, cerrarBd } from '../db.js';
 import { _reiniciar } from '../sesion.js';
 import { _reiniciarLimitador } from './auth.js';
 import { NOMBRE_COOKIE_ESTUDIANTE } from './examen.js';
+import { guardarBanco } from '../services/bancos.js';
+import { preguntasDeEjemplo } from '../fixtures-preguntas.js';
 
 let db;
 let servidor;
@@ -12,10 +14,6 @@ let base;
 let cookieDocente;
 
 const ESTUDIANTES = 'codigo,nombres,apellidos,curso\n2024001,Ana,Gómez,10A\n2024002,Luis,Pérez,10B\n';
-const BANCO =
-  'enunciado,opcion_a,opcion_b,opcion_c,opcion_d,correcta\n' +
-  Array.from({ length: 25 }, (_, i) => `¿P${i}?,a,b,c,d,A`).join('\n') +
-  '\n';
 
 beforeEach(async () => {
   _reiniciar();
@@ -33,7 +31,7 @@ beforeEach(async () => {
   cookieDocente = alta.headers.getSetCookie()[0].split(';')[0];
 
   await docente('/api/docente/estudiantes/confirmar', { contenido: ESTUDIANTES });
-  await docente('/api/docente/bancos/confirmar', { contenido: BANCO, nombre: 'Ciencias' });
+  guardarBanco(db, 'Ciencias', preguntasDeEjemplo(25));
 });
 
 afterEach(async () => {
@@ -137,6 +135,25 @@ test('reanudar con el código devuelve el mismo intento', async () => {
   assert.equal(primera.nuevo, true);
   assert.equal(segunda.nuevo, false);
   assert.equal(segunda.estado.intentoId, primera.estado.intentoId);
+});
+
+test('tras entregar y cerrar puede volver a entrar con su código para ver el resultado', async () => {
+  const sesion = await sesionAbierta();
+  const entrada = await alumno('/api/examen/entrar', { codigo: '2024001', sesionId: sesion.id });
+  const cookie = cookieDe(entrada).split(';')[0];
+  await docente(`/api/docente/sesiones/${sesion.id}/comenzar`, {});
+  await fetch(`${base}/api/examen/entregar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', cookie },
+    body: JSON.stringify({ motivo: 'manual' }),
+  });
+  await docente(`/api/docente/sesiones/${sesion.id}/cerrar`, {});
+
+  const lista = await (await alumno('/api/examen/sesiones', { codigo: '2024001' })).json();
+  assert.deepEqual(lista.sesiones.map((item) => item.id), [sesion.id]);
+  const regreso = await alumno('/api/examen/entrar', { codigo: '2024001', sesionId: sesion.id });
+  assert.equal(regreso.status, 200);
+  assert.equal((await regreso.json()).estado.entregado, true);
 });
 
 test('el estado se consulta con la cookie y refleja la sesión', async () => {

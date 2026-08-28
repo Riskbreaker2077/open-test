@@ -6,14 +6,14 @@ import { abrirBd, cerrarBd, RUTA_IMAGENES } from '../db.js';
 import { _reiniciar } from '../sesion.js';
 import { _reiniciarLimitador } from './auth.js';
 import { listarImagenes } from '../services/imagenes.js';
+import { zip } from '../importers/paquete-zip.test.js';
+import { preguntaDeEjemplo } from '../fixtures-preguntas.js';
 
 let db;
 let servidor;
 let base;
 let cookie;
-
-const CABECERA = 'contexto,imagen,enunciado,opcion_a,opcion_b,opcion_c,opcion_d,correcta,explicacion';
-const CSV = `${CABECERA}\n,,¿Cuál es la idea principal?,La migración,El clima,La cosecha,El río,C,Primera oración.\n`;
+let imagenesIniciales;
 
 // PNG mínimo válido de 1x1.
 const PNG = Buffer.from(
@@ -21,9 +21,23 @@ const PNG = Buffer.from(
   'base64',
 );
 
+const paqueteJson = (preguntas, overrides = {}) => JSON.stringify({
+  estandar: 'preguntas-icfes',
+  version_estandar: '1.0.0',
+  nombre: 'Ciencias',
+  preguntas,
+  ...overrides,
+});
+
+const zipDe = (preguntas, imagenes = {}) => zip({
+  'paquete.json': paqueteJson(preguntas),
+  ...Object.fromEntries(Object.entries(imagenes).map(([nombre, contenido]) => [`imagenes/${nombre}`, contenido])),
+});
+
 beforeEach(async () => {
   _reiniciar();
   _reiniciarLimitador();
+  imagenesIniciales = new Set(listarImagenes());
   db = abrirBd(':memory:');
   servidor = crearApp(db).listen(0);
   await new Promise((listo) => servidor.once('listening', listo));
@@ -40,7 +54,7 @@ beforeEach(async () => {
 afterEach(async () => {
   await new Promise((listo) => servidor.close(listo));
   cerrarBd(db);
-  for (const nombre of listarImagenes()) {
+  for (const nombre of listarImagenes().filter((item) => !imagenesIniciales.has(item))) {
     rmSync(`${RUTA_IMAGENES}/${nombre}`, { force: true });
   }
 });
@@ -48,11 +62,15 @@ afterEach(async () => {
 const llamar = (ruta, opciones = {}) =>
   fetch(`${base}${ruta}`, {
     ...opciones,
-    headers: { 'content-type': 'application/json', cookie, ...opciones.headers },
+    headers: { cookie, ...opciones.headers },
   });
 
-const enviar = (ruta, cuerpo) =>
-  llamar(ruta, { method: 'POST', body: JSON.stringify(cuerpo) });
+const subirZip = (ruta, buffer, nombre) =>
+  llamar(`${ruta}${nombre ? `?nombre=${encodeURIComponent(nombre)}` : ''}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/zip' },
+    body: buffer,
+  });
 
 const subirImagen = (nombre, contenido = PNG) =>
   fetch(`${base}/api/docente/imagenes?nombre=${encodeURIComponent(nombre)}`, {
@@ -62,14 +80,14 @@ const subirImagen = (nombre, contenido = PNG) =>
   });
 
 test('valida sin escribir y luego confirma', async () => {
-  const previa = await (await enviar('/api/docente/bancos/validar', { contenido: CSV })).json();
+  const buffer = zipDe([preguntaDeEjemplo()]);
+  const previa = await (await subirZip('/api/docente/bancos/paquete/validar', buffer, 'Ciencias')).json();
 
   assert.equal(previa.ok, true);
   assert.equal(previa.resumen.total, 1);
-  assert.equal(previa.muestra[0].correcta, 2);
   assert.equal((await (await llamar('/api/docente/bancos')).json()).bancos.length, 0);
 
-  await enviar('/api/docente/bancos/confirmar', { contenido: CSV, nombre: 'Ciencias' });
+  await subirZip('/api/docente/bancos/paquete/confirmar', buffer, 'Ciencias');
   const { bancos } = await (await llamar('/api/docente/bancos')).json();
 
   assert.equal(bancos.length, 1);
@@ -77,12 +95,15 @@ test('valida sin escribir y luego confirma', async () => {
   assert.equal(bancos[0].preguntas, 1);
 });
 
-test('un archivo con un solo error no importa nada', async () => {
-  const malo = `${CABECERA}\n,,¿Buena?,a,b,c,d,A,\n,,¿Mala?,a,b,,d,A,\n`;
-  const res = await enviar('/api/docente/bancos/confirmar', { contenido: malo });
+test('un paquete con un solo error no importa nada', async () => {
+  const buena = preguntaDeEjemplo({ id: 'buena' });
+  const mala = preguntaDeEjemplo({ id: 'mala' });
+  delete mala.competencia;
+  const buffer = zipDe([buena, mala]);
 
+  const res = await subirZip('/api/docente/bancos/paquete/confirmar', buffer);
   assert.equal(res.status, 400);
-  assert.match((await res.json()).errores[0], /opción C está vacía/);
+  assert.match((await res.json()).errores[0], /competencia/);
   assert.equal((await (await llamar('/api/docente/bancos')).json()).bancos.length, 0);
 });
 
@@ -105,16 +126,22 @@ test('la imagen subida se sirve sin contraseña: la ve el estudiante', async () 
   assert.equal(Buffer.from(await res.arrayBuffer()).length, PNG.length);
 });
 
-test('el importador exige que la imagen esté subida', async () => {
-  const conImagen = `${CABECERA}\n,celula.png,¿Qué organelo?,a,b,c,d,B,\n`;
+test('el importador exige que la imagen referenciada esté disponible', async () => {
+  const conImagen = preguntaDeEjemplo({ contexto: [{ tipo: 'imagen', archivo: 'celula.png' }] });
 
-  const sinSubir = await (await enviar('/api/docente/bancos/validar', { contenido: conImagen })).json();
-  assert.equal(sinSubir.ok, false);
-  assert.match(sinSubir.errores[0], /no está en la carpeta de imágenes/);
+  const sinImagen = await (await subirZip('/api/docente/bancos/paquete/validar', zipDe([conImagen]))).json();
+  assert.equal(sinImagen.ok, false);
+  assert.match(sinImagen.errores[0], /no existe en imagenes/);
+
+  const conElZip = await (await subirZip(
+    '/api/docente/bancos/paquete/validar',
+    zipDe([conImagen], { 'celula.png': PNG }),
+  )).json();
+  assert.equal(conElZip.ok, true);
 
   await subirImagen('celula.png');
-  const conSubida = await (await enviar('/api/docente/bancos/validar', { contenido: conImagen })).json();
-  assert.equal(conSubida.ok, true);
+  const yaSubida = await (await subirZip('/api/docente/bancos/paquete/validar', zipDe([conImagen]))).json();
+  assert.equal(yaSubida.ok, true);
 });
 
 test('un nombre de imagen con ruta no escribe fuera de la carpeta', async () => {
@@ -140,19 +167,20 @@ test('rechaza un archivo que no es imagen', async () => {
   assert.match((await res.json()).mensaje, /Solo se admiten/);
 });
 
-test('el detalle del banco muestra cuál es la correcta (es del docente)', async () => {
-  await enviar('/api/docente/bancos/confirmar', { contenido: CSV, nombre: 'Ciencias' });
+test('el detalle del banco muestra cuál es la correcta y su justificación (es del docente)', async () => {
+  await subirZip('/api/docente/bancos/paquete/confirmar', zipDe([preguntaDeEjemplo()]), 'Ciencias');
   const { banco } = await (await llamar('/api/docente/bancos/1')).json();
 
   const correctas = banco.preguntas[0].opciones.filter((o) => o.es_correcta === 1);
   assert.equal(correctas.length, 1);
-  assert.equal(correctas[0].texto, 'La cosecha');
+  assert.deepEqual(correctas[0].contenido, [{ tipo: 'texto', texto: 'Opción C' }]);
+  assert.match(correctas[0].justificacion, /Correcta/);
 });
 
 test('nada de todo esto es alcanzable sin contraseña', async () => {
   const rutas = [
-    ['/api/docente/bancos/validar', 'POST'],
-    ['/api/docente/bancos/confirmar', 'POST'],
+    ['/api/docente/bancos/paquete/validar', 'POST'],
+    ['/api/docente/bancos/paquete/confirmar', 'POST'],
     ['/api/docente/bancos', 'GET'],
     ['/api/docente/bancos/1', 'GET'],
     ['/api/docente/bancos/1', 'DELETE'],
@@ -161,23 +189,20 @@ test('nada de todo esto es alcanzable sin contraseña', async () => {
   ];
 
   for (const [ruta, metodo] of rutas) {
-    const res = await fetch(`${base}${ruta}`, {
-      method: metodo,
-      headers: { 'content-type': 'application/json' },
-      body: metodo === 'POST' ? JSON.stringify({ contenido: CSV }) : undefined,
-    });
+    const res = await fetch(`${base}${ruta}`, { method: metodo });
     assert.equal(res.status, 401, `${metodo} ${ruta} debería exigir contraseña`);
   }
 });
 
-test('ninguna respuesta abierta al estudiante revela la correcta', async () => {
-  await enviar('/api/docente/bancos/confirmar', { contenido: CSV, nombre: 'Ciencias' });
+test('ninguna respuesta abierta al estudiante revela la correcta ni la justificación', async () => {
+  await subirZip('/api/docente/bancos/paquete/confirmar', zipDe([preguntaDeEjemplo()]), 'Ciencias');
 
   for (const ruta of ['/', '/api/salud', '/api/auth/estado']) {
     const res = await fetch(`${base}${ruta}`);
     const texto = await res.text();
 
     assert.doesNotMatch(texto, /es_correcta/, `${ruta} filtra es_correcta`);
-    assert.doesNotMatch(texto, /La cosecha/, `${ruta} filtra la respuesta correcta`);
+    assert.doesNotMatch(texto, /justificacion/, `${ruta} filtra justificacion`);
+    assert.doesNotMatch(texto, /Opción C/, `${ruta} filtra la respuesta correcta`);
   }
 });

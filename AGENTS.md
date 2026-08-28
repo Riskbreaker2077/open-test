@@ -4,27 +4,35 @@
 
 ---
 
-## Dónde estamos (última actualización: 25/08/2026)
+## Dónde estamos (última actualización: 28/08/2026)
 
-**Seis features implementadas, 234 tests en verde, y la 013 (portal del estudiante) construida y en gran parte verificada.** El docente ya puede: crear su contraseña, cargar estudiantes, cargar bancos de preguntas, convocar y abrir evaluaciones. El estudiante ya tiene una pantalla real en la raíz `/`: escribe su código, entra directo si solo hay una evaluación de su curso (o elige si hay varias), y espera con su nombre en pantalla hasta que la sesión pase a `en_curso` — momento en el que la pantalla avanza sola, sin recargar.
+**Las dieciséis features están implementadas y 295 tests están en verde.** El flujo completo existe desde la importación hasta la descarga de resultados; la 014 aplica la línea gráfica institucional, la 015 permite cargar preguntas e imágenes en un solo ZIP, y la 016 hace que ese banco siga el estándar externo y abierto **preguntas-icfes** (github.com/riskbreaker2077/preguntas-icfes): metadata pedagógica por pregunta, contenido en bloques (texto/imagen/tabla) y justificación por cada opción. La importación quedó unificada en un único ZIP con `paquete.json`, y la exportación de resultados subió a `formato_version: 2`.
 
-**La 013 todavía no está en "Hecho".** Le faltan 6 de sus 15 criterios de aceptación, todos por depender de features que no existen: la 012 (el botón "Comenzar" real y el QR), y la 006/007 (qué ve el estudiante *después* de esas transiciones — ahora mismo ve un mensaje honesto tipo "esta pantalla la construye la feature 006", una decisión tomada a propósito, ver `spec/features/013-portal-estudiante/plan.md`). El detalle exacto de qué se verificó y qué falta está en `tasks.md` y `spec.md` de esa feature.
+**Las verificaciones físicas se harán juntas al final en el equipo destino.** Quedan pendientes QR y legibilidad en proyector, corte real de red, usabilidad táctil/orientación, línea gráfica en dispositivos reales y legibilidad de la pantalla de resultado.
 
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 servidor · 011 contraseña · 002 estudiantes · 003 bancos · 004 sesiones · 005 motor | **013 portal del estudiante** — falta verificación en tablet/QR real | 012 proyección, 006 examen, 007 resultado, 008 panel, 009 export, 010 empaquetado |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 | **Validación final en equipo destino** | Decidir después de la validación |
 
 ### Para retomar, en este orden
 
-1. Lee `spec/constitution/roadmap.md`: dice qué está hecho y qué toca ahora.
-2. Lee `spec/features/013-portal-estudiante/tasks.md`: qué queda de esa feature y por qué.
-3. `npm install && npm test` — deben pasar los 234.
-4. `npm start` y entra a `http://localhost:3000/` para ver el portal del estudiante, y a `/docente/` para el panel.
+1. Lee `RESTART.md`: contiene el estado operativo de la última sesión.
+2. Lee `spec/constitution/roadmap.md`: dice qué está hecho y qué toca ahora.
+3. Revisa las casillas manuales pendientes en 012, 013, 006, 007, 009 y 010; para lo visual, lee también la 014.
+4. `npm install && npm test` — deben pasar los 286.
+5. `npm start` y entra a `http://localhost:3000/` para ver el portal del estudiante, y a `/docente/` para el panel.
+
+## Protocolo de restart entre sesiones
+
+**Al terminar una sesión de trabajo, sobrescribe `RESTART.md` con el estado actual y agrega una entrada a `spec/bitacora.md`. Al empezar una sesión nueva, lee `RESTART.md` primero.**
+
+`RESTART.md` es un resumen operativo corto, no un historial. La bitácora es acumulativa y recibe el contexto narrativo que no cabe en una línea del restart.
 
 ### Contexto que no está en el código
 
-- **El reloj global (`comenzada_en`, `pausada_en`, `segundos_pausados`) existe en el esquema pero nadie lo usa todavía.** Lo estrenan las features 012 y 006. Las transiciones `en_curso` y `pausada` aún no están implementadas en `services/sesiones.js` — no hay ningún botón "Comenzar" en ningún panel. Para probar el salto automático del portal hay que forzar el estado directamente en `data/opentest.db`.
-- **`ejemplos/estudiantes-ejemplo.csv` y `ejemplos/banco-ejemplo.csv`** ya traen datos listos para pruebas manuales (10 estudiantes en 10A/10B, 50 preguntas válidas). Úsalos en vez de inventar datos nuevos.
+- **Las verificaciones físicas de 012, 006 y 007 están aplazadas a una única sesión final con el equipo destino.** No deben bloquear el avance de las features restantes.
+- **`ejemplos/estudiantes-ejemplo.csv` y `ejemplos/banco-ejemplo.json`** ya traen datos listos para pruebas manuales (10 estudiantes en 10A/10B, 50 preguntas válidas en el formato del estándar preguntas-icfes). Úsalos en vez de inventar datos nuevos.
+- **El banco de preguntas sigue el estándar externo `preguntas-icfes`** (`spec/contracts/paquete-preguntas-icfes.md`). El validador de contenido está vendorizado en `server/importers/estandar-preguntas-icfes.js`: si el estándar sube de versión, ese archivo se reemplaza entero por la nueva copia, no se edita a mano.
 - **Si desarrollas en WSL2**, el servidor queda en una red NAT que el wifi no ve y ninguna tablet lo alcanza. Hace falta `networkingMode=mirrored` en `.wslconfig` o un `netsh portproxy` desde Windows. No afecta al producto: el docente ejecutará el binario en Windows.
 - **El esquema evoluciona con `server/migraciones.js`**, no editando `schema.sql` a secas. Un `.db` que ya existe no recibe columnas nuevas por su cuenta.
 

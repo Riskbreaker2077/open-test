@@ -144,15 +144,103 @@ export function abrirSesion(db, id) {
   return obtenerSesion(db, id);
 }
 
-export function cerrarSesion(db, id) {
+function fechaIso(ahora) {
+  return (ahora instanceof Date ? ahora : new Date(ahora)).toISOString();
+}
+
+export function comenzarSesion(db, id, ahora = new Date()) {
+  const sesion = obtenerSesion(db, id);
+  if (sesion.estado !== 'abierta') {
+    throw error(`Solo se puede comenzar una evaluación abierta (está "${sesion.estado}").`, 409);
+  }
+
+  db.prepare(`
+    UPDATE sesiones
+    SET estado = 'en_curso', comenzada_en = ?, pausada_en = NULL
+    WHERE id = ?
+  `).run(fechaIso(ahora), id);
+  return obtenerSesion(db, id);
+}
+
+export function pausarSesion(db, id, ahora = new Date()) {
+  const sesion = obtenerSesion(db, id);
+  if (sesion.estado !== 'en_curso') {
+    throw error(`Solo se puede pausar una evaluación en curso (está "${sesion.estado}").`, 409);
+  }
+
+  db.prepare("UPDATE sesiones SET estado = 'pausada', pausada_en = ? WHERE id = ?")
+    .run(fechaIso(ahora), id);
+  return obtenerSesion(db, id);
+}
+
+export function reanudarSesion(db, id, ahora = new Date()) {
+  const sesion = obtenerSesion(db, id);
+  if (sesion.estado !== 'pausada') {
+    throw error(`Solo se puede reanudar una evaluación pausada (está "${sesion.estado}").`, 409);
+  }
+
+  const instante = ahora instanceof Date ? ahora : new Date(ahora);
+  const pausa = Math.max(0, Math.floor((instante.getTime() - new Date(sesion.pausada_en).getTime()) / 1000));
+  db.prepare(`
+    UPDATE sesiones
+    SET estado = 'en_curso', pausada_en = NULL,
+        segundos_pausados = segundos_pausados + ?
+    WHERE id = ?
+  `).run(pausa, id);
+  return obtenerSesion(db, id);
+}
+
+export function cerrarSesion(db, id, { motivo = 'forzada_docente', ahora = new Date() } = {}) {
   const sesion = obtenerSesion(db, id);
   if (sesion.estado === 'cerrada') return sesion;
   if (sesion.estado === 'borrador') {
     throw error('Esta evaluación todavía no se ha abierto.', 409);
   }
 
-  db.prepare("UPDATE sesiones SET estado = 'cerrada' WHERE id = ?").run(id);
+  const entregadoEn = fechaIso(ahora);
+  db.transaction(() => {
+    db.prepare("UPDATE sesiones SET estado = 'cerrada', pausada_en = NULL WHERE id = ?").run(id);
+    const pendientes = db.prepare(`
+      SELECT id FROM intentos WHERE sesion_id = ? AND entregado_en IS NULL
+    `).all(id);
+    for (const intento of pendientes) {
+      calificarYMarcarIntento(db, intento.id, motivo, entregadoEn);
+    }
+  })();
   return obtenerSesion(db, id);
+}
+
+export function actualizarNivelFeedback(db, id, nivel) {
+  const sesion = obtenerSesion(db, id);
+  if (sesion.estado !== 'cerrada') {
+    throw error('El nivel de retroalimentación solo se ajusta aquí después de cerrar.', 409);
+  }
+  if (!NIVELES_FEEDBACK.includes(nivel)) {
+    throw error(`El nivel de retroalimentación "${nivel}" no existe.`);
+  }
+  db.prepare('UPDATE sesiones SET nivel_feedback = ? WHERE id = ?').run(nivel, id);
+  return obtenerSesion(db, id);
+}
+
+/**
+ * Segundos del reloj global. Si vence, cierra la sesión y entrega los intentos
+ * pendientes; así cualquier cliente que consulte el reloj aplica el plazo.
+ */
+export function tiempoRestante(db, sesionOId, ahora = new Date()) {
+  let sesion = typeof sesionOId === 'object' ? sesionOId : obtenerSesion(db, sesionOId);
+  if (sesion.estado === 'cerrada') return 0;
+  if (!sesion.comenzada_en) return sesion.duracion_minutos * 60;
+
+  const referencia = sesion.estado === 'pausada' ? new Date(sesion.pausada_en) :
+    (ahora instanceof Date ? ahora : new Date(ahora));
+  const transcurridos = Math.floor((referencia.getTime() - new Date(sesion.comenzada_en).getTime()) / 1000);
+  const restantes = sesion.duracion_minutos * 60 + sesion.segundos_pausados - transcurridos;
+
+  if (restantes <= 0 && sesion.estado !== 'cerrada') {
+    sesion = cerrarSesion(db, sesion.id, { motivo: 'tiempo', ahora: referencia });
+    return sesion.estado === 'cerrada' ? 0 : Math.max(0, restantes);
+  }
+  return Math.max(0, restantes);
 }
 
 export function listarSesiones(db) {
@@ -187,8 +275,8 @@ export function borrarSesion(db, id) {
 }
 
 /**
- * Lo que el estudiante ve en su portal: solo lo abierto y solo lo convocado
- * para su curso. Nunca borradores ni evaluaciones cerradas.
+ * Lo que el estudiante ve en su portal: sesiones activas de su curso y las
+ * cerradas en las que ya entregó, para que pueda volver a consultar la nota.
  */
 export function sesionesDisponiblesPara(db, estudiante) {
   const marcadores = ESTADOS_VISIBLES.map(() => '?').join(', ');
@@ -199,10 +287,13 @@ export function sesionesDisponiblesPara(db, estudiante) {
              b.nombre AS banco
       FROM sesiones s
       JOIN bancos b ON b.id = s.banco_id
-      WHERE s.estado IN (${marcadores})
+      WHERE s.estado IN (${marcadores}) OR EXISTS (
+        SELECT 1 FROM intentos i
+        WHERE i.sesion_id = s.id AND i.codigo_estudiante = ? AND i.entregado_en IS NOT NULL
+      )
       ORDER BY s.creado_en DESC
     `)
-    .all(...ESTADOS_VISIBLES)
+    .all(...ESTADOS_VISIBLES, estudiante.codigo)
     .filter((sesion) => convoca(sesion, estudiante.curso))
     .map(({ cursos, ...visible }) => visible);
 }
@@ -219,3 +310,4 @@ export function puedeEntrar(sesion, estudiante) {
   }
   return null;
 }
+import { calificarYMarcarIntento } from './calificacion.js';

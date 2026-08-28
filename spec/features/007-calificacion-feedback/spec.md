@@ -1,6 +1,6 @@
 # 007 · Calificación y retroalimentación
 
-**Estado:** propuesta
+**Estado:** implementado ✅
 
 ## Qué hace
 
@@ -20,18 +20,22 @@ Los tres niveles existen por un conflicto real: el nivel `completo` es el más �
 
 ## Criterios de aceptación
 
-- [ ] Al entregar se calculan y guardan `aciertos` y `puntaje` en el intento.
-- [ ] El puntaje es 1 punto por acierto, 0 por error y 0 por pregunta saltada o no alcanzada, según [`export-resultados-v1.md`](../../contracts/export-resultados-v1.md).
-- [ ] El porcentaje se calcula sobre el total de preguntas asignadas, no sobre las respondidas.
-- [ ] La calificación se hace una sola vez, al entregar; volver a la pantalla de resultado no la recalcula.
-- [ ] Con `solo_puntaje`, la pantalla muestra puntaje y porcentaje y nada más.
-- [ ] Con `aciertos`, se lista cada pregunta con su enunciado, lo que respondió el estudiante y si acertó — **sin mostrar la correcta cuando falló**.
-- [ ] Con `completo`, se muestra además la opción correcta y la explicación de cada pregunta.
-- [ ] La API respeta el nivel configurado: con `solo_puntaje` o `aciertos`, la respuesta del servidor **no contiene** la opción correcta en ningún campo (test explícito por nivel).
-- [ ] Las preguntas saltadas o no alcanzadas aparecen identificadas como tales, no como errores.
-- [ ] Un estudiante que vuelve a entrar con su código tras entregar ve su resultado otra vez, con el mismo nivel de detalle.
+- [x] Al entregar se calculan y guardan `aciertos` y `puntaje` en el intento.
+- [x] El puntaje es 1 punto por acierto, 0 por error y 0 por pregunta saltada o no alcanzada, según [`export-resultados-v1.md`](../../contracts/export-resultados-v1.md).
+- [x] El porcentaje se calcula sobre el total de preguntas asignadas, no sobre las respondidas.
+- [x] La calificación se hace una sola vez, al entregar; volver a la pantalla de resultado no la recalcula.
+- [x] Con `solo_puntaje`, la pantalla muestra puntaje y porcentaje y nada más.
+- [x] Con `aciertos`, se lista cada pregunta con su enunciado, lo que respondió el estudiante y si acertó — **sin mostrar la correcta cuando falló**.
+- [x] Con `completo`, se muestra además la opción correcta y la explicación de cada pregunta.
+- [x] La API respeta el nivel configurado: con `solo_puntaje` o `aciertos`, la respuesta del servidor **no contiene** la opción correcta en ningún campo (test explícito por nivel).
+- [x] Las preguntas saltadas o no alcanzadas aparecen identificadas como tales, no como errores.
+- [x] Un estudiante que vuelve a entrar con su código tras entregar ve su resultado otra vez, con el mismo nivel de detalle.
 - [ ] La pantalla es legible en tablet y deja claro que la prueba terminó y que puede levantarse.
-- [ ] Si el docente cambia el nivel de feedback de una sesión cerrada, los estudiantes que vuelvan a consultar ven el nivel nuevo.
+- [x] Si el docente cambia el nivel de feedback de una sesión cerrada, los estudiantes que vuelvan a consultar ven el nivel nuevo; ningún otro parámetro de la sesión cerrada se puede modificar.
+
+## Cierre
+
+Implementación cerrada con 11 de 12 criterios verificados. La legibilidad y facilidad de uso en una tablet real queda aplazada, por decisión del usuario, a la sesión final de pruebas con el equipo destino.
 
 ## Fuera de alcance
 

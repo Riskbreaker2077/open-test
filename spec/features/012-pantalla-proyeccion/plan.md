@@ -13,6 +13,7 @@ El generador de QR se escribe a mano —estaba previsto en la feature 010 y se a
    - `comenzarSesion(db, id)` → `en_curso`, fija `comenzada_en`.
    - `pausarSesion` / `reanudarSesion` → acumulan en `segundos_pausados`.
    - `tiempoRestante(db, sesion)` → segundos, única fuente de verdad del reloj; devuelve 0 y dispara el cierre cuando vence.
+   - cerrar o vencer marca como entregados, en la misma transacción, todos los intentos pendientes; el cálculo de `aciertos` y `puntaje` sigue perteneciendo a la feature 007.
 3. `server/routes/docente.js` — `GET /api/docente/proyeccion/:sesionId` devuelve nombre, URL del portal, tiempo restante, estado y los dos contadores. **Nunca nombres ni notas.** Y las transiciones `comenzar`, `pausar`, `reanudar`.
 4. `GET /api/docente/qr.svg?texto=` — el QR de la dirección del portal, generado al vuelo.
 5. `public/proyeccion/index.html` + `proyeccion.js` + `proyeccion.css` — maquetación a pantalla completa con unidades relativas a la ventana (`clamp`, `vmin`) para que el mismo diseño funcione en 1024×768 y en 1920×1080; sondeo del estado y reloj interpolado entre consultas.

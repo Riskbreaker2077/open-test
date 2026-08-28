@@ -1,0 +1,29 @@
+.resultado__fin {
+  margin-bottom: 0.25rem;
+  color: var(--exito);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.resultado__puntaje {
+  margin: 0.25rem 0 0;
+  color: var(--azul-900);
+  font-size: clamp(2.5rem, 10vw, 4.5rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.resultado__salida { margin-top: 1.5rem; font-weight: 600; }
+.resultado__pregunta { margin-bottom: 1.25rem; }
+.resultado__estado {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.resultado__estado--acertada { color: var(--exito); background: var(--verde-100); }
+.resultado__estado--fallada { color: var(--error); background: var(--rojo-100); }
+.resultado__estado--saltada,
+.resultado__estado--sin_llegar { color: var(--tinta-suave); background: var(--azul-100); }

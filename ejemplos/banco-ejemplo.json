@@ -1,0 +1,3157 @@
+{
+  "estandar": "preguntas-icfes",
+  "version_estandar": "1.0.0",
+  "nombre": "Banco de ejemplo",
+  "preguntas": [
+    {
+      "id": "be-01",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 1",
+      "evidencia": "Evidencia de ejemplo para la pregunta 1",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 1",
+      "contexto": [
+        {
+          "tipo": "texto",
+          "texto": "Lee el siguiente fragmento y responde:\n\nLa migración de las aves obedece a cambios estacionales."
+        }
+      ],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 1: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 1"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción A es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 1"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 1"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 1"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-02",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 2",
+      "evidencia": "Evidencia de ejemplo para la pregunta 2",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 2",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 2: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 2"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 2"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción B es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 2"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 2"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-03",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 3",
+      "evidencia": "Evidencia de ejemplo para la pregunta 3",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 3",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 3: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 3"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 3"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 3"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción C es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 3"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-04",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 4",
+      "evidencia": "Evidencia de ejemplo para la pregunta 4",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 4",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 4: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 4"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 4"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 4"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 4"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción D es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-05",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 5",
+      "evidencia": "Evidencia de ejemplo para la pregunta 5",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 5",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 5: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 5"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción A es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 5"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 5"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 5"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-06",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 6",
+      "evidencia": "Evidencia de ejemplo para la pregunta 6",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 6",
+      "contexto": [
+        {
+          "tipo": "texto",
+          "texto": "Lee el siguiente fragmento y responde:\n\nLa migración de las aves obedece a cambios estacionales."
+        }
+      ],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 6: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 6"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 6"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción B es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 6"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 6"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-07",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 7",
+      "evidencia": "Evidencia de ejemplo para la pregunta 7",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 7",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 7: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 7"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 7"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 7"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción C es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 7"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-08",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 8",
+      "evidencia": "Evidencia de ejemplo para la pregunta 8",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 8",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 8: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 8"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 8"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 8"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 8"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción D es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-09",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 9",
+      "evidencia": "Evidencia de ejemplo para la pregunta 9",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 9",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 9: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 9"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción A es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 9"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 9"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 9"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-10",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 10",
+      "evidencia": "Evidencia de ejemplo para la pregunta 10",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 10",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 10: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 10"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 10"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción B es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 10"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 10"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-11",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 11",
+      "evidencia": "Evidencia de ejemplo para la pregunta 11",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 11",
+      "contexto": [
+        {
+          "tipo": "texto",
+          "texto": "Lee el siguiente fragmento y responde:\n\nLa migración de las aves obedece a cambios estacionales."
+        }
+      ],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 11: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 11"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 11"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 11"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción C es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 11"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-12",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 12",
+      "evidencia": "Evidencia de ejemplo para la pregunta 12",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 12",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 12: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 12"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 12"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 12"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 12"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción D es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-13",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 13",
+      "evidencia": "Evidencia de ejemplo para la pregunta 13",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 13",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 13: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 13"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción A es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 13"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 13"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 13"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-14",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 14",
+      "evidencia": "Evidencia de ejemplo para la pregunta 14",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 14",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 14: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 14"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 14"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción B es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 14"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 14"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-15",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 15",
+      "evidencia": "Evidencia de ejemplo para la pregunta 15",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 15",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 15: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 15"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 15"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 15"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción C es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 15"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-16",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 16",
+      "evidencia": "Evidencia de ejemplo para la pregunta 16",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 16",
+      "contexto": [
+        {
+          "tipo": "texto",
+          "texto": "Lee el siguiente fragmento y responde:\n\nLa migración de las aves obedece a cambios estacionales."
+        }
+      ],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 16: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 16"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 16"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 16"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 16"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción D es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-17",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 17",
+      "evidencia": "Evidencia de ejemplo para la pregunta 17",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 17",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 17: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 17"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción A es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 17"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 17"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 17"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-18",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 18",
+      "evidencia": "Evidencia de ejemplo para la pregunta 18",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 18",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 18: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 18"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 18"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción B es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 18"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 18"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-19",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 19",
+      "evidencia": "Evidencia de ejemplo para la pregunta 19",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 19",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 19: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 19"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 19"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 19"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción C es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 19"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-20",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 20",
+      "evidencia": "Evidencia de ejemplo para la pregunta 20",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 20",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 20: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 20"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 20"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 20"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 20"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción D es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-21",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 21",
+      "evidencia": "Evidencia de ejemplo para la pregunta 21",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 21",
+      "contexto": [
+        {
+          "tipo": "texto",
+          "texto": "Lee el siguiente fragmento y responde:\n\nLa migración de las aves obedece a cambios estacionales."
+        }
+      ],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 21: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 21"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción A es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 21"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 21"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 21"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-22",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 22",
+      "evidencia": "Evidencia de ejemplo para la pregunta 22",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 22",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 22: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 22"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 22"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción B es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 22"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 22"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-23",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 23",
+      "evidencia": "Evidencia de ejemplo para la pregunta 23",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 23",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 23: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 23"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 23"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 23"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción C es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 23"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-24",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 24",
+      "evidencia": "Evidencia de ejemplo para la pregunta 24",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 24",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 24: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 24"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 24"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 24"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 24"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción D es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-25",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 25",
+      "evidencia": "Evidencia de ejemplo para la pregunta 25",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 25",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 25: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 25"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción A es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 25"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 25"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 25"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-26",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 26",
+      "evidencia": "Evidencia de ejemplo para la pregunta 26",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 26",
+      "contexto": [
+        {
+          "tipo": "texto",
+          "texto": "Lee el siguiente fragmento y responde:\n\nLa migración de las aves obedece a cambios estacionales."
+        }
+      ],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 26: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 26"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 26"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción B es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 26"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 26"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-27",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 27",
+      "evidencia": "Evidencia de ejemplo para la pregunta 27",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 27",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 27: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 27"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 27"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 27"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción C es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 27"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-28",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 28",
+      "evidencia": "Evidencia de ejemplo para la pregunta 28",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 28",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 28: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 28"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 28"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 28"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 28"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción D es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-29",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 29",
+      "evidencia": "Evidencia de ejemplo para la pregunta 29",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 29",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 29: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 29"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción A es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 29"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 29"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 29"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-30",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 30",
+      "evidencia": "Evidencia de ejemplo para la pregunta 30",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 30",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 30: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 30"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 30"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción B es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 30"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 30"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-31",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 31",
+      "evidencia": "Evidencia de ejemplo para la pregunta 31",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 31",
+      "contexto": [
+        {
+          "tipo": "texto",
+          "texto": "Lee el siguiente fragmento y responde:\n\nLa migración de las aves obedece a cambios estacionales."
+        }
+      ],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 31: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 31"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 31"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 31"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción C es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 31"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-32",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 32",
+      "evidencia": "Evidencia de ejemplo para la pregunta 32",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 32",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 32: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 32"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 32"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 32"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 32"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción D es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-33",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 33",
+      "evidencia": "Evidencia de ejemplo para la pregunta 33",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 33",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 33: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 33"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción A es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 33"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 33"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 33"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-34",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 34",
+      "evidencia": "Evidencia de ejemplo para la pregunta 34",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 34",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 34: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 34"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 34"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción B es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 34"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 34"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-35",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 35",
+      "evidencia": "Evidencia de ejemplo para la pregunta 35",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 35",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 35: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 35"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 35"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 35"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción C es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 35"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-36",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 36",
+      "evidencia": "Evidencia de ejemplo para la pregunta 36",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 36",
+      "contexto": [
+        {
+          "tipo": "texto",
+          "texto": "Lee el siguiente fragmento y responde:\n\nLa migración de las aves obedece a cambios estacionales."
+        }
+      ],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 36: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 36"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 36"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 36"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 36"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción D es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-37",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 37",
+      "evidencia": "Evidencia de ejemplo para la pregunta 37",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 37",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 37: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 37"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción A es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 37"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 37"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 37"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-38",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 38",
+      "evidencia": "Evidencia de ejemplo para la pregunta 38",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 38",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 38: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 38"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 38"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción B es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 38"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 38"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-39",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 39",
+      "evidencia": "Evidencia de ejemplo para la pregunta 39",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 39",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 39: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 39"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 39"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 39"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción C es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 39"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-40",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 40",
+      "evidencia": "Evidencia de ejemplo para la pregunta 40",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 40",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 40: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 40"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 40"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 40"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 40"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción D es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-41",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 41",
+      "evidencia": "Evidencia de ejemplo para la pregunta 41",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 41",
+      "contexto": [
+        {
+          "tipo": "texto",
+          "texto": "Lee el siguiente fragmento y responde:\n\nLa migración de las aves obedece a cambios estacionales."
+        }
+      ],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 41: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 41"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción A es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 41"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 41"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 41"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-42",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 42",
+      "evidencia": "Evidencia de ejemplo para la pregunta 42",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 42",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 42: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 42"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 42"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción B es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 42"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 42"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-43",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 43",
+      "evidencia": "Evidencia de ejemplo para la pregunta 43",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 43",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 43: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 43"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 43"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 43"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción C es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 43"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-44",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 44",
+      "evidencia": "Evidencia de ejemplo para la pregunta 44",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 44",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 44: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 44"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 44"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 44"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 44"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción D es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-45",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 45",
+      "evidencia": "Evidencia de ejemplo para la pregunta 45",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 45",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 45: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 45"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción A es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 45"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 45"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 45"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-46",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 46",
+      "evidencia": "Evidencia de ejemplo para la pregunta 46",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 46",
+      "contexto": [
+        {
+          "tipo": "texto",
+          "texto": "Lee el siguiente fragmento y responde:\n\nLa migración de las aves obedece a cambios estacionales."
+        }
+      ],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 46: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 46"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 46"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción B es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 46"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 46"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-47",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 47",
+      "evidencia": "Evidencia de ejemplo para la pregunta 47",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 47",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 47: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 47"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 47"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 47"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción C es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 47"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-48",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 48",
+      "evidencia": "Evidencia de ejemplo para la pregunta 48",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 48",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 48: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 48"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 48"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 48"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 48"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción D es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-49",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 49",
+      "evidencia": "Evidencia de ejemplo para la pregunta 49",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 49",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 49: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 49"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción A es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 49"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción B no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 49"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 49"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    },
+    {
+      "id": "be-50",
+      "competencia": "Competencia de ejemplo",
+      "componente": "Componente de ejemplo",
+      "afirmacion": "Afirmación de ejemplo para la pregunta 50",
+      "evidencia": "Evidencia de ejemplo para la pregunta 50",
+      "estandar_asociado": "Estándar de ejemplo",
+      "que_evalua": "Qué evalúa de ejemplo para la pregunta 50",
+      "contexto": [],
+      "enunciado": [
+        {
+          "tipo": "texto",
+          "texto": "Pregunta número 50: ¿cuál es la respuesta?"
+        }
+      ],
+      "opciones": [
+        {
+          "id": "A",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción A de la 50"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción A no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "B",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción B de la 50"
+            }
+          ],
+          "es_correcta": true,
+          "justificacion": "Correcta: la opción B es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "C",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción C de la 50"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción C no es la respuesta esperada de este ejemplo."
+        },
+        {
+          "id": "D",
+          "contenido": [
+            {
+              "tipo": "texto",
+              "texto": "Opción D de la 50"
+            }
+          ],
+          "es_correcta": false,
+          "justificacion": "Incorrecta: la opción D no es la respuesta esperada de este ejemplo."
+        }
+      ]
+    }
+  ]
+}

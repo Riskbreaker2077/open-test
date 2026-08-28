@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenTest — Resultados</title>
+  <link rel="stylesheet" href="/shared/base.css">
+</head>
+<body class="superficie-docente">
+  <header class="barra">
+    <a class="marca marca--compacta" href="/docente/"><span class="marca__logo"><img src="/assets/logo-institucional.png" alt=""></span><span class="marca__texto"><strong>OpenTest</strong><small>Resultados</small></span></a>
+    <div class="barra__acciones"><a class="boton boton--volver boton--pequeno" href="/docente/sesiones.html">← Volver a evaluaciones</a><button class="boton boton--secundario boton--pequeno" id="salir">Cerrar sesión</button></div>
+  </header>
+  <main class="contenedor">
+    <p class="sobretitulo">Datos y retroalimentación</p>
+    <h1>Descargar resultados</h1>
+    <section class="tarjeta" id="sin-resultados" hidden>
+      <p>Todavía no hay evaluaciones cerradas para exportar.</p>
+    </section>
+    <section class="tarjeta" id="panel" hidden>
+      <label class="campo"><span>Evaluación cerrada</span><select id="sesion"></select></label>
+      <label class="campo"><span>Curso</span><select id="curso"></select></label>
+      <div class="accesos">
+        <a class="acceso" id="detalle"><strong>Detalle CSV</strong><span>Una fila por pregunta para retroalimentación.</span></a>
+        <a class="acceso" id="resumen-csv"><strong>Resumen CSV</strong><span>Una fila por estudiante para la planilla.</span></a>
+        <a class="acceso" id="json"><strong>Archivo JSON</strong><span>Auditoría completa con el orden real de opciones.</span></a>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/docente/resultados.js"></script>
+</body>
+</html>

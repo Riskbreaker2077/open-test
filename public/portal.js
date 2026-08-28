@@ -66,19 +66,10 @@ async function consultarEstado() {
   }
 }
 
-/**
- * Lo que ve el estudiante mientras su examen (feature 006) y su resultado
- * (feature 007) todavía no existen: la transición ocurre sola, en cuanto el
- * servidor la reporta, pero el contenido de esas pantallas es de otra feature.
- */
 function renderEstado(estado) {
   if (estado.entregado) {
     detenerSondeo();
-    mostrarMensaje(
-      'Ya entregaste esta prueba',
-      `${estado.estudiante}, tu resultado se mostrará aquí.`,
-      'Esta pantalla la construye la feature 007 · Calificación y retroalimentación.',
-    );
+    window.location.replace('/estudiante/resultado.html');
     return;
   }
 
@@ -100,11 +91,7 @@ function renderEstado(estado) {
       break;
     case 'en_curso':
       detenerSondeo();
-      mostrarMensaje(
-        'Tu examen ha comenzado',
-        `${estado.estudiante}, tu prueba está lista.`,
-        'Esta pantalla la construye la feature 006 · Presentación del examen.',
-      );
+      window.location.replace('/estudiante/examen.html');
       break;
     case 'cerrada':
       detenerSondeo();

@@ -8,12 +8,12 @@ Cerrar la sesión reutiliza la calificación de la feature 007 sobre cada intent
 
 ## Implementación
 
-1. `server/services/monitoreo.js` — `estadoDeSesion(db, sesionId)`: una consulta con `LEFT JOIN` desde `estudiantes` (filtrados por los cursos convocados) hacia `intentos`, más un conteo de respuestas por intento para saber el avance. Calcula los segundos restantes de cada intento en el servidor y devuelve también los contadores agregados.
+1. `server/services/monitoreo.js` — `estadoDeSesion(db, sesionId)`: una consulta con `LEFT JOIN` desde `estudiantes` (filtrados por los cursos convocados) hacia `intentos`, más un conteo de respuestas por intento para saber el avance. Devuelve el reloj global de la sesión y los contadores agregados; todos los intentos activos comparten ese mismo tiempo restante.
 2. `server/services/sesiones.js` — `cerrarSesion(db, id)`: en una transacción, entrega y califica todos los intentos sin `entregado_en` con motivo `forzada_docente`, y pasa la sesión a `cerrada`.
 3. `server/services/intentos.js` — `forzarEntrega(db, intentoId)`, que reutiliza la misma ruta de entrega y calificación que usa el estudiante.
 4. Rutas: `GET /api/docente/sesiones/:id/monitoreo`, `POST /api/docente/intentos/:id/forzar-entrega`, `POST /api/docente/sesiones/:id/cerrar`.
 5. `public/docente/monitoreo.html` + `monitoreo.js` — tabla de estudiantes ordenable, contadores arriba, URL destacada, sondeo cada 5 s que se **detiene cuando la pestaña no está visible** (`visibilitychange`) y se reanuda al volver.
-6. Índices en `respuestas(intento_pregunta_id)` e `intentos(sesion_id)` para que la consulta agregada no degrade con 40 intentos.
+6. Verificar los índices ya existentes en `respuestas(intento_pregunta_id)` e `intentos(sesion_id)` para que la consulta agregada no degrade con 40 intentos; no se crea una migración redundante.
 7. Tests: `estadoDeSesion` con estudiantes en los tres estados; el cierre entrega y califica todos los vivos; tras cerrar, entrar o responder se rechaza; la entrega forzada deja el motivo correcto y calcula el puntaje.
 
 ## Decisiones

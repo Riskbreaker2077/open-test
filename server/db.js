@@ -1,12 +1,11 @@
 import { mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
 import { aplicarMigraciones, fijarVersion, ULTIMA_VERSION } from './migraciones.js';
+import { RUTAS } from './rutas.js';
 
-const aqui = dirname(fileURLToPath(import.meta.url));
-
-export const RAIZ_DATOS = join(aqui, '..', 'data');
+const aqui = join(RUTAS.raiz, 'server');
+export const RAIZ_DATOS = RUTAS.datos;
 export const RUTA_IMAGENES = join(RAIZ_DATOS, 'uploads', 'imagenes');
 export const RUTA_BD_POR_DEFECTO = join(RAIZ_DATOS, 'opentest.db');
 

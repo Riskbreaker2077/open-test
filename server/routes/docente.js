@@ -1,6 +1,6 @@
 import express, { Router } from 'express';
 import { validarEstudiantes } from '../importers/estudiantes.js';
-import { validarBanco } from '../importers/preguntas.js';
+import { MAX_BYTES_PAQUETE, validarPaquete } from '../importers/paquete-zip.js';
 import {
   borrarBanco,
   contarBancos,
@@ -12,13 +12,27 @@ import {
   abrirSesion,
   borrarSesion,
   cerrarSesion,
+  comenzarSesion,
   crearSesion,
   listarSesiones,
   obtenerSesion,
+  pausarSesion,
   POR_DEFECTO,
+  reanudarSesion,
+  tiempoRestante,
   actualizarSesion,
+  actualizarNivelFeedback,
 } from '../services/sesiones.js';
-import { contarIntentos } from '../services/intentos.js';
+import { svgQr } from '../qr.js';
+import { urlsDeIntranet } from '../red.js';
+import { contarIntentos, forzarEntrega } from '../services/intentos.js';
+import { estadoDeSesion } from '../services/monitoreo.js';
+import {
+  aDetalleCsv,
+  aJson,
+  armarExportacion,
+  aResumenCsv,
+} from '../exporters/resultados.js';
 import { solapamientoEsperado } from '../services/personalizacion.js';
 import {
   guardarImagen,
@@ -26,6 +40,7 @@ import {
   MAX_BYTES_IMAGEN,
   nombresDisponibles,
 } from '../services/imagenes.js';
+import { tieneBloqueImagen } from '../services/bloques.js';
 import {
   contarEstudiantes,
   cursosDeEstudiantes,
@@ -40,6 +55,11 @@ const MUESTRA = 10;
 
 export function rutasDocente(db) {
   const router = Router();
+
+  const direccionPortal = (req) => {
+    const candidatas = urlsDeIntranet(req.socket.localPort);
+    return candidatas.find((item) => item.probable)?.url ?? `${req.protocol}://${req.get('host')}`;
+  };
 
   router.get('/estado', (req, res) => {
     res.json({ ok: true, estudiantes: contarEstudiantes(db), bancos: contarBancos(db) });
@@ -107,35 +127,39 @@ export function rutasDocente(db) {
   });
 
   // --- Bancos de preguntas ----------------------------------------------
-  router.post('/bancos/validar', (req, res) => {
-    const { nombre, preguntas, errores, avisos } = validarBanco(req.body?.contenido ?? '', {
-      imagenesDisponibles: nombresDisponibles(),
-    });
-
-    if (errores.length > 0) return res.json({ ok: false, errores });
-
-    res.json({
-      ok: true,
-      nombre: req.body?.nombre || nombre || 'Banco sin nombre',
-      avisos,
-      resumen: {
-        total: preguntas.length,
-        conContexto: preguntas.filter((p) => p.contexto !== '').length,
-        conImagen: preguntas.filter((p) => p.imagen !== '').length,
-      },
-      muestra: preguntas.slice(0, 3),
-    });
+  // Carga unificada: un único ZIP con paquete.json (estándar preguntas-icfes)
+  // e imagenes/. No hay una vía alterna en texto plano.
+  const cuerpoZip = express.raw({ type: () => true, limit: MAX_BYTES_PAQUETE });
+  const resumenPaquete = (resultado, nombreSolicitado) => ({
+    ok: true,
+    nombre: nombreSolicitado || resultado.nombre || 'Banco sin nombre',
+    avisos: resultado.avisos,
+    resumen: {
+      total: resultado.preguntas.length,
+      conContexto: resultado.preguntas.filter((p) => p.contexto.length > 0).length,
+      conImagen: resultado.preguntas.filter((p) => tieneBloqueImagen(p)).length,
+      imagenesIncluidas: resultado.imagenes.length,
+    },
+    muestra: resultado.preguntas.slice(0, 3),
   });
 
-  router.post('/bancos/confirmar', (req, res) => {
-    const { nombre, preguntas, errores } = validarBanco(req.body?.contenido ?? '', {
-      imagenesDisponibles: nombresDisponibles(),
+  router.post('/bancos/paquete/validar', cuerpoZip, (req, res) => {
+    const resultado = validarPaquete(req.body, { imagenesDisponibles: nombresDisponibles() });
+    if (resultado.errores.length > 0) return res.json({ ok: false, errores: resultado.errores });
+    res.json(resumenPaquete(resultado, req.query.nombre?.trim()));
+  });
+
+  router.post('/bancos/paquete/confirmar', cuerpoZip, (req, res) => {
+    const resultado = validarPaquete(req.body, { imagenesDisponibles: nombresDisponibles() });
+    if (resultado.errores.length > 0) return res.status(400).json({ ok: false, errores: resultado.errores });
+
+    for (const imagen of resultado.imagenes) guardarImagen(imagen.nombre, imagen.contenido);
+    const titulo = req.query.nombre?.trim() || resultado.nombre || 'Banco sin nombre';
+    res.json({
+      ok: true,
+      resumen: guardarBanco(db, titulo, resultado.preguntas),
+      imagenes: resultado.imagenes.map((imagen) => imagen.nombre),
     });
-
-    if (errores.length > 0) return res.status(400).json({ ok: false, errores });
-
-    const titulo = req.body?.nombre?.trim() || nombre || 'Banco sin nombre';
-    res.json({ ok: true, resumen: guardarBanco(db, titulo, preguntas) });
   });
 
   router.get('/bancos', (req, res) => {
@@ -199,8 +223,90 @@ export function rutasDocente(db) {
     responder(res, () => ({ sesion: abrirSesion(db, Number(req.params.id)) }));
   });
 
+  router.post('/sesiones/:id/comenzar', (req, res) => {
+    responder(res, () => ({ sesion: comenzarSesion(db, Number(req.params.id)) }));
+  });
+
+  router.post('/sesiones/:id/pausar', (req, res) => {
+    responder(res, () => ({ sesion: pausarSesion(db, Number(req.params.id)) }));
+  });
+
+  router.post('/sesiones/:id/reanudar', (req, res) => {
+    responder(res, () => ({ sesion: reanudarSesion(db, Number(req.params.id)) }));
+  });
+
   router.post('/sesiones/:id/cerrar', (req, res) => {
     responder(res, () => ({ sesion: cerrarSesion(db, Number(req.params.id)) }));
+  });
+
+  router.get('/sesiones/:id/monitoreo', (req, res) => {
+    responder(res, () => ({
+      monitoreo: {
+        ...estadoDeSesion(db, Number(req.params.id)),
+        direccion: direccionPortal(req),
+      },
+    }));
+  });
+
+  router.post('/intentos/:id/forzar-entrega', (req, res) => {
+    responder(res, () => ({ entrega: forzarEntrega(db, Number(req.params.id)) }));
+  });
+
+  router.patch('/sesiones/:id/feedback', (req, res) => {
+    responder(res, () => ({
+      sesion: actualizarNivelFeedback(db, Number(req.params.id), req.body?.nivel_feedback),
+    }));
+  });
+
+  router.get('/sesiones/:id/export/:tipo', (req, res) => {
+    try {
+      const tipo = req.params.tipo;
+      if (!['detalle', 'resumen', 'json'].includes(tipo)) {
+        return res.status(404).json({ ok: false, mensaje: 'Ese formato de exportación no existe.' });
+      }
+      const exportacion = armarExportacion(db, Number(req.params.id), req.query.curso);
+      const seguro = (texto) => String(texto).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').toLowerCase() || 'todos';
+      const fecha = new Date().toISOString().slice(0, 10);
+      const extension = tipo === 'json' ? 'json' : 'csv';
+      const nombre = `opentest_${seguro(exportacion.sesion.nombre)}_${seguro(req.query.curso ?? 'todos')}_${tipo}_${fecha}.${extension}`;
+      const contenido = tipo === 'detalle' ? aDetalleCsv(exportacion)
+        : tipo === 'resumen' ? aResumenCsv(exportacion) : aJson(exportacion);
+      res.set('Content-Disposition', `attachment; filename="${nombre}"`);
+      res.type(tipo === 'json' ? 'application/json' : 'text/csv').send(contenido);
+    } catch (err) {
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
+  router.get('/proyeccion/:sesionId', (req, res) => {
+    responder(res, () => {
+      let sesion = obtenerSesion(db, Number(req.params.sesionId));
+      const segundosRestantes = tiempoRestante(db, sesion);
+      sesion = obtenerSesion(db, sesion.id);
+      const { dentro, entregados } = contarIntentos(db, sesion.id);
+      return {
+        proyeccion: {
+          sesionId: sesion.id,
+          nombre: sesion.nombre,
+          estado: sesion.estado,
+          direccion: direccionPortal(req),
+          segundosRestantes,
+          dentro,
+          entregados: entregados ?? 0,
+        },
+      };
+    });
+  });
+
+  router.get('/qr.svg', (req, res) => {
+    try {
+      const texto = String(req.query.texto ?? '').trim();
+      if (texto === '') return res.status(400).json({ ok: false, mensaje: 'Falta la dirección del portal.' });
+      res.type('image/svg+xml').send(svgQr(texto));
+    } catch (err) {
+      res.status(400).json({ ok: false, mensaje: err.message });
+    }
   });
 
   router.delete('/sesiones/:id', (req, res) => {

@@ -1,3 +1,10 @@
+> **Obsoleto desde la feature 016.** OpenTest ya no acepta CSV ni este JSON
+> plano para preguntas: el único formato es el del estándar externo
+> `preguntas-icfes`, documentado en
+> [`paquete-preguntas-icfes.md`](paquete-preguntas-icfes.md). Este archivo se
+> conserva como referencia histórica de cómo funcionaba la importación en
+> las features 003–015.
+
 # Contrato · Importación de un banco de preguntas
 
 Formato del archivo con el que el docente carga un paquete de preguntas (típicamente 40–50) del que después se sortearán las 20 que le toca a cada estudiante.

@@ -22,6 +22,19 @@ function baseAntigua(ruta) {
       apellidos TEXT NOT NULL, curso TEXT NOT NULL
     );
     CREATE TABLE bancos (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT NOT NULL, creado_en TEXT NOT NULL);
+    CREATE TABLE preguntas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      banco_id INTEGER NOT NULL REFERENCES bancos (id) ON DELETE CASCADE,
+      contexto TEXT,
+      imagen TEXT,
+      enunciado TEXT NOT NULL
+    );
+    CREATE TABLE opciones (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      pregunta_id INTEGER NOT NULL REFERENCES preguntas (id) ON DELETE CASCADE,
+      texto TEXT NOT NULL,
+      es_correcta INTEGER NOT NULL CHECK (es_correcta IN (0, 1))
+    );
     CREATE TABLE sesiones (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nombre TEXT NOT NULL,
@@ -41,6 +54,12 @@ function baseAntigua(ruta) {
   // Datos que el docente ya tenía cargados y que no puede perder.
   db.prepare('INSERT INTO estudiantes VALUES (?, ?, ?, ?)').run('2024001', 'Ana', 'Gómez', '10A');
   db.prepare("INSERT INTO bancos (nombre, creado_en) VALUES ('Ciencias', '2026-01-01')").run();
+  db.prepare(
+    "INSERT INTO preguntas (banco_id, contexto, enunciado) VALUES (1, NULL, '¿Cuánto es 2+2?')",
+  ).run();
+  db.prepare(
+    "INSERT INTO opciones (pregunta_id, texto, es_correcta) VALUES (1, '4', 1), (1, '5', 0), (1, '6', 0), (1, '7', 0)",
+  ).run();
   db.prepare(
     "INSERT INTO sesiones (nombre, banco_id, cursos, estado, creado_en) VALUES ('Parcial', 1, '10A', 'abierta', '2026-01-01')",
   ).run();
@@ -103,6 +122,21 @@ test('la base migrada tiene las columnas del reloj con sus valores por defecto',
   }
 });
 
+test('la base migrada conserva la posición actual de cada intento', () => {
+  const { ruta, limpiar } = carpetaTemporal();
+  try {
+    baseAntigua(ruta);
+    const db = abrirBd(ruta);
+    const columnas = new Set(db.pragma('table_info(intentos)').map((columna) => columna.name));
+
+    assert.ok(columnas.has('pregunta_actual'));
+    assert.ok(columnas.has('pregunta_mostrada_en'));
+    cerrarBd(db);
+  } finally {
+    limpiar();
+  }
+});
+
 test('tras migrar ya pueden coexistir varias sesiones abiertas', () => {
   const { ruta, limpiar } = carpetaTemporal();
   try {
@@ -135,6 +169,32 @@ test('migrar es idempotente: abrir la base tres veces no cambia nada', () => {
       assert.equal(db.prepare('SELECT count(*) AS t FROM estudiantes').get().t, 1);
       cerrarBd(db);
     }
+  } finally {
+    limpiar();
+  }
+});
+
+test('la base migrada gana la metadata del estándar preguntas-icfes, en blanco', () => {
+  const { ruta, limpiar } = carpetaTemporal();
+  try {
+    baseAntigua(ruta);
+    const db = abrirBd(ruta);
+    const pregunta = db.prepare('SELECT * FROM preguntas').get();
+
+    assert.equal(pregunta.competencia, '');
+    assert.equal(pregunta.componente, '');
+    assert.equal(pregunta.afirmacion, '');
+    assert.equal(pregunta.evidencia, '');
+    assert.equal(pregunta.estandar_asociado, '');
+    assert.equal(pregunta.que_evalua, '');
+    // El texto plano que ya tenía no se toca: no se puede inventar la
+    // metadata retroactivamente, y reescribirlo a bloques exige reimportar.
+    assert.equal(pregunta.enunciado, '¿Cuánto es 2+2?');
+
+    const opciones = db.prepare('SELECT * FROM opciones ORDER BY id').all();
+    assert.ok(opciones.every((o) => o.justificacion === ''));
+    assert.equal(opciones.length, 4);
+    cerrarBd(db);
   } finally {
     limpiar();
   }

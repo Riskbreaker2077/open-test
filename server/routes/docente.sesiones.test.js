@@ -4,6 +4,8 @@ import { crearApp } from '../app.js';
 import { abrirBd, cerrarBd } from '../db.js';
 import { _reiniciar } from '../sesion.js';
 import { _reiniciarLimitador } from './auth.js';
+import { guardarBanco } from '../services/bancos.js';
+import { preguntasDeEjemplo } from '../fixtures-preguntas.js';
 
 let db;
 let servidor;
@@ -11,10 +13,6 @@ let base;
 let cookie;
 
 const ESTUDIANTES = 'codigo,nombres,apellidos,curso\n2024001,Ana,Gómez,10A\n2024002,Luis,Pérez,10B\n';
-const banco = (n) =>
-  'enunciado,opcion_a,opcion_b,opcion_c,opcion_d,correcta\n' +
-  Array.from({ length: n }, (_, i) => `¿P${i}?,a,b,c,d,A`).join('\n') +
-  '\n';
 
 beforeEach(async () => {
   _reiniciar();
@@ -32,7 +30,7 @@ beforeEach(async () => {
   cookie = alta.headers.getSetCookie()[0].split(';')[0];
 
   await post('/api/docente/estudiantes/confirmar', { contenido: ESTUDIANTES });
-  await post('/api/docente/bancos/confirmar', { contenido: banco(25), nombre: 'Ciencias' });
+  guardarBanco(db, 'Ciencias', preguntasDeEjemplo(25));
 });
 
 afterEach(async () => {
@@ -84,6 +82,42 @@ test('abre y cierra la evaluación', async () => {
 
   assert.equal((await post(`/api/docente/sesiones/${sesion.id}/abrir`)).sesion.estado, 'abierta');
   assert.equal((await post(`/api/docente/sesiones/${sesion.id}/cerrar`)).sesion.estado, 'cerrada');
+});
+
+test('comienza, pausa y reanuda la evaluación desde la API', async () => {
+  const { sesion } = await post('/api/docente/sesiones', NUEVA);
+  await post(`/api/docente/sesiones/${sesion.id}/abrir`);
+
+  assert.equal((await post(`/api/docente/sesiones/${sesion.id}/comenzar`)).sesion.estado, 'en_curso');
+  assert.equal((await post(`/api/docente/sesiones/${sesion.id}/pausar`)).sesion.estado, 'pausada');
+  assert.equal((await post(`/api/docente/sesiones/${sesion.id}/reanudar`)).sesion.estado, 'en_curso');
+});
+
+test('la proyección devuelve solo datos públicos del aula y un QR local', async () => {
+  const { sesion } = await post('/api/docente/sesiones', NUEVA);
+  await post(`/api/docente/sesiones/${sesion.id}/abrir`);
+  await fetch(`${base}/api/examen/entrar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ codigo: '2024001', sesionId: sesion.id }),
+  });
+
+  const respuesta = await llamar(`/api/docente/proyeccion/${sesion.id}`);
+  const texto = await respuesta.text();
+  const cuerpo = JSON.parse(texto);
+  assert.equal(respuesta.status, 200);
+  assert.equal(cuerpo.proyeccion.nombre, 'Parcial');
+  assert.equal(cuerpo.proyeccion.estado, 'abierta');
+  assert.equal(cuerpo.proyeccion.segundosRestantes, 3600);
+  assert.equal(cuerpo.proyeccion.dentro, 1);
+  assert.equal(cuerpo.proyeccion.entregados, 0);
+  assert.match(cuerpo.proyeccion.direccion, /^http:\/\//);
+  assert.doesNotMatch(texto, /Ana|Gómez|puntaje|pregunta|respuesta/i);
+
+  const qr = await llamar(`/api/docente/qr.svg?texto=${encodeURIComponent(cuerpo.proyeccion.direccion)}`);
+  assert.equal(qr.status, 200);
+  assert.match(qr.headers.get('content-type'), /image\/svg\+xml/);
+  assert.match(await qr.text(), /^<svg/);
 });
 
 test('los parámetros no se pueden cambiar una vez abierta', async () => {
@@ -145,6 +179,62 @@ test('el recuento de la lista refleja quién ha entrado', async () => {
   assert.equal(sesiones[0].entregados, 0);
 });
 
+test('monitorea convocados y permite forzar una entrega calificada', async () => {
+  const { sesion } = await post('/api/docente/sesiones', NUEVA);
+  await post(`/api/docente/sesiones/${sesion.id}/abrir`);
+  await fetch(`${base}/api/examen/entrar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ codigo: '2024001', sesionId: sesion.id }),
+  });
+  await post(`/api/docente/sesiones/${sesion.id}/comenzar`);
+
+  const inicial = await (await llamar(`/api/docente/sesiones/${sesion.id}/monitoreo`)).json();
+  assert.equal(inicial.monitoreo.contadores.convocados, 1);
+  assert.equal(inicial.monitoreo.contadores.presentando, 1);
+  assert.match(inicial.monitoreo.direccion, /^http:\/\//);
+  const intentoId = inicial.monitoreo.estudiantes[0].intentoId;
+
+  const forzada = await post(`/api/docente/intentos/${intentoId}/forzar-entrega`);
+  assert.equal(forzada.entrega.intento.motivo_entrega, 'forzada_docente');
+  assert.equal(forzada.entrega.intento.puntaje, 0);
+  const final = await (await llamar(`/api/docente/sesiones/${sesion.id}/monitoreo`)).json();
+  assert.equal(final.monitoreo.contadores.entregados, 1);
+});
+
+test('descarga los tres formatos de una sesión cerrada con nombre saneado', async () => {
+  const { sesion } = await post('/api/docente/sesiones', { ...NUEVA, nombre: 'Ciencias, período 2' });
+  await post(`/api/docente/sesiones/${sesion.id}/abrir`);
+  await fetch(`${base}/api/examen/entrar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ codigo: '2024001', sesionId: sesion.id }),
+  });
+  await post(`/api/docente/sesiones/${sesion.id}/cerrar`);
+
+  for (const tipo of ['detalle', 'resumen', 'json']) {
+    const respuesta = await llamar(`/api/docente/sesiones/${sesion.id}/export/${tipo}?curso=10A`);
+    assert.equal(respuesta.status, 200);
+    assert.match(
+      respuesta.headers.get('content-disposition'),
+      new RegExp(`opentest_ciencias_periodo_2_10a_${tipo}_\\d{4}-\\d{2}-\\d{2}\\.${tipo === 'json' ? 'json' : 'csv'}`),
+    );
+    if (tipo === 'json') {
+      assert.equal((await respuesta.json()).intentos.length, 1);
+    } else {
+      const bytes = new Uint8Array(await respuesta.arrayBuffer());
+      assert.deepEqual([...bytes.slice(0, 3)], [0xEF, 0xBB, 0xBF]);
+    }
+  }
+});
+
+test('rechaza exportar una evaluación que todavía está abierta', async () => {
+  const { sesion } = await post('/api/docente/sesiones', NUEVA);
+  await post(`/api/docente/sesiones/${sesion.id}/abrir`);
+  const respuesta = await llamar(`/api/docente/sesiones/${sesion.id}/export/resumen`);
+  assert.equal(respuesta.status, 409);
+});
+
 test('todas las rutas de evaluaciones exigen contraseña', async () => {
   const rutas = [
     ['/api/docente/sesiones', 'GET'],
@@ -152,7 +242,15 @@ test('todas las rutas de evaluaciones exigen contraseña', async () => {
     ['/api/docente/sesiones/1', 'GET'],
     ['/api/docente/sesiones/1', 'PUT'],
     ['/api/docente/sesiones/1/abrir', 'POST'],
+    ['/api/docente/sesiones/1/comenzar', 'POST'],
+    ['/api/docente/sesiones/1/pausar', 'POST'],
+    ['/api/docente/sesiones/1/reanudar', 'POST'],
     ['/api/docente/sesiones/1/cerrar', 'POST'],
+    ['/api/docente/sesiones/1/monitoreo', 'GET'],
+    ['/api/docente/intentos/1/forzar-entrega', 'POST'],
+    ['/api/docente/sesiones/1/export/detalle', 'GET'],
+    ['/api/docente/proyeccion/1', 'GET'],
+    ['/api/docente/qr.svg?texto=http%3A%2F%2Flocalhost', 'GET'],
     ['/api/docente/sesiones/1', 'DELETE'],
   ];
 

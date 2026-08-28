@@ -6,20 +6,22 @@
   <title>OpenTest — Bancos de preguntas</title>
   <link rel="stylesheet" href="/shared/base.css">
 </head>
-<body>
+<body class="superficie-docente">
   <header class="barra">
-    <a href="/docente/">← Panel</a>
-    <button class="boton boton--secundario boton--pequeno" id="salir">Cerrar sesión</button>
+    <a class="marca marca--compacta" href="/docente/"><span class="marca__logo"><img src="/assets/logo-institucional.png" alt=""></span><span class="marca__texto"><strong>OpenTest</strong><small>Bancos de preguntas</small></span></a>
+    <div class="barra__acciones"><a class="boton boton--volver boton--pequeno" href="/docente/">← Volver al panel</a><button class="boton boton--secundario boton--pequeno" id="salir">Cerrar sesión</button></div>
   </header>
 
   <main class="contenedor">
+    <p class="sobretitulo">Contenido de evaluación</p>
     <h1>Bancos de preguntas</h1>
 
     <section class="tarjeta">
       <h2>1. Sube las imágenes</h2>
       <p>
-        Si alguna pregunta lleva imagen, súbela <strong>antes</strong> de cargar el archivo:
+        Si alguna pregunta lleva imagen, súbela <strong>antes</strong> de cargar el paquete:
         así comprobamos que todas existen y no te falla nada el día del examen.
+        (También puedes traerlas dentro del propio ZIP, en <code>imagenes/</code>.)
       </p>
       <label class="campo">
         <span>Imágenes (puedes elegir varias)</span>
@@ -29,11 +31,13 @@
     </section>
 
     <section class="tarjeta">
-      <h2>2. Carga el paquete de preguntas</h2>
+      <p class="sobretitulo">Estándar preguntas-icfes</p>
+      <h2>2. Sube el paquete de preguntas</h2>
       <p>
-        Un CSV o JSON con <code>contexto</code>, <code>imagen</code>, <code>enunciado</code>,
-        <code>opcion_a</code> … <code>opcion_d</code>, <code>correcta</code> y
-        <code>explicacion</code>. Lo normal son 40 o 50 preguntas.
+        Un ZIP con <code>paquete.json</code> en la raíz y, si hace falta, una carpeta
+        <code>imagenes/</code>. Cada pregunta trae su competencia, componente, afirmación,
+        evidencia, estándar asociado, qué evalúa, y una justificación para cada una de
+        las cuatro opciones. Lo normal son 20 a 50 preguntas.
       </p>
 
       <label class="campo">
@@ -42,8 +46,8 @@
       </label>
 
       <label class="campo">
-        <span>Archivo de preguntas</span>
-        <input type="file" id="archivo" accept=".csv,.json,text/csv,application/json">
+        <span>Paquete completo (.zip)</span>
+        <input type="file" id="paquete" accept=".zip,application/zip">
       </label>
 
       <div id="errores" hidden>
@@ -55,7 +59,7 @@
         <p class="exito" id="resumen-carga"></p>
         <p class="aviso" id="avisos" hidden></p>
         <h3>Así lo verá el estudiante</h3>
-        <p class="apunte">Revisa que la correcta sea la que esperas: eso no lo podemos comprobar por ti.</p>
+        <p class="apunte">Revisa que la correcta sea la que esperas y que las justificaciones tengan sentido: eso no lo podemos comprobar por ti.</p>
         <div id="muestra"></div>
         <button class="boton" id="confirmar">Confirmar e importar</button>
         <button class="boton boton--secundario" id="cancelar">Cancelar</button>

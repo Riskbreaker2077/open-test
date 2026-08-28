@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenTest — Monitoreo</title>
+  <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="/docente/monitoreo.css">
+</head>
+<body class="superficie-docente">
+  <header class="barra">
+    <a class="marca marca--compacta" href="/docente/"><span class="marca__logo"><img src="/assets/logo-institucional.png" alt=""></span><span class="marca__texto"><strong>OpenTest</strong><small>Monitoreo</small></span></a>
+    <div class="barra__acciones"><a class="boton boton--volver boton--pequeno" href="/docente/sesiones.html">← Volver a evaluaciones</a><button class="boton boton--secundario boton--pequeno" id="salir">Cerrar sesión</button></div>
+  </header>
+  <main class="contenedor">
+    <p class="sobretitulo">Seguimiento en tiempo real</p>
+    <section class="tarjeta" id="sin-sesiones" hidden>
+      <h1>No hay evaluaciones activas</h1>
+      <p>Abre o comienza una evaluación para verla aquí.</p>
+      <a class="boton" href="/docente/sesiones.html">Crear o abrir una evaluación</a>
+    </section>
+
+    <div id="panel" hidden>
+      <label class="campo selector-sesion">
+        <span>Evaluación que estás monitoreando</span>
+        <select id="sesion"></select>
+      </label>
+      <section class="tarjeta encabezado-monitoreo">
+        <div>
+          <h1 id="nombre"></h1>
+          <p id="parametros"></p>
+          <p>Dirección para las tablets: <strong id="direccion"></strong></p>
+        </div>
+        <div class="acciones-monitoreo">
+          <a class="boton boton--secundario" id="proyectar">Abrir proyección</a>
+          <button class="boton" id="cerrar" type="button">Cerrar evaluación</button>
+        </div>
+      </section>
+      <section class="contadores" aria-label="Resumen de estudiantes">
+        <div><strong id="convocados">0</strong><span>Convocados</span></div>
+        <div><strong id="dentro">0</strong><span>Dentro</span></div>
+        <div><strong id="entregados">0</strong><span>Entregados</span></div>
+        <div><strong id="sin-entrar">0</strong><span>Sin entrar</span></div>
+      </section>
+      <p class="aviso" id="error" role="alert" hidden></p>
+      <section class="tarjeta tabla-monitor">
+        <table class="tabla" id="estudiantes"></table>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="/docente/monitoreo.js"></script>
+</body>
+</html>

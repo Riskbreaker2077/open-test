@@ -10,30 +10,35 @@ _Orden y estado de las features. Cada entrada apunta a su carpeta en `../feature
 4. **003 · [Banco de preguntas](../features/003-banco-de-preguntas/spec.md)** — carga de paquetes de preguntas con imágenes, invariantes validadas y vista previa.
 5. **004 · [Sesiones y login](../features/004-sesiones-y-login/spec.md)** — convocar evaluaciones, abrirlas y cerrarlas; el estudiante entra con su código.
 6. **005 · [Motor de personalización](../features/005-motor-personalizacion/spec.md)** — sorteo determinista de preguntas y barajado de opciones, materializado una sola vez por intento.
+7. **013 · [Portal del estudiante](../features/013-portal-estudiante/spec.md)** — dirección estable en la raíz, identificación por código, selección de evaluación y espera hasta el inicio; conserva las verificaciones de integración que dependen de 012, 006 y 007.
+8. **012 · [Pantalla de proyección](../features/012-pantalla-proyeccion/spec.md)** — QR, dirección, reloj global y controles del aula; conserva dos verificaciones físicas para la sesión final.
+9. **006 · [Presentación del examen](../features/006-presentacion-examen/spec.md)** — una pregunta a la vez, guardado inmediato, reloj, pausa, tiempo mínimo y reanudación; conserva dos pruebas manuales para el equipo destino.
+10. **007 · [Calificación y retroalimentación](../features/007-calificacion-feedback/spec.md)** — calificación persistente al entregar y resultado filtrado según el nivel configurado; conserva una prueba manual para el equipo destino.
+11. **008 · [Panel del docente](../features/008-panel-docente/spec.md)** — monitoreo automático de convocados, avance, resultados, entrega forzada y cierre calificado.
+12. **009 · [Exportación de resultados](../features/009-exportacion-resultados/spec.md)** — descargas CSV/JSON v1 por sesión y curso; conserva la apertura manual en Excel/Windows para la sesión final.
+13. **010 · [Empaquetado y guía docente](../features/010-empaquetado-y-guia/spec.md)** — rutas SEA, empaquetador Windows, apertura automática, ejemplos y guía; el binario y la prueba de humo se validan en el equipo destino.
+14. **014 · [Línea gráfica institucional](../features/014-linea-grafica-institucional/spec.md)** — sistema visual de `portal-estudiantes` adaptado a portal, panel, examen, resultado y proyección de OpenTest, completamente local y adaptable.
+15. **015 · [Paquete de preguntas ZIP](../features/015-paquete-preguntas-zip/spec.md)** — carga unificada y segura de `banco.json` e imágenes, con paquete manual de participación ciudadana listo para usar.
+16. **016 · [Estándar preguntas-icfes](../features/016-estandar-preguntas-icfes/spec.md)** — el banco de preguntas adopta el estándar externo `preguntas-icfes`: metadata pedagógica por pregunta, contenido en bloques (texto/imagen/tabla) y justificación por cada opción; importación unificada en un único ZIP con `paquete.json`; exportación de resultados sube a `formato_version: 2`.
 
 > **Revisión de arquitectura (24/08/2026).** El producto pasa a tener tres superficies separadas —portal del estudiante, pantalla de proyección y panel del docente con contraseña—, pueden coexistir varias sesiones abiertas y el temporizador pasa a ser un reloj global de sesión. Eso añade las features 011, 012 y 013, y revisa las specs de 001, 004, 006, 008 y 010. El orden de abajo es el de ejecución; los números son identidad, no secuencia.
 
 ## Siguiente 🔜
 
-7. **013 · [Portal del estudiante](../features/013-portal-estudiante/spec.md)** — la raíz pasa a ser la dirección estable del estudiante, con la lista de evaluaciones disponibles para su curso.
+Sesión final de validación en Windows/equipo destino, usando el set de participación ciudadana ya preparado.
 
 ## Pendientes 📋
 
-8. **012 · [Pantalla de proyección](../features/012-pantalla-proyeccion/spec.md)** — QR, dirección, reloj global y avance para todo el aula, con los controles Comenzar, Pausar y Cerrar.
-9. **006 · [Presentación del examen](../features/006-presentacion-examen/spec.md)** — una pregunta a la vez, saltar, temporizador, tiempo mínimo por pregunta, terminar cuando quiera, reanudar tras una caída.
-10. **007 · [Calificación y retroalimentación](../features/007-calificacion-feedback/spec.md)** — puntaje al entregar y pantalla de resultado con el detalle que el docente configuró.
-11. **008 · [Panel del docente](../features/008-panel-docente/spec.md)** — ver en vivo quién entró, por dónde va y quién entregó; cerrar la sesión.
-12. **009 · [Exportación de resultados](../features/009-exportacion-resultados/spec.md)** — descargar CSV y JSON según el contrato v1.
-13. **010 · [Empaquetado y guía docente](../features/010-empaquetado-y-guia/spec.md)** — ejecutable de un clic y manual sin jerga técnica.
 
 ## Backlog / ideas 💡
 
 - **Preguntas adicionales por rapidez** — el requisito original planteaba penalizar al que responde demasiado rápido añadiéndole preguntas extra. Se optó por el tiempo mínimo por pregunta como mecanismo activo; el campo `sesiones.preguntas_extra_por_rapidez` ya está previsto en el modelo con valor por defecto `0`. Activarlo requiere resolver antes qué pasa con el temporizador global y con la comparabilidad del puntaje entre estudiantes con distinto número de preguntas.
 - **Monitoreo en vivo enriquecido** — ritmo por estudiante, alertas de inactividad, distribución de avance.
-- **Etiquetas y dificultad en el banco** — sortear garantizando cobertura por tema o por nivel, en lugar de puramente al azar.
-- **Importación de imágenes en lote (ZIP)** — subir un comprimido con todas las imágenes del banco de una vez.
-- **Estadísticas por pregunta** — qué preguntas falló todo el mundo, para revisar el banco.
+- **Sorteo balanceado por competencia** — desde la 016 cada pregunta ya trae `competencia`; falta que `personalizacion.js` la use para garantizar cobertura proporcional al sortear, en vez de puramente al azar sobre todo el banco.
+- **Estadísticas por pregunta y por competencia** — qué preguntas o competencias falla más el grupo, para revisar el banco.
+- **Exportación a Excel con diseño** — además de los CSV/JSON del contrato v2, un archivo `.xlsx` legible con puntaje, pregunta, respuesta y competencia.
 - **Copia de seguridad con un clic** — exportar `opentest.db` a una memoria USB desde el panel.
+- **Migrar bancos anteriores a la 016** — herramienta o guía para que el docente reimporte con la metadata pedagógica y la justificación por opción que un banco viejo no tiene (no es automatizable: hay que redactarlas).
 
 ---
 

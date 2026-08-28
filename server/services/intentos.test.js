@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { abrirBd, cerrarBd } from '../db.js';
 import { guardarBanco } from './bancos.js';
+import { preguntaDeEjemplo, preguntasDeEjemplo } from '../fixtures-preguntas.js';
 import { guardarEstudiantes } from './estudiantes.js';
 import { abrirSesion, cerrarSesion, crearSesion, obtenerSesion } from './sesiones.js';
 import {
@@ -18,14 +19,7 @@ const LUIS = { codigo: '2024002', nombres: 'Luis', apellidos: 'Pérez', curso: '
 
 function preparar() {
   const db = abrirBd(':memory:');
-  guardarBanco(
-    db,
-    'Ciencias',
-    Array.from({ length: 25 }, (_, i) => ({
-      contexto: '', imagen: '', enunciado: `¿P${i}?`,
-      opciones: ['a', 'b', 'c', 'd'], correcta: 0, explicacion: '',
-    })),
-  );
+  guardarBanco(db, 'Ciencias', preguntasDeEjemplo(25));
   guardarEstudiantes(db, [ANA, LUIS]);
   const sesion = crearSesion(db, { nombre: 'Parcial', banco_id: 1, cursos: ['10A'] });
   abrirSesion(db, sesion.id);
@@ -223,9 +217,7 @@ test('dos estudiantes reciben pruebas distintas en la misma sesión', () => {
 
 test('la prueba materializada solo usa preguntas del banco de su sesión', () => {
   const { db, sesion } = preparar();
-  guardarBanco(db, 'Otro banco', [
-    { contexto: '', imagen: '', enunciado: '¿Intrusa?', opciones: ['a', 'b', 'c', 'd'], correcta: 0, explicacion: '' },
-  ]);
+  guardarBanco(db, 'Otro banco', [preguntaDeEjemplo({ enunciado: [{ tipo: 'texto', texto: '¿Intrusa?' }] })]);
 
   const { intento } = iniciarOReanudarIntento(db, sesion, ANA);
   const delBanco = new Set(
@@ -253,9 +245,7 @@ test('las opciones guardadas son exactamente las de su pregunta', () => {
 
 test('si la prueba no se puede generar, no queda un intento a medias', () => {
   const db = abrirBd(':memory:');
-  guardarBanco(db, 'Corto', [
-    { contexto: '', imagen: '', enunciado: '¿Única?', opciones: ['a', 'b', 'c', 'd'], correcta: 0, explicacion: '' },
-  ]);
+  guardarBanco(db, 'Corto', [preguntaDeEjemplo({ enunciado: [{ tipo: 'texto', texto: '¿Única?' }] })]);
   guardarEstudiantes(db, [ANA]);
 
   // Se fuerza el estado saltándose la validación de apertura, que ya lo impide.

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenTest — Proyección</title>
+  <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="/proyeccion/proyeccion.css">
+</head>
+<body class="superficie-proyeccion">
+  <main class="proyeccion" aria-live="polite">
+    <section class="entrada">
+      <img id="qr" class="qr" alt="Código QR para abrir OpenTest" hidden>
+      <div class="acceso-aula">
+        <p class="etiqueta">Entra desde tu tablet</p>
+        <p class="direccion" id="direccion">Cargando dirección…</p>
+      </div>
+    </section>
+
+    <section class="evaluacion">
+      <p class="nombre" id="nombre">Cargando evaluación…</p>
+      <p class="estado" id="estado">Preparando la pantalla</p>
+      <p class="reloj" id="reloj">--:--</p>
+    </section>
+
+    <section class="pie">
+      <div class="contadores" aria-label="Participación">
+        <p><strong id="dentro">0</strong><span>han entrado</span></p>
+        <p><strong id="entregados">0</strong><span>han entregado</span></p>
+      </div>
+      <div class="controles" id="controles"></div>
+    </section>
+
+    <p class="error" id="error" role="alert" hidden></p>
+  </main>
+  <script type="module" src="/proyeccion/proyeccion.js"></script>
+</body>
+</html>

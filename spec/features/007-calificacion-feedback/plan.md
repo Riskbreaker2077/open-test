@@ -11,20 +11,25 @@ La clave de diseño está en el filtrado por nivel: **se hace en el servidor, no
 1. `server/services/calificacion.js` — módulo puro:
    - `calificarIntento(preguntasConRespuesta)` → `{ aciertos, puntaje, total, porcentaje }`.
    - `armarResultado(intento, preguntas, nivel)` → la estructura exacta que se envía, ya recortada según el nivel. Es la única función que decide qué se revela.
-2. Integración en `POST /api/examen/entregar` (feature 006): dentro de la transacción, marca `entregado_en` y `motivo_entrega`, y escribe `aciertos` y `puntaje`.
+2. Servicio común de entrega calificada, usado por todos los caminos de cierre: entrega manual, última pregunta, vencimiento global y cierre del docente. Dentro de una sola transacción marca `entregado_en` y `motivo_entrega`, y escribe `aciertos` y `puntaje`.
 3. `GET /api/examen/resultado` — devuelve `armarResultado(...)` con el nivel de la sesión. Accesible con el token o tras volver a entrar con el código.
 4. `public/estudiante/resultado.html` + `resultado.js` — puntaje destacado arriba y, si el nivel lo permite, el listado de preguntas con su estado (`acertada` / `fallada` / `saltada` / `sin llegar`), reutilizando `public/shared/pregunta.js` en modo lectura.
 5. Ajuste en el flujo de login (feature 004): un estudiante con intento entregado se dirige a la pantalla de resultado, no a la de examen.
-6. Tests:
+6. Permitir que el docente cambie únicamente `nivel_feedback` cuando la sesión ya está cerrada; los demás parámetros siguen congelados. La consulta de resultado aplica siempre el nivel actual, sin recalcular la nota.
+7. Tests:
    - cálculo: todo correcto, todo incorrecto, mezcla, todas saltadas, intento sin llegar al final;
    - porcentaje sobre el total asignado, no sobre lo respondido;
    - **un test por nivel** que serializa el resultado y comprueba que la opción correcta aparece solo en `completo`;
    - idempotencia: pedir el resultado dos veces no cambia `aciertos` ni `puntaje`.
+   - entrega calificada por cierre del docente y por vencimiento del reloj;
+   - cambio de nivel en una sesión cerrada sin permitir modificar los demás parámetros.
 
 ## Decisiones
 
 - **Filtrado por nivel en el servidor** — es la diferencia entre una restricción real y una decorativa.
 - **Calificar al entregar y persistir, en vez de calcular al vuelo** — el puntaje queda congelado con las reglas vigentes en ese momento; si mañana cambia la fórmula, las notas ya dadas no se mueven. Además el panel del docente lee un número, no recalcula 30 intentos.
+- **Un único camino de entrega calificada** — evita que una entrega manual tenga nota pero un cierre por tiempo o por el docente deje un intento incompleto.
+- **El nivel de feedback no congela la nota** — puede cambiar después del cierre porque solo controla qué detalle se revela; las respuestas y el puntaje permanecen intactos.
 - **Distinguir "saltada" de "sin llegar"** — pedagógicamente son cosas distintas: una es una decisión, la otra es falta de tiempo. Ambas puntúan 0, pero el estudiante y el docente merecen ver cuál fue.
 - **`aciertos` como valor por defecto** — le dice al estudiante en qué falló, que es la mitad útil de la retroalimentación, sin regalar el banco a quien sigue presentando.
 - **Sin penalización por error en v1** — es la convención más común y la más fácil de explicar a un estudiante. Cambiarla implicaría subir `formato_version` del export.
