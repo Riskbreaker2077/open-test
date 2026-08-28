@@ -15,7 +15,7 @@ function actualizarCursos() {
 
 function actualizarEnlaces() {
   const filtro = curso.value ? `?curso=${encodeURIComponent(curso.value)}` : '';
-  for (const tipo of ['detalle', 'resumen', 'json']) {
+  for (const tipo of ['detalle', 'resumen', 'json', 'excel']) {
     const enlace = document.getElementById(tipo === 'resumen' ? 'resumen-csv' : tipo);
     enlace.href = `/api/docente/sesiones/${sesion.value}/export/${tipo}${filtro}`;
   }

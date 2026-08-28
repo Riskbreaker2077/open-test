@@ -228,6 +228,30 @@ test('descarga los tres formatos de una sesión cerrada con nombre saneado', asy
   }
 });
 
+test('descarga el Excel de una sesión cerrada como ZIP válido', async () => {
+  const { sesion } = await post('/api/docente/sesiones', { ...NUEVA, nombre: 'Ciencias, período 2' });
+  await post(`/api/docente/sesiones/${sesion.id}/abrir`);
+  await fetch(`${base}/api/examen/entrar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ codigo: '2024001', sesionId: sesion.id }),
+  });
+  await post(`/api/docente/sesiones/${sesion.id}/cerrar`);
+
+  const respuesta = await llamar(`/api/docente/sesiones/${sesion.id}/export/excel?curso=10A`);
+  assert.equal(respuesta.status, 200);
+  assert.equal(
+    respuesta.headers.get('content-type'),
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  );
+  assert.match(
+    respuesta.headers.get('content-disposition'),
+    /opentest_ciencias_periodo_2_10a_resultados_\d{4}-\d{2}-\d{2}\.xlsx/,
+  );
+  const bytes = new Uint8Array(await respuesta.arrayBuffer());
+  assert.deepEqual([...bytes.slice(0, 2)], [0x50, 0x4b]);
+});
+
 test('rechaza exportar una evaluación que todavía está abierta', async () => {
   const { sesion } = await post('/api/docente/sesiones', NUEVA);
   await post(`/api/docente/sesiones/${sesion.id}/abrir`);

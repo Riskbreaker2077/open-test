@@ -144,3 +144,43 @@ assert, que es la prueba de que no se rompió nada.
 
 La suite completa terminó con 304 de 304 tests aprobados y lint sobre 79
 archivos sin errores.
+
+## 28/08/2026 — Exportación a Excel con diseño (feature 018)
+
+Del backlog del roadmap: el panel de resultados ganó una cuarta descarga,
+`.xlsx`, junto a las tres CSV/JSON del contrato v2. Antes de tocar código se
+decidió explícitamente con el usuario cómo generarlo — un `.xlsx` es un ZIP
+con XML adentro, y el proyecto nunca había *escrito* un ZIP, solo leído (la
+015). Se optó por seguir sin dependencias nuevas, igual que el resto del
+proyecto, en vez de añadir una librería como `exceljs`.
+
+Se creó `server/exporters/zip-escritor.js`, un escritor de ZIP mínimo (sin
+ZIP64, sin cifrado) con `deflateRawSync` de `node:zlib`, reutilizando el
+`crc32()` ya exportado por `paquete-zip.js` en vez de reimplementarlo. Por
+encima, `server/exporters/xlsx.js` arma las partes fijas de un libro
+SpreadsheetML (Content Types, relaciones, `workbook.xml`, `styles.xml`) más
+una hoja por entrada, con strings inline (sin tabla de shared strings),
+cabecera en negrita con relleno de color, fila 1 congelada y ancho de
+columna calculado por el contenido más largo de cada una.
+
+En `resultados.js` se extrajeron `filasDetalle`/`filasResumen` de dentro de
+`aDetalleCsv`/`aResumenCsv` (mismo resultado, ningún test cambió), para que
+la nueva `aExcel()` arme las dos hojas ("Resumen", "Detalle") a partir de la
+misma fuente de filas que ya usa el CSV, sin inventar un tercer formato de
+columnas. La ruta `GET /sesiones/:id/export/:tipo` ganó el tipo `excel`, y
+el panel (`resultados.html`/`.js`) un cuarto acceso.
+
+Se decidió explícitamente que este Excel **no** entra al contrato
+`export-resultados-v2.md`: es una vista de conveniencia para el docente, sin
+consumidor externo, así que puede evolucionar sin subir versión de nada.
+
+Fuera de la suite automatizada, se generó un libro de prueba con tildes,
+`&` y `<` en los datos y se validó con las herramientas de Python del
+sistema (`zipfile.testzip()` y `xml.dom.minidom` sobre las 7 partes XML):
+ZIP íntegro, XML bien formado en todas. La apertura real en Excel/LibreOffice
+sin diálogo de reparación queda para la sesión de validación manual final,
+igual que las demás piezas visuales del proyecto.
+
+La suite completa terminó con 315 de 315 tests aprobados (11 nuevos) y lint
+sobre 83 archivos sin errores. Exportar 40 estudiantes × 20 preguntas a
+Excel tomó ~134 ms, muy por debajo del límite de 2 s. Cambios sin commit.

@@ -29,6 +29,7 @@ import { contarIntentos, forzarEntrega } from '../services/intentos.js';
 import { estadoDeSesion } from '../services/monitoreo.js';
 import {
   aDetalleCsv,
+  aExcel,
   aJson,
   armarExportacion,
   aResumenCsv,
@@ -261,18 +262,23 @@ export function rutasDocente(db) {
   router.get('/sesiones/:id/export/:tipo', (req, res) => {
     try {
       const tipo = req.params.tipo;
-      if (!['detalle', 'resumen', 'json'].includes(tipo)) {
+      if (!['detalle', 'resumen', 'json', 'excel'].includes(tipo)) {
         return res.status(404).json({ ok: false, mensaje: 'Ese formato de exportación no existe.' });
       }
       const exportacion = armarExportacion(db, Number(req.params.id), req.query.curso);
       const seguro = (texto) => String(texto).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-zA-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').toLowerCase() || 'todos';
       const fecha = new Date().toISOString().slice(0, 10);
-      const extension = tipo === 'json' ? 'json' : 'csv';
-      const nombre = `opentest_${seguro(exportacion.sesion.nombre)}_${seguro(req.query.curso ?? 'todos')}_${tipo}_${fecha}.${extension}`;
+      const extension = tipo === 'json' ? 'json' : tipo === 'excel' ? 'xlsx' : 'csv';
+      const nombreTipo = tipo === 'excel' ? 'resultados' : tipo;
+      const nombre = `opentest_${seguro(exportacion.sesion.nombre)}_${seguro(req.query.curso ?? 'todos')}_${nombreTipo}_${fecha}.${extension}`;
+      res.set('Content-Disposition', `attachment; filename="${nombre}"`);
+      if (tipo === 'excel') {
+        res.type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet').send(aExcel(exportacion));
+        return;
+      }
       const contenido = tipo === 'detalle' ? aDetalleCsv(exportacion)
         : tipo === 'resumen' ? aResumenCsv(exportacion) : aJson(exportacion);
-      res.set('Content-Disposition', `attachment; filename="${nombre}"`);
       res.type(tipo === 'json' ? 'application/json' : 'text/csv').send(contenido);
     } catch (err) {
       res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });

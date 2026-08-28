@@ -9,12 +9,14 @@ import { iniciarOReanudarIntento } from '../services/intentos.js';
 import { abrirSesion, cerrarSesion, crearSesion, obtenerSesion } from '../services/sesiones.js';
 import {
   aDetalleCsv,
+  aExcel,
   aJson,
   armarExportacion,
   aResumenCsv,
   CABECERAS_DETALLE,
   CABECERAS_RESUMEN,
 } from './resultados.js';
+import { leerZip } from '../importers/paquete-zip.js';
 
 function preparar({ cantidad = 2, nPreguntas = 4 } = {}) {
   const db = abrirBd(':memory:');
@@ -90,6 +92,28 @@ test('incluye no alcanzadas, conserva orden de opciones y los totales cuadran', 
   cerrarBd(db);
 });
 
+test('aExcel produce un libro válido con las hojas Resumen y Detalle, en ese orden', () => {
+  const { db, sesionId, intentos } = preparar();
+  cerrarSesion(db, sesionId);
+  db.prepare('UPDATE intentos SET entregado_en = NULL, motivo_entrega = NULL WHERE id = ?').run(intentos[1].id);
+  const exportacion = armarExportacion(db, sesionId);
+
+  const buffer = aExcel(exportacion);
+  const archivos = leerZip(buffer);
+  const workbook = archivos.find((archivo) => archivo.nombre === 'xl/workbook.xml').contenido.toString('utf-8');
+  const posicionResumen = workbook.indexOf('name="Resumen"');
+  const posicionDetalle = workbook.indexOf('name="Detalle"');
+  assert.ok(posicionResumen >= 0 && posicionDetalle >= 0 && posicionResumen < posicionDetalle);
+
+  const hojaResumen = archivos.find((archivo) => archivo.nombre === 'xl/worksheets/sheet1.xml').contenido.toString('utf-8');
+  const hojaDetalle = archivos.find((archivo) => archivo.nombre === 'xl/worksheets/sheet2.xml').contenido.toString('utf-8');
+  for (const cabecera of CABECERAS_RESUMEN) assert.match(hojaResumen, new RegExp(cabecera));
+  for (const cabecera of CABECERAS_DETALLE) assert.match(hojaDetalle, new RegExp(cabecera));
+  // El intento sin entregar (código 1001) sigue presente, igual que en CSV/JSON.
+  assert.match(hojaResumen, /1001/);
+  cerrarBd(db);
+});
+
 test('arma 40 intentos por 20 preguntas en menos de 2 segundos', () => {
   const { db, sesionId } = preparar({ cantidad: 40, nPreguntas: 20 });
   cerrarSesion(db, sesionId);
@@ -98,6 +122,18 @@ test('arma 40 intentos por 20 preguntas en menos de 2 segundos', () => {
   const duracion = performance.now() - inicio;
   assert.equal(exportacion.intentos.length, 40);
   assert.equal(exportacion.intentos.flatMap((item) => item.preguntas).length, 800);
+  assert.ok(duracion < 2000, `tardó ${duracion.toFixed(1)} ms`);
+  cerrarBd(db);
+});
+
+test('aExcel de 40 intentos por 20 preguntas tarda menos de 2 segundos', () => {
+  const { db, sesionId } = preparar({ cantidad: 40, nPreguntas: 20 });
+  cerrarSesion(db, sesionId);
+  const exportacion = armarExportacion(db, sesionId);
+  const inicio = performance.now();
+  const buffer = aExcel(exportacion);
+  const duracion = performance.now() - inicio;
+  assert.ok(buffer.length > 0);
   assert.ok(duracion < 2000, `tardó ${duracion.toFixed(1)} ms`);
   cerrarBd(db);
 });

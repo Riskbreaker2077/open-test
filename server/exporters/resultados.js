@@ -1,4 +1,5 @@
 import { aCsv } from './csv.js';
+import { crearLibroXlsx } from './xlsx.js';
 import { calificarIntento } from '../services/calificacion.js';
 import { cursosDe, obtenerSesion } from '../services/sesiones.js';
 import { analizarBloques, textoPlano } from '../services/bloques.js';
@@ -127,8 +128,8 @@ export function armarExportacion(db, sesionId, curso, ahora = new Date()) {
   };
 }
 
-export function aDetalleCsv(exportacion) {
-  const filas = exportacion.intentos.flatMap((intento) => intento.preguntas.map((pregunta) => ({
+export function filasDetalle(exportacion) {
+  return exportacion.intentos.flatMap((intento) => intento.preguntas.map((pregunta) => ({
     formato_version: exportacion.formato_version,
     sesion: exportacion.sesion.nombre,
     curso: intento.curso,
@@ -145,11 +146,10 @@ export function aDetalleCsv(exportacion) {
     segundos: pregunta.segundos,
     competencia: pregunta.competencia,
   })));
-  return aCsv(CABECERAS_DETALLE, filas);
 }
 
-export function aResumenCsv(exportacion) {
-  return aCsv(CABECERAS_RESUMEN, exportacion.intentos.map((intento) => ({
+export function filasResumen(exportacion) {
+  return exportacion.intentos.map((intento) => ({
     formato_version: exportacion.formato_version,
     sesion: exportacion.sesion.nombre,
     codigo: intento.codigo,
@@ -165,7 +165,37 @@ export function aResumenCsv(exportacion) {
     inicio: intento.inicio,
     entrega: intento.entrega,
     motivo_entrega: intento.motivo_entrega,
-  })));
+  }));
 }
 
+export const aDetalleCsv = (exportacion) => aCsv(CABECERAS_DETALLE, filasDetalle(exportacion));
+export const aResumenCsv = (exportacion) => aCsv(CABECERAS_RESUMEN, filasResumen(exportacion));
 export const aJson = (exportacion) => JSON.stringify(exportacion, null, 2) + '\n';
+
+// Columnas que deben guardarse como celdas numéricas en el Excel, no como
+// texto (para que el docente pueda ordenar/sumar directamente). El resto se
+// exporta como texto, igual que en el CSV.
+const NUMERICAS_DETALLE = new Set(['n_pregunta', 'pregunta_id', 'acierto', 'saltada', 'segundos']);
+const NUMERICAS_RESUMEN = new Set(['total_preguntas', 'respondidas', 'saltadas', 'aciertos', 'puntaje', 'porcentaje']);
+
+function aFilaExcel(cabeceras, numericas, fila) {
+  return cabeceras.map((campo) => {
+    const valor = fila[campo];
+    return numericas.has(campo) ? Number(valor) : String(valor ?? '');
+  });
+}
+
+export function aExcel(exportacion) {
+  return crearLibroXlsx([
+    {
+      nombre: 'Resumen',
+      cabeceras: CABECERAS_RESUMEN,
+      filas: filasResumen(exportacion).map((fila) => aFilaExcel(CABECERAS_RESUMEN, NUMERICAS_RESUMEN, fila)),
+    },
+    {
+      nombre: 'Detalle',
+      cabeceras: CABECERAS_DETALLE,
+      filas: filasDetalle(exportacion).map((fila) => aFilaExcel(CABECERAS_DETALLE, NUMERICAS_DETALLE, fila)),
+    },
+  ]);
+}

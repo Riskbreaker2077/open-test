@@ -6,13 +6,13 @@
 
 ## Dónde estamos (última actualización: 28/08/2026)
 
-**Las diecisiete features están implementadas y 304 tests están en verde.** El flujo completo existe desde la importación hasta la descarga de resultados; la 014 aplica la línea gráfica institucional, la 015 permite cargar preguntas e imágenes en un solo ZIP, la 016 hace que ese banco siga el estándar externo y abierto **preguntas-icfes** (github.com/riskbreaker2077/preguntas-icfes): metadata pedagógica por pregunta, contenido en bloques (texto/imagen/tabla) y justificación por cada opción; y la 017 hace que el sorteo de cada prueba reparta las preguntas entre las competencias del banco en proporción a su tamaño, en vez de puramente al azar. La importación quedó unificada en un único ZIP con `paquete.json`, y la exportación de resultados subió a `formato_version: 2`.
+**Las dieciocho features están implementadas y 315 tests están en verde.** El flujo completo existe desde la importación hasta la descarga de resultados; la 014 aplica la línea gráfica institucional, la 015 permite cargar preguntas e imágenes en un solo ZIP, la 016 hace que ese banco siga el estándar externo y abierto **preguntas-icfes** (github.com/riskbreaker2077/preguntas-icfes): metadata pedagógica por pregunta, contenido en bloques (texto/imagen/tabla) y justificación por cada opción; la 017 hace que el sorteo de cada prueba reparta las preguntas entre las competencias del banco en proporción a su tamaño, en vez de puramente al azar; y la 018 agrega una cuarta descarga al panel de resultados, un `.xlsx` de dos hojas (Resumen/Detalle) con cabecera en negrita/congelada y columnas ajustadas, generado con un escritor de ZIP y de SpreadsheetML propios (sin dependencias nuevas). La importación quedó unificada en un único ZIP con `paquete.json`, y la exportación de resultados sigue en `formato_version: 2` (el Excel es una vista de conveniencia fuera de ese contrato).
 
-**Las verificaciones físicas se harán juntas al final en el equipo destino.** Quedan pendientes QR y legibilidad en proyector, corte real de red, usabilidad táctil/orientación, línea gráfica en dispositivos reales y legibilidad de la pantalla de resultado.
+**Las verificaciones físicas se harán juntas al final en el equipo destino.** Quedan pendientes QR y legibilidad en proyector, corte real de red, usabilidad táctil/orientación, línea gráfica en dispositivos reales, legibilidad de la pantalla de resultado, y ahora también la apertura real del `.xlsx` de la 018 en Excel/LibreOffice sin diálogo de reparación.
 
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 | **Validación final en equipo destino** | Decidir después de la validación |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 | — | **Validación final en equipo destino** |
 
 ### Para retomar, en este orden
 
