@@ -31,9 +31,10 @@ const ejecutable = join(destino, 'OpenTest.exe');
 cpSync(process.execPath, ejecutable);
 // La firma original de node.exe deja de ser válida al inyectar el blob.
 spawnSync('signtool', ['remove', '/s', ejecutable], { stdio: 'ignore' });
-const postject = join(raiz, 'node_modules', '.bin', 'postject.cmd');
+const postject = join(raiz, 'node_modules', 'postject', 'dist', 'cli.js');
 if (!existsSync(postject)) throw new Error('Falta postject. Ejecuta npm install antes de compilar.');
-execFileSync(postject, [
+execFileSync(process.execPath, [
+  postject,
   ejecutable,
   'NODE_SEA_BLOB',
   blob,
