@@ -35,6 +35,7 @@ import {
   aResumenCsv,
 } from '../exporters/resultados.js';
 import { solapamientoEsperado } from '../services/personalizacion.js';
+import { estadisticasDeBanco, sesionesCerradasDeBanco } from '../services/estadisticas.js';
 import {
   guardarImagen,
   listarImagenes,
@@ -178,6 +179,20 @@ export function rutasDocente(db) {
   router.delete('/bancos/:id', (req, res) => {
     try {
       res.json({ ok: true, banco: borrarBanco(db, Number(req.params.id)) });
+    } catch (err) {
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
+  router.get('/bancos/:id/sesiones-cerradas', (req, res) => {
+    res.json({ ok: true, sesiones: sesionesCerradasDeBanco(db, Number(req.params.id)) });
+  });
+
+  router.get('/bancos/:id/estadisticas', (req, res) => {
+    try {
+      const sesionId = req.query.sesion && req.query.sesion !== 'todas' ? Number(req.query.sesion) : null;
+      const estadisticas = estadisticasDeBanco(db, Number(req.params.id), { sesionId, curso: req.query.curso });
+      res.json({ ok: true, estadisticas });
     } catch (err) {
       res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
     }

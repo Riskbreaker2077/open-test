@@ -184,6 +184,8 @@ test('nada de todo esto es alcanzable sin contraseña', async () => {
     ['/api/docente/bancos', 'GET'],
     ['/api/docente/bancos/1', 'GET'],
     ['/api/docente/bancos/1', 'DELETE'],
+    ['/api/docente/bancos/1/sesiones-cerradas', 'GET'],
+    ['/api/docente/bancos/1/estadisticas', 'GET'],
     ['/api/docente/imagenes', 'GET'],
     ['/api/docente/imagenes?nombre=x.png', 'POST'],
   ];

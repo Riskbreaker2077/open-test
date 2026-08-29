@@ -6,34 +6,35 @@
 
 ## Feature/tarea en curso
 
-- Ninguna en curso. La última completada es la 018 · Exportación a Excel con diseño ([roadmap](spec/constitution/roadmap.md)). Todas las features del roadmap están implementadas; queda pendiente la sesión de validación física en el equipo destino.
+- Ninguna en curso. La última completada es la 019 · Estadísticas por pregunta y por competencia ([roadmap](spec/constitution/roadmap.md)). Todas las features del roadmap están implementadas; queda pendiente la sesión de validación física en el equipo destino.
 
 ## Qué se hizo en esta sesión
 
 ### `main`
 
-- Se implementó la feature 018: cuarta descarga en el panel de resultados, un `.xlsx` de dos hojas (Resumen/Detalle) con cabecera en negrita/congelada y columnas ajustadas. Escritor de ZIP (`server/exporters/zip-escritor.js`) y de SpreadsheetML (`server/exporters/xlsx.js`) propios, sin dependencias nuevas — decisión tomada explícitamente con el usuario antes de escribir código. Detalle completo en `spec/bitacora.md` y `spec/features/018-exportacion-excel/`.
-- Al empezar la sesión se detectó que la memoria de trabajo (fuera del repo) estaba desactualizada: creía que 014-016 seguían sin commit y sin push. En realidad ya estaban comiteados (`1b42496`, `5d29fcf`) y la feature 017 también, con `main` ya sincronizado con `origin/main` antes de empezar esta sesión. Se corrigió esa memoria.
+- Se comiteó y se hizo `push` de la feature 018 (`e16de7c`, `775adeb`), que había quedado pendiente al cierre de la sesión anterior.
+- Se implementó la feature 019: nueva pantalla `/docente/estadisticas.html` con qué preguntas y qué competencias falla más el grupo. Cubre las dos formas de alcance que se le plantearon al usuario y ambas pidió: una sesión cerrada concreta, o acumulado por banco entre todas sus sesiones cerradas. `server/services/estadisticas.js` con una consulta SQL agregada; dos rutas nuevas bajo `/api/docente/bancos/:id/`. Detalle completo en `spec/bitacora.md` y `spec/features/019-estadisticas-pregunta-competencia/`.
+- Se verificó el flujo de la 019 con un servidor desechable en `:memory:` (sin tocar `data/opentest.db`): login real, páginas servidas, rutas devolviendo datos correctos por HTTP. No se pudo hacer clic-a-clic en un navegador real porque este entorno no tiene una herramienta de automatización de navegador disponible.
 
 ## Estado
 
-- Git: feature 018 comiteada (`e16de7c`). `main` queda un commit por delante de `origin/main`; falta decidir el `push`.
-- Tests: 315/315 en verde (304 antes de esta sesión; 11 nuevos: escritor de ZIP, libro Excel, `aExcel`, ruta `/export/excel`).
-- Lint: 83 archivos revisados, sin errores.
+- Git: feature 019 sin commit todavía. `main` está sincronizado con `origin/main` hasta `775adeb` (018 + ajuste de RESTART.md); falta comitear y decidir el `push` de la 019.
+- Tests: 329/329 en verde (315 antes de esta sesión; 14 nuevos: servicio de estadísticas, rutas, integración HTTP).
+- Lint: 87 archivos revisados, sin errores.
 - Build: no se tocó.
 - Migraciones: ninguna nueva; el esquema no cambió.
-- Servidor: no se probó manualmente en navegador. El backend se verificó con una prueba de integración HTTP real (login, cerrar sesión, descargar `/export/excel`, firma ZIP) y, fuera de la suite, se validó un libro de muestra con las herramientas de Python del sistema (`zipfile`, `xml.dom.minidom`): ZIP íntegro y las 7 partes XML bien formadas. La apertura real en Excel/LibreOffice sin diálogo de reparación sigue sin probarse.
+- Servidor: no se probó en un navegador real (sin herramienta de automatización disponible en este entorno). Se verificó por HTTP con un servidor de prueba desechable, separado de `data/opentest.db`.
 
 ## Siguiente tarea
 
-1. Decidir con el usuario si se hace `push` de `main` a `origin/main`.
+1. Decidir con el usuario si se comitea la feature 019 y si se hace `push`.
 2. Si se va a usar la sesión "Participación ciudadana" local, reimportar el banco con el `paquete.json` regenerado para que tenga metadata y justificación (pendiente desde la 016).
 3. Transferir el estado a la máquina Windows y ejecutar `npm test`.
-4. Ejecutar en conjunto las verificaciones físicas pendientes de 012, 013, 006, 007, 009, 010, y ahora también abrir el `.xlsx` de la 018 en Excel/LibreOffice reales.
+4. Ejecutar en conjunto las verificaciones físicas pendientes de 012, 013, 006, 007, 009, 010, la apertura del `.xlsx` de la 018 en Excel/LibreOffice reales, y un clic-a-clic real en la pantalla de estadísticas de la 019.
 
 ## Bloqueos / decisiones pendientes
 
 - Hace falta el equipo Windows con tablets/proyector para QR, red wifi, orientación, legibilidad y pérdida real de conexión.
-- Falta construir/probar el SEA en Windows sin Node, revisar SmartScreen/cortafuegos y abrir los CSV y el nuevo `.xlsx` en Excel.
-- Falta decidir el `push` de la feature 018.
-- Backlog abierto: monitoreo en vivo enriquecido, estadísticas por pregunta/competencia, backup con un clic, y decidir si/cómo migrar bancos anteriores a la 016 (ver roadmap).
+- Falta construir/probar el SEA en Windows sin Node, revisar SmartScreen/cortafuegos y abrir los CSV, el `.xlsx` de la 018 en Excel, y probar en un navegador real la pantalla de estadísticas de la 019.
+- Falta decidir el commit y el `push` de la feature 019.
+- Backlog abierto: monitoreo en vivo enriquecido, backup con un clic, y decidir si/cómo migrar bancos anteriores a la 016 (ver roadmap).

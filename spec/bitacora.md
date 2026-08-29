@@ -183,4 +183,47 @@ igual que las demás piezas visuales del proyecto.
 
 La suite completa terminó con 315 de 315 tests aprobados (11 nuevos) y lint
 sobre 83 archivos sin errores. Exportar 40 estudiantes × 20 preguntas a
-Excel tomó ~134 ms, muy por debajo del límite de 2 s. Cambios sin commit.
+Excel tomó ~134 ms, muy por debajo del límite de 2 s. Se comiteó (`e16de7c`,
+más `775adeb` corrigiendo `RESTART.md`) y se hizo `push` a `origin/main`.
+
+## 28/08/2026 — Estadísticas por pregunta y por competencia (feature 019)
+
+Del backlog del roadmap: nueva pantalla `/docente/estadisticas.html` para
+que el docente vea qué preguntas y qué competencias falla más el grupo. El
+usuario pidió explícitamente cubrir **ambas** formas de alcance que se le
+plantearon: una sesión cerrada concreta (como ya hacen resultados y
+monitoreo) o acumulado por **banco**, sumando todas las sesiones cerradas
+que lo usaron. Esto último es seguro de calcular porque `guardarBanco`
+siempre inserta un banco nuevo — nunca reescribe uno existente — así que un
+`banco_id` es una foto fija desde que se crea: reimportar es simplemente
+otro banco distinto, no cambia el que ya existía.
+
+`server/services/estadisticas.js` resuelve el alcance a una lista de
+`sesion_id` (una sola, o todas las cerradas de ese banco) y ejecuta una
+única consulta SQL agregada por `pregunta_id`, comparando `respuestas.opcion_id`
+contra la opción `es_correcta` de esa pregunta — más simple que
+`armarExportacion()` de la 009/016, que sí necesita reconstruir el orden
+exacto de opciones mostradas para la auditoría; aquí ese orden es
+irrelevante. La agregación por competencia suma conteos (veces mostrada,
+aciertos) en vez de promediar los porcentajes ya calculados de cada
+pregunta, para no pesar igual una pregunta vista 3 veces que una vista 300.
+
+Dos rutas nuevas bajo `/api/docente/bancos/:id/`: `sesiones-cerradas` (para
+poblar los selects en cascada del frontend) y `estadisticas` (el cálculo).
+La UI (`estadisticas.html`/`.js`) sigue el patrón visual ya usado en
+`resultados.html`, con tres selects en cascada (banco → alcance → curso) y
+dos tablas ordenadas de menor a mayor % de acierto, usando la clase `.tabla`
+que ya existía para el monitoreo en vivo.
+
+Se verificó el flujo completo con un servidor desechable en `:memory:`
+(banco con dos competencias, dos sesiones cerradas con estudiantes que
+aciertan y fallan a propósito), sin tocar `data/opentest.db`: login real,
+las páginas nuevas sirven 200, y las dos rutas devuelven datos correctos
+por HTTP. No se pudo hacer clic-a-clic en un navegador real porque este
+entorno no tiene una herramienta de automatización de navegador disponible;
+esa verificación visual queda para la sesión de validación manual final.
+
+La suite completa terminó con 329 de 329 tests aprobados (14 nuevos) y lint
+sobre 87 archivos sin errores. La consulta agregada sobre 8000 filas de
+`intento_preguntas` (10 sesiones × 40 estudiantes × 20 preguntas) tomó
+~20 ms, muy por debajo del límite de 2 s. Cambios sin commit.
