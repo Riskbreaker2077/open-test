@@ -102,8 +102,13 @@ Después de cerrar, entre a **Descargar resultados**. Puede elegir todos los cur
 - **Detalle CSV:** una fila por pregunta; úselo para retroalimentación.
 - **Resumen CSV:** una fila por estudiante; úselo para pasar notas.
 - **JSON:** conserva toda la prueba y el orden exacto de las opciones para auditoría.
+- **Excel (.xlsx):** un solo archivo con las dos tablas anteriores (resumen y detalle) ya maquetado, cabecera fija y columnas ajustadas — ábralo directamente, sin dar formato a mano.
 
 Excel puede convertir códigos como `00123` en `123`. Al importar el CSV, marque la columna `codigo` como **Texto**.
+
+## 7. Ver qué falló más el grupo
+
+En **Estadísticas**, elija el banco de preguntas y luego una evaluación cerrada concreta o **todas las sesiones cerradas** que hayan usado ese banco, para acumular varios grupos o periodos. Dos tablas, de lo más fallado a lo menos fallado: por pregunta y por competencia. Sirve para decidir qué repasar en clase o qué pregunta del banco conviene revisar.
 
 ## Problemas frecuentes
 
