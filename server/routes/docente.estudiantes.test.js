@@ -129,6 +129,8 @@ test('todo el flujo de estudiantes exige contraseña', async () => {
     ['/api/docente/estudiantes/validar', 'POST'],
     ['/api/docente/estudiantes/confirmar', 'POST'],
     ['/api/docente/estudiantes', 'GET'],
+    ['/api/docente/estudiantes', 'POST'],
+    ['/api/docente/estudiantes/2024001', 'PUT'],
     ['/api/docente/estudiantes/2024001', 'DELETE'],
   ];
 
@@ -140,4 +142,121 @@ test('todo el flujo de estudiantes exige contraseña', async () => {
     });
     assert.equal(res.status, 401, `${metodo} ${ruta} debería exigir contraseña`);
   }
+});
+
+test('POST /estudiantes crea un estudiante y aparece en el listado', async () => {
+  const res = await llamar('/api/docente/estudiantes', {
+    method: 'POST',
+    body: JSON.stringify({ codigo: '2024001', nombres: 'Ana', apellidos: 'Gómez', curso: '10A' }),
+  });
+
+  assert.equal(res.status, 200);
+  const cuerpo = await res.json();
+  assert.deepEqual(cuerpo.estudiante, {
+    codigo: '2024001', nombres: 'Ana', apellidos: 'Gómez', curso: '10A',
+  });
+
+  const lista = await (await llamar('/api/docente/estudiantes')).json();
+  assert.equal(lista.estudiantes.length, 1);
+});
+
+test('POST /estudiantes con código duplicado devuelve 409', async () => {
+  await llamar('/api/docente/estudiantes', {
+    method: 'POST',
+    body: JSON.stringify({ codigo: '2024001', nombres: 'Ana', apellidos: 'Gómez', curso: '10A' }),
+  });
+
+  const res = await llamar('/api/docente/estudiantes', {
+    method: 'POST',
+    body: JSON.stringify({ codigo: '2024001', nombres: 'Otro', apellidos: 'X', curso: '10A' }),
+  });
+
+  assert.equal(res.status, 409);
+  const cuerpo = await res.json();
+  assert.match(cuerpo.mensaje, /Ya existe un estudiante con ese código\./);
+});
+
+test('POST /estudiantes devuelve todos los errores de validación juntos', async () => {
+  const res = await llamar('/api/docente/estudiantes', {
+    method: 'POST',
+    body: JSON.stringify({ codigo: '', nombres: '', apellidos: '', curso: '' }),
+  });
+
+  assert.equal(res.status, 400);
+  const cuerpo = await res.json();
+  assert.equal(cuerpo.ok, false);
+  assert.equal(cuerpo.errores.length, 4);
+
+  const lista = await (await llamar('/api/docente/estudiantes')).json();
+  assert.equal(lista.estudiantes.length, 0, 'no debe haberse guardado nada');
+});
+
+test('PUT /estudiantes/:codigo edita una fila existente', async () => {
+  await llamar('/api/docente/estudiantes', {
+    method: 'POST',
+    body: JSON.stringify({ codigo: '2024001', nombres: 'Ana', apellidos: 'Gómez', curso: '10A' }),
+  });
+
+  const res = await llamar('/api/docente/estudiantes/2024001', {
+    method: 'PUT',
+    body: JSON.stringify({ nombres: 'Ana Lucía', apellidos: 'Gómez Ruiz', curso: '11A' }),
+  });
+
+  assert.equal(res.status, 200);
+  const cuerpo = await res.json();
+  assert.equal(cuerpo.estudiante.curso, '11A');
+  assert.equal(cuerpo.estudiante.codigo, '2024001');
+
+  const lista = await (await llamar('/api/docente/estudiantes')).json();
+  assert.equal(lista.estudiantes[0].curso, '11A');
+});
+
+test('PUT /estudiantes/:codigo ignora el codigo aunque venga en el body', async () => {
+  await llamar('/api/docente/estudiantes', {
+    method: 'POST',
+    body: JSON.stringify({ codigo: '2024001', nombres: 'Ana', apellidos: 'Gómez', curso: '10A' }),
+  });
+
+  const res = await llamar('/api/docente/estudiantes/2024001', {
+    method: 'PUT',
+    body: JSON.stringify({
+      codigo: '9999999',
+      nombres: 'Ana Lucía',
+      apellidos: 'Gómez Ruiz',
+      curso: '11A',
+    }),
+  });
+  assert.equal(res.status, 200);
+
+  const lista = await (await llamar('/api/docente/estudiantes')).json();
+  const nuevo = lista.estudiantes.find((e) => e.codigo === '9999999');
+  assert.equal(nuevo, undefined, 'no debe haberse creado un segundo registro');
+  assert.equal(lista.estudiantes[0].curso, '11A');
+});
+
+test('PUT /estudiantes/:codigo con datos inválidos no modifica nada', async () => {
+  await llamar('/api/docente/estudiantes', {
+    method: 'POST',
+    body: JSON.stringify({ codigo: '2024001', nombres: 'Ana', apellidos: 'Gómez', curso: '10A' }),
+  });
+
+  const res = await llamar('/api/docente/estudiantes/2024001', {
+    method: 'PUT',
+    body: JSON.stringify({ nombres: '', apellidos: 'Gómez Ruiz', curso: '11A' }),
+  });
+
+  assert.equal(res.status, 400);
+  const cuerpo = await res.json();
+  assert.equal(cuerpo.errores.length, 1);
+
+  const lista = await (await llamar('/api/docente/estudiantes')).json();
+  assert.equal(lista.estudiantes[0].curso, '10A', 'no debe haberse cambiado');
+});
+
+test('PUT /estudiantes/:codigo con código inexistente devuelve 404', async () => {
+  const res = await llamar('/api/docente/estudiantes/inventado', {
+    method: 'PUT',
+    body: JSON.stringify({ nombres: 'Ana', apellidos: 'Gómez', curso: '10A' }),
+  });
+  assert.equal(res.status, 404);
 });

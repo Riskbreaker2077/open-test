@@ -227,3 +227,40 @@ La suite completa terminó con 329 de 329 tests aprobados (14 nuevos) y lint
 sobre 87 archivos sin errores. La consulta agregada sobre 8000 filas de
 `intento_preguntas` (10 sesiones × 40 estudiantes × 20 preguntas) tomó
 ~20 ms, muy por debajo del límite de 2 s. Cambios sin commit.
+
+## 28/08/2026 — 020 · Gestión manual de estudiantes
+
+Por pedido del usuario ("Creemos la opción para que esto sea posible"),
+se implementó la feature 020 como flujo complementario a la importación por
+archivo de la 002. La pregunta directa fue si se podía crear un estudiante
+manualmente: la 002 lo dejó explícitamente fuera de alcance ("se corrige el
+archivo y se reimporta"), y en la sesión se confirmó por código que no había
+ningún endpoint de creación ni edición individual. La elección de alcance
+fue **crear y editar**, descartando eliminación masiva y dejando el cambio
+de `codigo` para una feature aparte (rompería la FK de `intentos`).
+
+Decisiones técnicas: la validación de los cuatro campos del contrato
+(`codigo`, `nombres`, `apellidos`, `curso`) se extrajo del importador a una
+función reutilizable (`validarEstudianteIndividual`) para que el modal y la
+importación compartan los mismos mensajes en español. Las dos rutas nuevas
+(`POST /api/docente/estudiantes` y `PUT /api/docente/estudiantes/:codigo`)
+viven bajo `/api/docente/*`, así que la contraseña del docente las protege
+sin código nuevo. Errores tipados: `400` con `errores[]` cuando la validación
+falla (varios problemas a la vez, no uno por uno, como pidió el criterio),
+`409` cuando el código ya existe al crear, `404` al editar un código que no
+está. Al editar, el `codigo` del body se ignora aunque venga: nunca cambia
+porque es la identidad y la FK de `intentos.codigo_estudiante`.
+
+El frontend usa el elemento `<dialog>` nativo: accesible por teclado
+(`Esc` cierra, `Tab` recorre los campos en orden), cerrable con la X del
+navegador, sin CSS nuevo en `base.css` — los estilos mínimos del modal
+quedan en un `<style>` local del archivo. La misma función `abrirEditor`
+sirve para crear y para editar; en modo edición el `codigo` queda
+`readonly` y los otros tres campos prellenados. Al guardar con éxito,
+`recargar()` repinta la lista sin recargar la página; el modal queda con
+los campos en blanco y foco en el primer campo, listo para crear el
+siguiente. Cada fila gana un botón **Editar** al lado de **Eliminar**.
+
+La suite completa terminó con **345 de 345 tests aprobados** (16 nuevos:
+9 en el servicio, 7 en la integración de las rutas) y lint sobre 87
+archivos sin errores. Cambios sin commit.

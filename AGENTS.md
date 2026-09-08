@@ -6,20 +6,20 @@
 
 ## Dónde estamos (última actualización: 28/08/2026)
 
-**Las diecinueve features están implementadas y 329 tests están en verde.** El flujo completo existe desde la importación hasta la descarga de resultados; la 014 aplica la línea gráfica institucional, la 015 permite cargar preguntas e imágenes en un solo ZIP, la 016 hace que ese banco siga el estándar externo y abierto **preguntas-icfes** (github.com/riskbreaker2077/preguntas-icfes): metadata pedagógica por pregunta, contenido en bloques (texto/imagen/tabla) y justificación por cada opción; la 017 hace que el sorteo de cada prueba reparta las preguntas entre las competencias del banco en proporción a su tamaño, en vez de puramente al azar; la 018 agrega una cuarta descarga al panel de resultados, un `.xlsx` de dos hojas (Resumen/Detalle) con cabecera en negrita/congelada y columnas ajustadas, generado con un escritor de ZIP y de SpreadsheetML propios (sin dependencias nuevas); y la 019 agrega una pantalla de estadísticas por pregunta y por competencia (`/docente/estadisticas.html`), con alcance por una sesión cerrada concreta o acumulado por banco entre todas sus sesiones cerradas. La importación quedó unificada en un único ZIP con `paquete.json`, y la exportación de resultados sigue en `formato_version: 2` (el Excel y las estadísticas son vistas de conveniencia fuera de ese contrato).
+**Las veinte features están implementadas y 345 tests están en verde.** El flujo completo existe desde la importación hasta la descarga de resultados; la 014 aplica la línea gráfica institucional, la 015 permite cargar preguntas e imágenes en un solo ZIP, la 016 hace que ese banco siga el estándar externo y abierto **preguntas-icfes** (github.com/riskbreaker2077/preguntas-icfes): metadata pedagógica por pregunta, contenido en bloques (texto/imagen/tabla) y justificación por cada opción; la 017 hace que el sorteo de cada prueba reparta las preguntas entre las competencias del banco en proporción a su tamaño, en vez de puramente al azar; la 018 agrega una cuarta descarga al panel de resultados, un `.xlsx` de dos hojas (Resumen/Detalle) con cabecera en negrita/congelada y columnas ajustadas, generado con un escritor de ZIP y de SpreadsheetML propios (sin dependencias nuevas); la 019 agrega una pantalla de estadísticas por pregunta y por competencia (`/docente/estadisticas.html`), con alcance por una sesión cerrada concreta o acumulado por banco entre todas sus sesiones cerradas; y la 020 agrega creación y edición manual de estudiantes desde la pantalla del docente (modal `<dialog>` con la misma validación del importador, sin pasar por CSV/JSON). La importación quedó unificada en un único ZIP con `paquete.json`, y la exportación de resultados sigue en `formato_version: 2` (el Excel y las estadísticas son vistas de conveniencia fuera de ese contrato).
 
 **Las verificaciones físicas se harán juntas al final en el equipo destino.** Quedan pendientes QR y legibilidad en proyector, corte real de red, usabilidad táctil/orientación, línea gráfica en dispositivos reales, legibilidad de la pantalla de resultado, la apertura real del `.xlsx` de la 018 en Excel/LibreOffice sin diálogo de reparación, y ahora también un clic-a-clic real en la pantalla de estadísticas de la 019 (verificada por HTTP con un servidor desechable, no en un navegador real).
 
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 | — | **Validación final en equipo destino** |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 | — | **Validación final en equipo destino** |
 
 ### Para retomar, en este orden
 
 1. Lee `RESTART.md`: contiene el estado operativo de la última sesión.
 2. Lee `spec/constitution/roadmap.md`: dice qué está hecho y qué toca ahora.
 3. Revisa las casillas manuales pendientes en 012, 013, 006, 007, 009 y 010; para lo visual, lee también la 014.
-4. `npm install && npm test` — deben pasar los 304.
+4. `npm install && npm test` — deben pasar los 345.
 5. `npm start` y entra a `http://localhost:3000/` para ver el portal del estudiante, y a `/docente/` para el panel.
 
 ## Protocolo de restart entre sesiones

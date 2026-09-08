@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { abrirBd, cerrarBd } from '../db.js';
 import {
+  actualizarEstudiante,
   contarEstudiantes,
+  crearEstudiante,
   cursosDeEstudiantes,
   eliminarEstudiante,
   guardarEstudiantes,
@@ -132,5 +134,149 @@ test('no elimina a quien ya presentó, y lo explica', () => {
 test('eliminar a quien no existe da un error claro', () => {
   conBd((db) => {
     assert.throws(() => eliminarEstudiante(db, 'inventado'), /no está en la lista/);
+  });
+});
+
+test('crearEstudiante guarda el registro y lo devuelve', () => {
+  conBd((db) => {
+    const guardado = crearEstudiante(db, ANA);
+
+    assert.deepEqual(guardado, ANA);
+    assert.equal(contarEstudiantes(db), 1);
+  });
+});
+
+test('crearEstudiante falla con 409 si el código ya existe', () => {
+  conBd((db) => {
+    guardarEstudiantes(db, [ANA]);
+
+    let capturado;
+    try {
+      crearEstudiante(db, { ...LUIS, codigo: ANA.codigo });
+    } catch (err) {
+      capturado = err;
+    }
+
+    assert.equal(capturado.estado, 409);
+    assert.match(capturado.message, /Ya existe un estudiante con ese código\./);
+    assert.equal(contarEstudiantes(db), 1, 'no debe duplicar al fallar');
+  });
+});
+
+test('crearEstudiante devuelve todos los errores de validación juntos', () => {
+  conBd((db) => {
+    let capturado;
+    try {
+      crearEstudiante(db, { codigo: '', nombres: '', apellidos: '', curso: '' });
+    } catch (err) {
+      capturado = err;
+    }
+
+    assert.equal(capturado.estado, 400);
+    assert.equal(capturado.errores.length, 4, 'un error por cada columna vacía');
+    assert.equal(contarEstudiantes(db), 0);
+  });
+});
+
+test('crearEstudiante rechaza campos que superan el límite de longitud', () => {
+  conBd((db) => {
+    let capturado;
+    try {
+      crearEstudiante(db, {
+        codigo: 'A'.repeat(41),
+        nombres: 'B'.repeat(121),
+        apellidos: 'C'.repeat(121),
+        curso: 'D'.repeat(41),
+      });
+    } catch (err) {
+      capturado = err;
+    }
+
+    assert.equal(capturado.estado, 400);
+    assert.equal(capturado.errores.length, 4);
+  });
+});
+
+test('actualizarEstudiante modifica nombres, apellidos y curso', () => {
+  conBd((db) => {
+    guardarEstudiantes(db, [ANA]);
+    const actualizado = actualizarEstudiante(db, ANA.codigo, {
+      nombres: 'Ana Lucía',
+      apellidos: 'Gómez Ruiz',
+      curso: '11A',
+    });
+
+    assert.deepEqual(actualizado, { ...ANA, nombres: 'Ana Lucía', apellidos: 'Gómez Ruiz', curso: '11A' });
+    const enBd = listarEstudiantes(db)[0];
+    assert.equal(enBd.curso, '11A');
+  });
+});
+
+test('actualizarEstudiante ignora el codigo aunque venga en el body', () => {
+  conBd((db) => {
+    guardarEstudiantes(db, [ANA]);
+    actualizarEstudiante(db, ANA.codigo, {
+      codigo: '9999999',
+      nombres: ANA.nombres,
+      apellidos: ANA.apellidos,
+      curso: ANA.curso,
+    });
+
+    const sigue = db.prepare('SELECT codigo FROM estudiantes WHERE codigo = ?').get(ANA.codigo);
+    assert.ok(sigue, 'el código original debe seguir ahí');
+    const nuevo = db.prepare('SELECT codigo FROM estudiantes WHERE codigo = ?').get('9999999');
+    assert.equal(nuevo, undefined, 'no debe haberse creado un registro con el código nuevo');
+  });
+});
+
+test('actualizarEstudiante falla con 404 si el código no existe', () => {
+  conBd((db) => {
+    let capturado;
+    try {
+      actualizarEstudiante(db, 'inventado', { nombres: 'X', apellidos: 'Y', curso: '10A' });
+    } catch (err) {
+      capturado = err;
+    }
+
+    assert.equal(capturado.estado, 404);
+    assert.match(capturado.message, /no está en la lista/);
+  });
+});
+
+test('actualizarEstudiante no escribe nada si los datos son inválidos', () => {
+  conBd((db) => {
+    guardarEstudiantes(db, [ANA]);
+    let capturado;
+    try {
+      actualizarEstudiante(db, ANA.codigo, { nombres: '', apellidos: ANA.apellidos, curso: ANA.curso });
+    } catch (err) {
+      capturado = err;
+    }
+
+    assert.equal(capturado.estado, 400);
+    assert.equal(capturado.errores.length, 1);
+    const intacto = listarEstudiantes(db)[0];
+    assert.equal(intacto.nombres, ANA.nombres, 'no debe haberse modificado');
+  });
+});
+
+test('actualizarEstudiante funciona aunque el estudiante ya tenga intentos', () => {
+  conBd((db) => {
+    guardarEstudiantes(db, [ANA]);
+    db.prepare("INSERT INTO bancos (nombre, creado_en) VALUES ('B', '2026-01-01')").run();
+    db.prepare(
+      "INSERT INTO sesiones (nombre, banco_id, cursos, creado_en) VALUES ('S', 1, '10A', '2026-01-01')",
+    ).run();
+    db.prepare(
+      "INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en) VALUES (1, ?, 's', 't', '2026-01-01')",
+    ).run(ANA.codigo);
+
+    const actualizado = actualizarEstudiante(db, ANA.codigo, {
+      nombres: 'Ana Lucía',
+      apellidos: ANA.apellidos,
+      curso: '11A',
+    });
+
+    assert.equal(actualizado.curso, '11A', 'puede cambiar de curso aunque ya haya presentado');
   });
 });

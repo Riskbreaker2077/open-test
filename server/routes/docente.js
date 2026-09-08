@@ -44,7 +44,9 @@ import {
 } from '../services/imagenes.js';
 import { tieneBloqueImagen } from '../services/bloques.js';
 import {
+  actualizarEstudiante,
   contarEstudiantes,
+  crearEstudiante,
   cursosDeEstudiantes,
   eliminarEstudiante,
   guardarEstudiantes,
@@ -99,6 +101,28 @@ export function rutasDocente(db) {
       estudiantes: listarEstudiantes(db, { curso: req.query.curso }),
       cursos: cursosDeEstudiantes(db),
     });
+  });
+
+  router.post('/estudiantes', (req, res) => {
+    try {
+      res.json({ ok: true, estudiante: crearEstudiante(db, req.body ?? {}) });
+    } catch (err) {
+      if (err.errores) {
+        return res.status(err.estado ?? 400).json({ ok: false, errores: err.errores });
+      }
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
+  router.put('/estudiantes/:codigo', (req, res) => {
+    try {
+      res.json({ ok: true, estudiante: actualizarEstudiante(db, req.params.codigo, req.body ?? {}) });
+    } catch (err) {
+      if (err.errores) {
+        return res.status(err.estado ?? 400).json({ ok: false, errores: err.errores });
+      }
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
   });
 
   router.delete('/estudiantes/:codigo', (req, res) => {

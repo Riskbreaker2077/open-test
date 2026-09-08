@@ -5,6 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>OpenTest — Estudiantes</title>
   <link rel="stylesheet" href="/shared/base.css">
+  <style>
+    .encabezado-seccion {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .encabezado-seccion h2 { margin: 0; }
+    .editor-estudiante {
+      width: min(32rem, 92vw);
+      max-height: 92vh;
+      overflow: auto;
+      padding: clamp(1.25rem, 3vw, 1.85rem);
+      border: 1px solid var(--borde);
+      border-radius: var(--radio);
+      background: var(--papel);
+      box-shadow: var(--sombra);
+      color: var(--tinta);
+    }
+    .editor-estudiante::backdrop {
+      background: rgb(11 38 59 / 35%);
+    }
+    .editor-estudiante h2 { margin-top: 0; }
+    .editor-estudiante .campo:last-of-type { margin-bottom: 0; }
+    .editor-acciones {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 1.25rem;
+    }
+    .editor-estudiante input[readonly] {
+      background: var(--fondo);
+      color: var(--tinta-suave);
+    }
+    .acciones-fila {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+  </style>
 </head>
 <body class="superficie-docente">
   <header class="barra">
@@ -43,7 +86,10 @@
     </section>
 
     <section class="tarjeta">
-      <h2>Lista cargada</h2>
+      <div class="encabezado-seccion">
+        <h2>Lista cargada</h2>
+        <button class="boton" id="nuevo" type="button">+ Nuevo estudiante</button>
+      </div>
       <label class="campo">
         <span>Curso</span>
         <select id="filtro-curso"><option value="">Todos</option></select>
@@ -52,6 +98,40 @@
       <table class="tabla" id="listado"></table>
     </section>
   </main>
+
+  <dialog id="editor" class="editor-estudiante">
+    <form id="formulario-estudiante" method="dialog">
+      <h2 id="editor-titulo">Nuevo estudiante</h2>
+      <p id="editor-ayuda" class="apunte"></p>
+
+      <label class="campo">
+        <span>Código</span>
+        <input type="text" id="editor-codigo" maxlength="40" autocomplete="off" required>
+      </label>
+      <label class="campo">
+        <span>Nombres</span>
+        <input type="text" id="editor-nombres" maxlength="120" autocomplete="off" required>
+      </label>
+      <label class="campo">
+        <span>Apellidos</span>
+        <input type="text" id="editor-apellidos" maxlength="120" autocomplete="off" required>
+      </label>
+      <label class="campo">
+        <span>Curso</span>
+        <input type="text" id="editor-curso" maxlength="40" autocomplete="off" required>
+      </label>
+
+      <div id="editor-errores" hidden>
+        <p class="aviso">Corrige estos puntos antes de guardar:</p>
+        <ul class="lista-errores" id="editor-lista-errores"></ul>
+      </div>
+
+      <div class="editor-acciones">
+        <button class="boton" type="submit" id="editor-guardar">Guardar</button>
+        <button class="boton boton--secundario" type="button" id="editor-cancelar">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
 
   <script type="module" src="/docente/estudiantes.js"></script>
 </body>

@@ -8,13 +8,27 @@ const resumenCarga = document.getElementById('resumen-carga');
 const muestra = document.getElementById('muestra');
 const confirmar = document.getElementById('confirmar');
 const cancelar = document.getElementById('cancelar');
+const nuevo = document.getElementById('nuevo');
 const filtroCurso = document.getElementById('filtro-curso');
 const listado = document.getElementById('listado');
 const vacio = document.getElementById('vacio');
 
+const editor = document.getElementById('editor');
+const editorTitulo = document.getElementById('editor-titulo');
+const editorAyuda = document.getElementById('editor-ayuda');
+const editorCodigo = document.getElementById('editor-codigo');
+const editorNombres = document.getElementById('editor-nombres');
+const editorApellidos = document.getElementById('editor-apellidos');
+const editorCurso = document.getElementById('editor-curso');
+const editorFormulario = document.getElementById('formulario-estudiante');
+const editorErrores = document.getElementById('editor-errores');
+const editorListaErrores = document.getElementById('editor-lista-errores');
+const editorCancelar = document.getElementById('editor-cancelar');
+
 const MAX_BYTES = 2 * 1024 * 1024;
 
 let contenidoPendiente = null;
+let disparadorEditor = null;
 
 function limpiar() {
   errores.hidden = true;
@@ -130,11 +144,123 @@ cancelar.addEventListener('click', () => {
 
 filtroCurso.addEventListener('change', recargar);
 
-function botonEliminar(estudiante) {
-  const boton = document.createElement('button');
-  boton.className = 'boton boton--secundario boton--pequeno';
-  boton.textContent = 'Eliminar';
-  boton.addEventListener('click', async () => {
+// --- Modal de creación / edición -----------------------------------------
+
+function limpiarEditor() {
+  editorErrores.hidden = true;
+  editorListaErrores.replaceChildren();
+  [editorCodigo, editorNombres, editorApellidos, editorCurso].forEach((input) => {
+    input.value = '';
+    input.removeAttribute('readonly');
+  });
+}
+
+function abrirEditor(estudiante, desde) {
+  limpiarEditor();
+  disparadorEditor = desde ?? null;
+
+  if (estudiante) {
+    editorTitulo.textContent = 'Editar estudiante';
+    editorAyuda.textContent = 'El código no se puede cambiar.';
+    editorCodigo.value = estudiante.codigo;
+    editorCodigo.setAttribute('readonly', 'readonly');
+    editorNombres.value = estudiante.nombres;
+    editorApellidos.value = estudiante.apellidos;
+    editorCurso.value = estudiante.curso;
+  } else {
+    editorTitulo.textContent = 'Nuevo estudiante';
+    editorAyuda.textContent = '';
+  }
+
+  editor.showModal();
+  const focoInicial = estudiante ? editorNombres : editorCodigo;
+  focoInicial.focus();
+}
+
+function cerrarEditor() {
+  if (editor.open) editor.close();
+  disparadorEditor = null;
+}
+
+function mostrarErroresEditor(errores) {
+  editorListaErrores.replaceChildren(
+    ...errores.map((mensaje) => {
+      const li = document.createElement('li');
+      li.textContent = mensaje;
+      return li;
+    }),
+  );
+  editorErrores.hidden = false;
+}
+
+editorCancelar.addEventListener('click', cerrarEditor);
+
+editor.addEventListener('close', () => {
+  if (disparadorEditor && typeof disparadorEditor.focus === 'function') {
+    disparadorEditor.focus();
+  }
+});
+
+editorFormulario.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+
+  const esEdicion = editorCodigo.hasAttribute('readonly');
+  const datos = {
+    codigo: editorCodigo.value,
+    nombres: editorNombres.value,
+    apellidos: editorApellidos.value,
+    curso: editorCurso.value,
+  };
+
+  const boton = editor.querySelector('#editor-guardar');
+  boton.disabled = true;
+  try {
+    const respuesta = await api(
+      esEdicion
+        ? `/api/docente/estudiantes/${encodeURIComponent(datos.codigo)}`
+        : '/api/docente/estudiantes',
+      {
+        method: esEdicion ? 'PUT' : 'POST',
+        body: JSON.stringify(esEdicion ? {
+          nombres: datos.nombres,
+          apellidos: datos.apellidos,
+          curso: datos.curso,
+        } : datos),
+      },
+    );
+
+    if (!respuesta.ok) {
+      if (respuesta.errores) mostrarErroresEditor(respuesta.errores);
+      else window.alert(respuesta.mensaje ?? 'No se pudo guardar el estudiante.');
+      return;
+    }
+
+    cerrarEditor();
+    await recargar();
+  } finally {
+    boton.disabled = false;
+  }
+});
+
+nuevo.addEventListener('click', () => abrirEditor(null, nuevo));
+
+// --- Listado --------------------------------------------------------------
+
+function accionesDeFila(estudiante) {
+  const contenedor = document.createElement('div');
+  contenedor.className = 'acciones-fila';
+
+  const editar = document.createElement('button');
+  editar.className = 'boton boton--secundario boton--pequeno';
+  editar.type = 'button';
+  editar.textContent = 'Editar';
+  editar.addEventListener('click', () => abrirEditor(estudiante, editar));
+
+  const eliminar = document.createElement('button');
+  eliminar.className = 'boton boton--secundario boton--pequeno';
+  eliminar.type = 'button';
+  eliminar.textContent = 'Eliminar';
+  eliminar.addEventListener('click', async () => {
     const nombre = `${estudiante.nombres} ${estudiante.apellidos}`;
     if (!window.confirm(`¿Eliminar a ${nombre} de la lista?`)) return;
 
@@ -147,7 +273,9 @@ function botonEliminar(estudiante) {
     }
     await recargar();
   });
-  return boton;
+
+  contenedor.append(editar, eliminar);
+  return contenedor;
 }
 
 async function recargar() {
@@ -164,7 +292,7 @@ async function recargar() {
   filtroCurso.value = seleccionado;
 
   vacio.hidden = estudiantes.length > 0;
-  tabla(listado, COLUMNAS, estudiantes, botonEliminar);
+  tabla(listado, COLUMNAS, estudiantes, accionesDeFila);
 }
 
 recargar();

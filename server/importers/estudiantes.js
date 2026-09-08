@@ -9,6 +9,27 @@ export const MAX_ERRORES = 50;
 
 export const MAX_BYTES = 2 * 1024 * 1024;
 
+/**
+ * Valida los cuatro campos del contrato y devuelve los problemas en español.
+ * Es la misma fuente de verdad que usa la importación por archivo, expuesta
+ * para que la gestión manual (feature 020) muestre los mismos mensajes.
+ */
+export function validarEstudianteIndividual(datos) {
+  const errores = [];
+
+  for (const columna of COLUMNAS) {
+    const valor = typeof datos?.[columna] === 'string' ? datos[columna] : '';
+
+    if (valor === '') {
+      errores.push(`La columna "${columna}" está vacía.`);
+    } else if (valor.length > LIMITES[columna]) {
+      errores.push(`"${columna}" supera los ${LIMITES[columna]} caracteres.`);
+    }
+  }
+
+  return errores;
+}
+
 /** Un archivo que empieza por { o [ es JSON, venga con la extensión que venga. */
 export function detectarTipo(texto) {
   const inicio = texto.replace(/^﻿/, '').trimStart()[0];

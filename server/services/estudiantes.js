@@ -1,3 +1,5 @@
+import { COLUMNAS, validarEstudianteIndividual } from '../importers/estudiantes.js';
+
 /**
  * Guarda la lista en una sola transacción: o entra entera o no entra nada.
  * Actualiza por código y nunca borra a quien no venga en el archivo, para que
@@ -56,6 +58,55 @@ export function cursosDeEstudiantes(db) {
 
 export function contarEstudiantes(db) {
   return db.prepare('SELECT count(*) AS total FROM estudiantes').get().total;
+}
+
+/**
+ * Marca un error de la API del docente: `estado` se traduce a HTTP y `errores`
+ * (cuando existe) lleva la lista completa de problemas de validación para que
+ * el docente los vea todos a la vez.
+ */
+const httpError = (estado, mensaje, errores) =>
+  Object.assign(new Error(mensaje), { estado, errores });
+
+/**
+ * Crea un estudiante tras validar los cuatro campos del contrato.
+ * Falla con 409 si el código ya existe y con 400 (con `errores`) si los datos
+ * son inválidos.
+ */
+export function crearEstudiante(db, datos) {
+  const problemas = validarEstudianteIndividual(datos);
+  if (problemas.length > 0) throw httpError(400, problemas[0], problemas);
+
+  const codigo = datos.codigo;
+  const existente = db.prepare('SELECT 1 FROM estudiantes WHERE codigo = ?').get(codigo);
+  if (existente) throw httpError(409, 'Ya existe un estudiante con ese código.');
+
+  const campos = COLUMNAS.reduce((acc, columna) => {
+    acc[columna] = datos[columna];
+    return acc;
+  }, {});
+  db.prepare(
+    'INSERT INTO estudiantes (codigo, nombres, apellidos, curso) VALUES (@codigo, @nombres, @apellidos, @curso)',
+  ).run(campos);
+  return db.prepare('SELECT * FROM estudiantes WHERE codigo = ?').get(codigo);
+}
+
+/**
+ * Actualiza nombres, apellidos y curso de un estudiante existente.
+ * El código nunca cambia: es la identidad y la FK de intentos.
+ */
+export function actualizarEstudiante(db, codigo, datos) {
+  const existente = db.prepare('SELECT * FROM estudiantes WHERE codigo = ?').get(codigo);
+  if (!existente) throw httpError(404, 'Ese estudiante no está en la lista.');
+
+  const parcial = { codigo, nombres: datos.nombres, apellidos: datos.apellidos, curso: datos.curso };
+  const problemas = validarEstudianteIndividual(parcial);
+  if (problemas.length > 0) throw httpError(400, problemas[0], problemas);
+
+  db.prepare(
+    'UPDATE estudiantes SET nombres = @nombres, apellidos = @apellidos, curso = @curso WHERE codigo = @codigo',
+  ).run(parcial);
+  return db.prepare('SELECT * FROM estudiantes WHERE codigo = ?').get(codigo);
 }
 
 /**
