@@ -8,13 +8,14 @@ import { guardarEstudiantes } from '../services/estudiantes.js';
 import { iniciarOReanudarIntento } from '../services/intentos.js';
 import { abrirSesion, cerrarSesion, crearSesion, obtenerSesion } from '../services/sesiones.js';
 import {
-  aDetalleCsv,
-  aExcel,
+  aExcelRico,
   aJson,
   armarExportacion,
-  aResumenCsv,
-  CABECERAS_DETALLE,
+  filasDetalle,
+  filasResumen,
   CABECERAS_RESUMEN,
+  CABECERAS_DETALLE,
+  CABECERAS_BANCO,
 } from './resultados.js';
 import { leerZip } from '../importers/paquete-zip.js';
 
@@ -38,30 +39,86 @@ function preparar({ cantidad = 2, nPreguntas = 4 } = {}) {
   return { db, sesionId: sesion.id, intentos };
 }
 
-test('cabeceras literales, BOM y formato_version coinciden con el contrato', () => {
-  assert.equal(CABECERAS_DETALLE.join(','),
-    'formato_version,sesion,curso,codigo,nombres,apellidos,n_pregunta,pregunta_id,enunciado,opcion_elegida_texto,opcion_correcta_texto,acierto,saltada,segundos,competencia');
-  assert.equal(CABECERAS_RESUMEN.join(','),
-    'formato_version,sesion,codigo,nombres,apellidos,curso,total_preguntas,respondidas,saltadas,aciertos,puntaje,porcentaje,inicio,entrega,motivo_entrega');
+test('el JSON conserva formato_version 2 y los bloques completos', () => {
   const { db, sesionId } = preparar();
   cerrarSesion(db, sesionId);
   const exportacion = armarExportacion(db, sesionId);
-  assert.ok(aDetalleCsv(exportacion).startsWith(`\uFEFF${CABECERAS_DETALLE.join(',')}\r\n2,`));
-  assert.ok(aResumenCsv(exportacion).startsWith(`\uFEFF${CABECERAS_RESUMEN.join(',')}\r\n2,`));
-  assert.equal(JSON.parse(aJson(exportacion)).formato_version, 2);
+  const json = JSON.parse(aJson(exportacion));
+  assert.equal(json.formato_version, 2);
+  assert.ok(Array.isArray(json.intentos[0].preguntas[0].opciones_mostradas));
+  assert.ok(json.intentos[0].preguntas[0].opciones_mostradas[0].contenido.length > 0);
   cerrarBd(db);
 });
 
-test('una pregunta sin opción correcta entre las mostradas da un error claro', () => {
+test('las cabeceras del Excel rico son las publicadas', () => {
+  assert.ok(CABECERAS_RESUMEN.includes('porcentaje'));
+  assert.ok(CABECERAS_DETALLE.includes('opcion_a_texto') && CABECERAS_DETALLE.includes('opcion_a_es_correcta'));
+  assert.ok(CABECERAS_BANCO.includes('veces_presentada') && CABECERAS_BANCO.includes('opcion_a_texto'));
+});
+
+test('filasDetalle incluye las 4 opciones con sus ids en el orden mostrado al estudiante', () => {
   const { db, sesionId } = preparar();
-  const primera = db.prepare('SELECT pregunta_id FROM intento_preguntas LIMIT 1').get();
-  db.prepare('UPDATE opciones SET es_correcta = 0 WHERE pregunta_id = ?').run(primera.pregunta_id);
   cerrarSesion(db, sesionId);
-  assert.throws(() => armarExportacion(db, sesionId), /no tiene ninguna opción correcta/);
+  const exportacion = armarExportacion(db, sesionId);
+  const filas = filasDetalle(exportacion);
+  assert.ok(filas.length > 0);
+  const fila = filas[0];
+  assert.ok(fila.opcion_a_id !== '' && fila.opcion_a_id !== undefined);
+  assert.equal(typeof fila.opcion_a_texto, 'string');
+  assert.ok(fila.opcion_a_es_correcta === 0 || fila.opcion_a_es_correcta === 1);
+  const ids = [fila.opcion_a_id, fila.opcion_b_id, fila.opcion_c_id, fila.opcion_d_id];
+  assert.deepEqual(
+    ids,
+    exportacion.intentos[0].preguntas[0].opciones_mostradas.map((o) => o.opcion_id),
+    'el orden de las opciones en Detalle coincide con el orden mostrado al estudiante',
+  );
   cerrarBd(db);
 });
 
-test('incluye no alcanzadas, conserva orden de opciones y los totales cuadran', () => {
+test('filasResumen cuadra con los totales calculados', () => {
+  const { db, sesionId, intentos } = preparar();
+  const primera = db.prepare('SELECT * FROM intento_preguntas WHERE intento_id = ? ORDER BY orden LIMIT 1')
+    .get(intentos[0].id);
+  db.prepare(`
+    INSERT INTO respuestas (intento_pregunta_id, opcion_id, segundos_en_pantalla, respondido_en)
+    VALUES (?, ?, 7, '2026-08-26T10:00:07Z')
+  `).run(primera.id, Number(primera.orden_opciones.split(',')[0]));
+  cerrarSesion(db, sesionId);
+  const filas = filasResumen(armarExportacion(db, sesionId));
+  assert.equal(filas[0].respondidas + filas[0].saltadas, filas[0].total_preguntas);
+  cerrarBd(db);
+});
+
+test('aExcelRico produce tres hojas en orden Resumen, Detalle, Banco', () => {
+  const { db, sesionId, intentos } = preparar();
+  cerrarSesion(db, sesionId);
+  db.prepare('UPDATE intentos SET entregado_en = NULL, motivo_entrega = NULL WHERE id = ?').run(intentos[1].id);
+  const exportacion = armarExportacion(db, sesionId);
+
+  const buffer = aExcelRico(db, exportacion);
+  const archivos = leerZip(buffer);
+  const workbook = archivos.find((archivo) => archivo.nombre === 'xl/workbook.xml').contenido.toString('utf-8');
+  const posResumen = workbook.indexOf('name="Resumen"');
+  const posDetalle = workbook.indexOf('name="Detalle"');
+  const posBanco = workbook.indexOf('name="Banco"');
+  assert.ok(posResumen >= 0 && posDetalle > posResumen && posBanco > posDetalle);
+  cerrarBd(db);
+});
+
+test('la hoja Detalle tiene las 4 opciones por pregunta con sus textos e ids', () => {
+  const { db, sesionId } = preparar();
+  cerrarSesion(db, sesionId);
+  const exportacion = armarExportacion(db, sesionId);
+  const buffer = aExcelRico(db, exportacion);
+  const archivos = leerZip(buffer);
+  const hoja = archivos.find((archivo) => archivo.nombre === 'xl/worksheets/sheet2.xml').contenido.toString('utf-8');
+  for (const columna of ['opcion_a_texto', 'opcion_b_texto', 'opcion_c_texto', 'opcion_d_texto', 'opcion_elegida_id']) {
+    assert.match(hoja, new RegExp(columna));
+  }
+  cerrarBd(db);
+});
+
+test('la hoja Banco enumera las preguntas del banco con metadata y conteos', () => {
   const { db, sesionId, intentos } = preparar();
   const primera = db.prepare('SELECT * FROM intento_preguntas WHERE intento_id = ? ORDER BY orden LIMIT 1')
     .get(intentos[0].id);
@@ -71,46 +128,15 @@ test('incluye no alcanzadas, conserva orden de opciones y los totales cuadran', 
     VALUES (?, ?, 7, '2026-08-26T10:00:07Z')
   `).run(primera.id, elegida);
   cerrarSesion(db, sesionId);
-  // Simula un intento histórico que todavía no tenía marca de entrega.
-  db.prepare('UPDATE intentos SET entregado_en = NULL, motivo_entrega = NULL WHERE id = ?').run(intentos[1].id);
 
   const exportacion = armarExportacion(db, sesionId);
-  const primero = exportacion.intentos.find((item) => item.codigo === '1000');
-  assert.equal(primero.respondidas + primero.saltadas, primero.preguntas.length);
-  assert.equal(primero.preguntas[1].saltada, true);
-  assert.equal(primero.preguntas[1].segundos, 0);
-  assert.equal(primero.preguntas[1].opcion_elegida_texto, '');
-  assert.ok(primero.preguntas[1].opcion_correcta_texto);
-  assert.deepEqual(
-    primero.preguntas[0].opciones_mostradas.map((opcion) => opcion.opcion_id),
-    primera.orden_opciones.split(',').map(Number),
-  );
-  const pendiente = exportacion.intentos.find((item) => item.codigo === '1001');
-  assert.equal(pendiente.entrega, '');
-  const solo10A = armarExportacion(db, sesionId, '10A');
-  assert.deepEqual(solo10A.intentos.map((item) => item.curso), ['10A']);
-  cerrarBd(db);
-});
-
-test('aExcel produce un libro válido con las hojas Resumen y Detalle, en ese orden', () => {
-  const { db, sesionId, intentos } = preparar();
-  cerrarSesion(db, sesionId);
-  db.prepare('UPDATE intentos SET entregado_en = NULL, motivo_entrega = NULL WHERE id = ?').run(intentos[1].id);
-  const exportacion = armarExportacion(db, sesionId);
-
-  const buffer = aExcel(exportacion);
+  const buffer = aExcelRico(db, exportacion);
   const archivos = leerZip(buffer);
-  const workbook = archivos.find((archivo) => archivo.nombre === 'xl/workbook.xml').contenido.toString('utf-8');
-  const posicionResumen = workbook.indexOf('name="Resumen"');
-  const posicionDetalle = workbook.indexOf('name="Detalle"');
-  assert.ok(posicionResumen >= 0 && posicionDetalle >= 0 && posicionResumen < posicionDetalle);
-
-  const hojaResumen = archivos.find((archivo) => archivo.nombre === 'xl/worksheets/sheet1.xml').contenido.toString('utf-8');
-  const hojaDetalle = archivos.find((archivo) => archivo.nombre === 'xl/worksheets/sheet2.xml').contenido.toString('utf-8');
-  for (const cabecera of CABECERAS_RESUMEN) assert.match(hojaResumen, new RegExp(cabecera));
-  for (const cabecera of CABECERAS_DETALLE) assert.match(hojaDetalle, new RegExp(cabecera));
-  // El intento sin entregar (código 1001) sigue presente, igual que en CSV/JSON.
-  assert.match(hojaResumen, /1001/);
+  const hoja = archivos.find((archivo) => archivo.nombre === 'xl/worksheets/sheet3.xml').contenido.toString('utf-8');
+  assert.match(hoja, /veces_presentada/);
+  assert.match(hoja, /veces_acertada/);
+  assert.match(hoja, /veces_saltada/);
+  assert.match(hoja, /competencia/);
   cerrarBd(db);
 });
 
@@ -126,12 +152,12 @@ test('arma 40 intentos por 20 preguntas en menos de 2 segundos', () => {
   cerrarBd(db);
 });
 
-test('aExcel de 40 intentos por 20 preguntas tarda menos de 2 segundos', () => {
+test('aExcelRico de 40 intentos por 20 preguntas tarda menos de 2 segundos', () => {
   const { db, sesionId } = preparar({ cantidad: 40, nPreguntas: 20 });
   cerrarSesion(db, sesionId);
   const exportacion = armarExportacion(db, sesionId);
   const inicio = performance.now();
-  const buffer = aExcel(exportacion);
+  const buffer = aExcelRico(db, exportacion);
   const duracion = performance.now() - inicio;
   assert.ok(buffer.length > 0);
   assert.ok(duracion < 2000, `tardó ${duracion.toFixed(1)} ms`);

@@ -1,13 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { esInterfazVirtual, urlsDeIntranet } from './red.js';
+import { esInterfazVirtual, hostnameEsAmigable, urlsDeHostnames, urlsDeIntranet } from './red.js';
 
 test('devuelve URL con el puerto y sin direcciones internas', () => {
   const urls = urlsDeIntranet(3000);
 
   for (const candidata of urls) {
-    assert.match(candidata.url, /^http:\/\/\d+\.\d+\.\d+\.\d+:3000$/);
-    assert.notEqual(candidata.ip, '127.0.0.1');
+    assert.match(candidata.url, /^http:\/\/[\w.-]+:\d+$/);
+    if (candidata.ip !== undefined) {
+      assert.notEqual(candidata.ip, '127.0.0.1');
+      assert.match(candidata.ip, /^\d+\.\d+\.\d+\.\d+$/);
+    }
     assert.ok(candidata.interfaz.length > 0);
   }
 });
@@ -31,7 +34,7 @@ test('prioriza los rangos privados habituales de un colegio', () => {
     return 3;
   };
 
-  const prioridades = urls.map((u) => prioridad(u.ip));
+  const prioridades = urls.filter((u) => u.ip).map((u) => prioridad(u.ip));
   assert.deepEqual(prioridades, [...prioridades].sort((a, b) => a - b));
 });
 
@@ -56,4 +59,71 @@ test('reconoce los adaptadores virtuales habituales', () => {
   for (const nombre of ['eth0', 'wlan0', 'Wi-Fi', 'Ethernet']) {
     assert.equal(esInterfazVirtual(nombre), false, `${nombre} no es virtual`);
   }
+});
+
+test('urlsDeHostnames devuelve la candidata corta y la .local', () => {
+  const candidatas = urlsDeHostnames(3000, 'prueba');
+
+  assert.deepEqual(candidatas, [
+    { interfaz: 'hostname', host: 'prueba', url: 'http://prueba:3000', prioridad: -2 },
+    { interfaz: 'hostname.local', host: 'prueba.local', url: 'http://prueba.local:3000', prioridad: -1 },
+  ]);
+});
+
+test('urlsDeHostnames no duplica el sufijo .local si el hostname ya lo trae', () => {
+  const candidatas = urlsDeHostnames(3000, 'prueba.local');
+
+  assert.deepEqual(candidatas, [
+    { interfaz: 'hostname', host: 'prueba.local', url: 'http://prueba.local:3000', prioridad: -2 },
+  ]);
+});
+
+test('urlsDeHostnames respeta un FQDN sin agregar .local', () => {
+  const candidatas = urlsDeHostnames(3000, 'laptop.example.com');
+
+  assert.deepEqual(candidatas, [
+    {
+      interfaz: 'hostname',
+      host: 'laptop.example.com',
+      url: 'http://laptop.example.com:3000',
+      prioridad: -2,
+    },
+  ]);
+});
+
+test('urlsDeHostnames descarta el hostname si es una IPv4', () => {
+  assert.deepEqual(urlsDeHostnames(3000, '192.168.1.42'), []);
+});
+
+test('urlsDeHostnames descarta el hostname vacío o no string', () => {
+  assert.deepEqual(urlsDeHostnames(3000, ''), []);
+  assert.deepEqual(urlsDeHostnames(3000, '   '), []);
+  assert.deepEqual(urlsDeHostnames(3000, null), []);
+  assert.deepEqual(urlsDeHostnames(3000, undefined), []);
+  assert.deepEqual(urlsDeHostnames(3000, 123), []);
+});
+
+test('hostnameEsAmigable distingue nombres cortos legibles del resto', () => {
+  for (const nombre of ['prueba', 'lab-101', 'aula1', 'docente-2b']) {
+    assert.equal(hostnameEsAmigable(nombre), true, `${nombre} debería ser amigable`);
+  }
+  for (const nombre of ['', 'DESKTOP-7KQ3P9H', 'camilo-Lenovo-V14-G3-IAP', 'laptop.example.com', 'prueba.local', 'ñandú']) {
+    assert.equal(hostnameEsAmigable(nombre), false, `${nombre} no debería ser amigable`);
+  }
+  assert.equal(hostnameEsAmigable(null), false);
+  assert.equal(hostnameEsAmigable(123), false);
+});
+
+test('urlsDeIntranet coloca las candidatas por hostname antes que las IPv4', () => {
+  const candidatas = urlsDeIntranet(3000);
+  const porHostname = candidatas.filter((c) => c.interfaz.startsWith('hostname'));
+  if (porHostname.length === 0) return;
+
+  const primeraNoHostname = candidatas.find((c) => !c.interfaz.startsWith('hostname'));
+  if (!primeraNoHostname) return;
+
+  const ultimaPorHostname = porHostname[porHostname.length - 1];
+  const posHostname = candidatas.indexOf(ultimaPorHostname);
+  const posIpv4 = candidatas.indexOf(primeraNoHostname);
+  assert.ok(posHostname < posIpv4, 'toda candidata por hostname ordena antes que la primera IPv4');
 });

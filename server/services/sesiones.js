@@ -267,16 +267,18 @@ export function listarSesiones(db) {
     .all();
 }
 
-/** Una evaluación con intentos no se borra: sus resultados deben poder auditarse. */
+/** Una evaluación con intentos puede borrarse sólo después de que se hayan descargado
+ *  sus resultados al menos una vez: hasta entonces, borrar destruiría la única
+ *  copia de la evidencia sin que el docente la tenga fuera de la base. */
 export function borrarSesion(db, id) {
   const sesion = obtenerSesion(db, id);
   const intentos = db
     .prepare('SELECT count(*) AS total FROM intentos WHERE sesion_id = ?')
     .get(id).total;
 
-  if (intentos > 0) {
+  if (intentos > 0 && !sesion.descargado_en) {
     throw error(
-      `No se puede borrar "${sesion.nombre}": ya la presentaron ${intentos} estudiante(s).`,
+      'Antes de borrar la evaluación, descarga sus resultados al menos una vez.',
       409,
     );
   }

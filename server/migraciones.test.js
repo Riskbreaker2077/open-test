@@ -224,3 +224,20 @@ test('la migración no rompe las referencias entre tablas', () => {
     limpiar();
   }
 });
+
+test('la base migrada gana la columna descargado_en en sesiones, en null', () => {
+  const { ruta, limpiar } = carpetaTemporal();
+  try {
+    baseAntigua(ruta);
+    const db = abrirBd(ruta);
+    const sesion = db.prepare('SELECT * FROM sesiones').get();
+
+    assert.equal(sesion.descargado_en, null);
+    assert.doesNotThrow(() =>
+      db.prepare("UPDATE sesiones SET descargado_en = '2026-08-26T10:00:00Z' WHERE id = ?").run(sesion.id),
+    );
+    cerrarBd(db);
+  } finally {
+    limpiar();
+  }
+});

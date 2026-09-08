@@ -28,11 +28,9 @@ import { urlsDeIntranet } from '../red.js';
 import { contarIntentos, forzarEntrega } from '../services/intentos.js';
 import { estadoDeSesion } from '../services/monitoreo.js';
 import {
-  aDetalleCsv,
-  aExcel,
-  aJson,
   armarExportacion,
-  aResumenCsv,
+  aExcelRico,
+  aReproduccionZip,
 } from '../exporters/resultados.js';
 import { solapamientoEsperado } from '../services/personalizacion.js';
 import { estadisticasDeBanco, sesionesCerradasDeBanco } from '../services/estadisticas.js';
@@ -301,24 +299,28 @@ export function rutasDocente(db) {
   router.get('/sesiones/:id/export/:tipo', (req, res) => {
     try {
       const tipo = req.params.tipo;
-      if (!['detalle', 'resumen', 'json', 'excel'].includes(tipo)) {
+      if (!['excel', 'zip'].includes(tipo)) {
         return res.status(404).json({ ok: false, mensaje: 'Ese formato de exportación no existe.' });
       }
-      const exportacion = armarExportacion(db, Number(req.params.id), req.query.curso);
+      const sesionId = Number(req.params.id);
+      const exportacion = armarExportacion(db, sesionId, req.query.curso);
+      if (!db.prepare('SELECT descargado_en FROM sesiones WHERE id = ?').get(sesionId)?.descargado_en) {
+        db.prepare('UPDATE sesiones SET descargado_en = ? WHERE id = ?')
+          .run(new Date().toISOString(), sesionId);
+      }
       const seguro = (texto) => String(texto).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-zA-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').toLowerCase() || 'todos';
       const fecha = new Date().toISOString().slice(0, 10);
-      const extension = tipo === 'json' ? 'json' : tipo === 'excel' ? 'xlsx' : 'csv';
-      const nombreTipo = tipo === 'excel' ? 'resultados' : tipo;
-      const nombre = `opentest_${seguro(exportacion.sesion.nombre)}_${seguro(req.query.curso ?? 'todos')}_${nombreTipo}_${fecha}.${extension}`;
-      res.set('Content-Disposition', `attachment; filename="${nombre}"`);
+      const nombreBase = `opentest_${seguro(exportacion.sesion.nombre)}_${seguro(req.query.curso ?? 'todos')}`;
       if (tipo === 'excel') {
-        res.type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet').send(aExcel(exportacion));
+        const nombre = `${nombreBase}_resultados_${fecha}.xlsx`;
+        res.set('Content-Disposition', `attachment; filename="${nombre}"`);
+        res.type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet').send(aExcelRico(db, exportacion));
         return;
       }
-      const contenido = tipo === 'detalle' ? aDetalleCsv(exportacion)
-        : tipo === 'resumen' ? aResumenCsv(exportacion) : aJson(exportacion);
-      res.type(tipo === 'json' ? 'application/json' : 'text/csv').send(contenido);
+      const nombre = `${nombreBase}_reproduccion_${fecha}.zip`;
+      res.set('Content-Disposition', `attachment; filename="${nombre}"`);
+      res.type('application/zip').send(aReproduccionZip(db, exportacion));
     } catch (err) {
       res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
     }

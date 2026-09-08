@@ -100,6 +100,17 @@ const MIGRACIONES = [
       anadirColumna(db, 'opciones', 'justificacion', "TEXT NOT NULL DEFAULT ''");
     },
   },
+  {
+    version: 4,
+    descripcion: 'Borrar evaluaciones cerradas con resultados ya descargados',
+    aplicar(db) {
+      // Se escribe la primera vez que el docente descarga cualquiera de los
+      // cuatro archivos (detalle/resumen/json/excel). Mientras sea NULL, la
+      // sesión no se puede borrar: el docente aún no tiene los resultados
+      // fuera de la base.
+      anadirColumna(db, 'sesiones', 'descargado_en', 'TEXT');
+    },
+  },
 ];
 
 export const ULTIMA_VERSION = MIGRACIONES.at(-1)?.version ?? 0;

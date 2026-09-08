@@ -14,7 +14,7 @@ const elementos = {
   saltar: document.getElementById('saltar'),
   siguiente: document.getElementById('siguiente'),
   cuentaMinima: document.getElementById('cuenta-minima'),
-  terminar: document.getElementById('terminar'),
+  pausarSalir: document.getElementById('pausar-salir'),
 };
 
 let actual = null;
@@ -104,12 +104,12 @@ function actualizarBloqueo() {
   if (!actual) return;
   const faltan = Math.max(0, Math.ceil((desbloqueoEn - performance.now()) / 1000));
   const bloqueada = faltan > 0 || ocupada;
-  elementos.siguiente.disabled = bloqueada || opcionElegida === null;
+elementos.siguiente.disabled = bloqueada || opcionElegida === null;
   elementos.saltar.disabled = bloqueada;
   elementos.anterior.disabled = actual.orden === 1 || ocupada;
-  elementos.terminar.disabled = ocupada;
+  elementos.pausarSalir.disabled = ocupada;
   elementos.cuentaMinima.textContent = faltan > 0
-    ? `Podrás avanzar en ${faltan} segundo(s).`
+    ? `Podés avanzar en ${faltan} segundo(s).`
     : '';
 }
 
@@ -169,13 +169,6 @@ async function guardar(opcionId = opcionElegida) {
 }
 
 async function confirmarEntrega(motivo) {
-  const { estado } = await pedir('/api/examen/estado');
-  sincronizarReloj(estado.segundosRestantes);
-  const mensaje = estado.sinResponder === 0
-    ? 'Respondiste todas las preguntas. ¿Entregar la prueba?'
-    : `Te quedan ${estado.sinResponder} pregunta(s) sin responder. ¿Entregar de todas formas?`;
-  if (!window.confirm(mensaje)) return;
-
   ocupada = true;
   actualizarBloqueo();
   try {
@@ -186,7 +179,22 @@ async function confirmarEntrega(motivo) {
     }, true);
     window.location.replace('/estudiante/resultado.html');
   } catch (err) {
-    mostrarError(`No se pudo entregar. ${err.message} Vuelve a intentarlo.`);
+    mostrarError(`${err.message} Usa "Anterior" para revisar las preguntas que faltan.`);
+    ocupada = false;
+    actualizarBloqueo();
+  }
+}
+
+async function pausarYSalir() {
+  if (!window.confirm('Vas a pausar la evaluación para todos. ¿Continuar?')) return;
+
+  ocupada = true;
+  actualizarBloqueo();
+  try {
+    await pedir('/api/examen/pausar', { method: 'POST' }, true);
+    window.location.replace('/');
+  } catch (err) {
+    mostrarError(`No se pudo pausar. ${err.message}`);
     ocupada = false;
     actualizarBloqueo();
   }
@@ -239,7 +247,7 @@ async function actualizarEstado() {
 elementos.anterior.addEventListener('click', volver);
 elementos.saltar.addEventListener('click', () => avanzar(null));
 elementos.siguiente.addEventListener('click', () => avanzar(opcionElegida));
-elementos.terminar.addEventListener('click', () => confirmarEntrega('manual'));
+elementos.pausarSalir.addEventListener('click', pausarYSalir);
 
 window.setInterval(() => {
   pintarReloj();

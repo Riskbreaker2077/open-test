@@ -128,6 +128,27 @@ function accion(texto, alPulsar) {
   return boton;
 }
 
+function botonBorrar(sesion, { habilitado, motivo, confirmar }) {
+  const boton = document.createElement('button');
+  boton.className = 'boton boton--secundario boton--pequeno';
+  boton.type = 'button';
+  boton.textContent = 'Borrar';
+  boton.disabled = !habilitado;
+  if (motivo) boton.title = motivo;
+  boton.addEventListener('click', async () => {
+    if (!habilitado) return;
+    if (confirmar && !window.confirm(confirmar)) return;
+    const respuesta = await api(`/api/docente/sesiones/${sesion.id}`, { method: 'DELETE' });
+    if (!respuesta.ok) {
+      window.alert(respuesta.mensaje);
+      await recargar();
+      return;
+    }
+    await recargar();
+  });
+  return boton;
+}
+
 async function transicion(ruta, confirmacion) {
   if (confirmacion && !window.confirm(confirmacion)) return;
 
@@ -197,6 +218,23 @@ function acciones(sesion) {
       await recargar();
     });
     grupo.append(resultados, selector);
+
+    if (sesion.dentro > 0) {
+      const descargado = Boolean(sesion.descargado_en);
+      grupo.append(botonBorrar(sesion, {
+        habilitado: descargado,
+        motivo: descargado
+          ? null
+          : 'Descarga los resultados al menos una vez antes de borrar.',
+        confirmar: `¿Borrar "${sesion.nombre}" y todos los intentos? Ya no podrás consultar los resultados.`,
+      }));
+    } else {
+      grupo.append(botonBorrar(sesion, {
+        habilitado: true,
+        motivo: null,
+        confirmar: `¿Borrar "${sesion.nombre}"?`,
+      }));
+    }
   }
 
   return grupo;

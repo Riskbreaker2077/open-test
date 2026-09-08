@@ -104,7 +104,12 @@ test('la pausa bloquea respuestas desde la API del estudiante', async () => {
 });
 
 test('entregar manualmente es idempotente y bloquea nuevas respuestas', async () => {
-  await examen('/api/examen/pregunta/1');
+  for (let n = 1; n <= 4; n += 1) {
+    const pregunta = await (await examen(`/api/examen/pregunta/${n}`)).json();
+    await examen('/api/examen/responder', {
+      method: 'POST', body: JSON.stringify({ n, opcionId: pregunta.pregunta.opciones[0].id, segundos: 0 }),
+    });
+  }
   const primera = await examen('/api/examen/entregar', {
     method: 'POST', body: JSON.stringify({ motivo: 'manual' }),
   });
@@ -118,6 +123,67 @@ test('entregar manualmente es idempotente y bloquea nuevas respuestas', async ()
     method: 'POST', body: JSON.stringify({ n: 1, opcionId: null, segundos: 1 }),
   });
   assert.equal(respuesta.status, 409);
+});
+
+test('entregar manualmente con preguntas pendientes devuelve 409 y no cierra el intento', async () => {
+  const pregunta1 = await (await examen('/api/examen/pregunta/1')).json();
+  await examen('/api/examen/responder', {
+    method: 'POST', body: JSON.stringify({ n: 1, opcionId: pregunta1.pregunta.opciones[0].id, segundos: 0 }),
+  });
+  const pregunta4 = await (await examen('/api/examen/pregunta/4')).json();
+  await examen('/api/examen/responder', {
+    method: 'POST', body: JSON.stringify({ n: 4, opcionId: pregunta4.pregunta.opciones[0].id, segundos: 0 }),
+  });
+
+  const respuesta = await examen('/api/examen/entregar', {
+    method: 'POST', body: JSON.stringify({ motivo: 'manual' }),
+  });
+  assert.equal(respuesta.status, 409);
+  const cuerpo = await respuesta.json();
+  assert.match(cuerpo.mensaje, /2 pregunta\(s\) sin responder/);
+
+  const intento = db.prepare('SELECT entregado_en FROM intentos WHERE id = 1').get();
+  assert.equal(intento.entregado_en, null);
+});
+
+test('POST /api/examen/pausar pone la sesión en pausada y limpia la cookie', async () => {
+  await examen('/api/examen/pregunta/1');
+
+  const respuesta = await fetch(`${base}/api/examen/pausar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', cookie: cookieEstudiante },
+  });
+  assert.equal(respuesta.status, 200);
+  assert.equal((await respuesta.json()).ok, true);
+
+  assert.equal(db.prepare('SELECT estado FROM sesiones WHERE id = ?').get(sesionId).estado, 'pausada');
+
+  const setCookie = respuesta.headers.getSetCookie().find((v) => v.startsWith(`${NOMBRE_COOKIE_ESTUDIANTE}=`));
+  assert.match(setCookie ?? '', /expires=Thu, 01 Jan 1970|1970/, 'la cookie del estudiante debe expirar');
+});
+
+test('POST /api/examen/pausar dos veces seguidas también devuelve 200 (idempotente)', async () => {
+  await examen('/api/examen/pregunta/1');
+
+  const primera = await fetch(`${base}/api/examen/pausar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', cookie: cookieEstudiante },
+  });
+  const segunda = await fetch(`${base}/api/examen/pausar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', cookie: cookieEstudiante },
+  });
+  assert.equal(primera.status, 200);
+  assert.equal(segunda.status, 200);
+  assert.equal(db.prepare('SELECT estado FROM sesiones WHERE id = ?').get(sesionId).estado, 'pausada');
+});
+
+test('POST /api/examen/pausar sin cookie del estudiante devuelve 401', async () => {
+  const respuesta = await fetch(`${base}/api/examen/pausar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+  });
+  assert.equal(respuesta.status, 401);
 });
 
 test('ninguna ruta del examen revela respuestas correctas ni la semilla', async () => {
@@ -152,6 +218,12 @@ test('resultado aplica en servidor los tres niveles sin recalcular la nota', asy
   `);
   insertar.run(filas[0].id, filas[0].correcta_id);
   insertar.run(filas[1].id, incorrecta.id);
+  const restantes = db.prepare(`
+    SELECT ip.id, (SELECT id FROM opciones WHERE pregunta_id = (SELECT pregunta_id FROM intento_preguntas WHERE id = ip.id) AND es_correcta = 0 LIMIT 1) AS incorrecta_id
+    FROM intento_preguntas ip
+    WHERE ip.intento_id = ? AND ip.orden > 2
+  `).all(intento.id);
+  for (const fila of restantes) insertar.run(fila.id, fila.incorrecta_id);
   await examen('/api/examen/entregar', {
     method: 'POST', body: JSON.stringify({ motivo: 'manual' }),
   });

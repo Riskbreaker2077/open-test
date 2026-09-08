@@ -1,6 +1,7 @@
+import { hostname } from 'node:os';
 import { crearApp } from './app.js';
 import { abrirBd, cerrarBd, RUTA_BD_POR_DEFECTO } from './db.js';
-import { urlsDeIntranet } from './red.js';
+import { hostnameEsAmigable, urlsDeIntranet } from './red.js';
 import { abrirNavegador, siguientePuertoLibre } from './arranque.js';
 
 const solicitado = Number(process.env.PORT) || 3000;
@@ -50,6 +51,16 @@ function imprimirArranque(puerto) {
     if (urls.length > 1) {
       console.log('\n  Si la primera no funciona, prueba con las otras.');
     }
+  }
+
+  const nombre = hostname();
+  if (hostnameEsAmigable(nombre)) {
+    console.log(`\n  Tu equipo se llama \`${nombre}\`. Las tablets también pueden`);
+    console.log(`  entrar por http://${nombre}.local:${puerto} si la red tiene mDNS.`);
+  } else if (nombre && !/^\d+\.\d+\.\d+\.\d+$/.test(nombre)) {
+    console.log(`\n  Tu equipo se llama \`${nombre}\`, un nombre poco legible.`);
+    console.log('  Si prefieres algo más corto, cámbialo en el sistema y reinicia OpenTest');
+    console.log('  (Windows: Configuración → Sistema → Acerca de; Linux: /etc/hostname).');
   }
 
   console.log(`\n  Panel del docente:  http://localhost:${puerto}`);

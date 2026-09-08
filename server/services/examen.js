@@ -1,4 +1,4 @@
-import { tiempoRestante } from './sesiones.js';
+import { tiempoRestante, pausarSesion, obtenerSesion } from './sesiones.js';
 import { entregarIntentoCalificado } from './calificacion.js';
 import { analizarBloques } from './bloques.js';
 
@@ -155,6 +155,31 @@ export function guardarRespuesta(db, intento, datos, ahora = new Date()) {
   return { n: numero, opcionId, segundosEnPantalla: segundos, segundosRestantes: vigente.segundosRestantes };
 }
 
+/**
+ * Pausa la sesión del intento a pedido del estudiante.
+ *
+ * - Si la sesión está `en_curso`: la pausa (efecto `pausarSesion`).
+ * - Si ya está `pausada`: no-op. La idempotencia evita que dos
+ *   estudiantes que pulsen el botón "Pausar y salir" a la vez se
+ *   pisen y produzcan un 409 visible.
+ * - Cualquier otro estado (`borrador`, `abierta`, `cerrada`): 409. El
+ *   cliente no debería estar en la pantalla de examen si la sesión no
+ *   está en curso o pausada, pero si pasa (carrera con el docente
+ *   cerrando), el mensaje es accionable.
+ */
+export function pausarIntentoComoEstudiante(db, intento, ahora = new Date()) {
+  const sesion = sesionDelIntento(db, intento);
+  if (sesion.estado === 'en_curso') {
+    pausarSesion(db, sesion.id, ahora);
+  } else if (sesion.estado !== 'pausada') {
+    throw error(
+      `No se puede pausar una evaluación en estado "${sesion.estado}".`,
+      409,
+    );
+  }
+  return obtenerSesion(db, sesion.id);
+}
+
 export function entregarIntento(db, intento, motivo, ahora = new Date()) {
   const vigente = verificarTiempo(db, intento, ahora);
   if (vigente.intento.entregado_en) return { intento: vigente.intento, nueva: false };
@@ -165,6 +190,15 @@ export function entregarIntento(db, intento, motivo, ahora = new Date()) {
   }
   if (motivo === 'ultima_pregunta' && vigente.intento.pregunta_actual !== vigente.sesion.n_preguntas) {
     throw error('La entrega desde la última pregunta solo se permite al final.', 409);
+  }
+
+  const respondidas = estadoDelExamen(db, vigente.intento, ahora).respondidas;
+  const pendientes = vigente.sesion.n_preguntas - respondidas;
+  if (pendientes > 0) {
+    throw error(
+      `Aún te quedan ${pendientes} pregunta(s) sin responder.`,
+      409,
+    );
   }
 
   const calificado = entregarIntentoCalificado(db, intento.id, motivo, iso(ahora));

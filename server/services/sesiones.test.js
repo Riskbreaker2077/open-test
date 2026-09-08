@@ -303,17 +303,66 @@ test('puedeEntrar explica por qué no en cada caso', () => {
   cerrarBd(db);
 });
 
-test('una sesión sin intentos se borra; con intentos, no', () => {
+test('una sesión con intentos no se borra hasta que se descarguen los resultados', () => {
   const db = preparar();
-  const sesion = crearSesion(db, base);
-  assert.doesNotThrow(() => borrarSesion(db, sesion.id));
+  const borrador = crearSesion(db, base);
+  assert.doesNotThrow(() => borrarSesion(db, borrador.id));
 
-  const otra = crearSesion(db, base);
-  abrirSesion(db, otra.id);
+  const sesion = crearSesion(db, base);
   db.prepare(
     "INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en) VALUES (?, '2024001', 's', 't', '2026-01-01')",
-  ).run(otra.id);
+  ).run(sesion.id);
 
-  assert.throws(() => borrarSesion(db, otra.id), /ya la presentaron/);
+  assert.throws(
+    () => borrarSesion(db, sesion.id),
+    /Antes de borrar la evaluación, descarga sus resultados/,
+  );
+  cerrarBd(db);
+});
+
+test('una sesión con intentos pero con resultados descargados sí se borra', () => {
+  const db = preparar();
+  const sesion = crearSesion(db, base);
+  db.prepare(
+    "INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en) VALUES (?, '2024001', 's', 't', '2026-01-01')",
+  ).run(sesion.id);
+  db.prepare("UPDATE sesiones SET descargado_en = '2026-08-26T10:00:00Z' WHERE id = ?")
+    .run(sesion.id);
+
+  assert.doesNotThrow(() => borrarSesion(db, sesion.id));
+  assert.equal(db.prepare('SELECT count(*) AS t FROM sesiones WHERE id = ?').get(sesion.id).t, 0);
+  cerrarBd(db);
+});
+
+test('borrar una sesión con intentos descarga cascada a intentos, intento_preguntas y respuestas', () => {
+  const db = preparar();
+  const sesion = crearSesion(db, base);
+  const intento = db.prepare(
+    "INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en) VALUES (?, '2024001', 's', 't', '2026-01-01')",
+  ).run(sesion.id).lastInsertRowid;
+  db.prepare("UPDATE sesiones SET descargado_en = '2026-08-26T10:00:00Z' WHERE id = ?")
+    .run(sesion.id);
+  const ip = db.prepare(
+    "INSERT INTO intento_preguntas (intento_id, orden, pregunta_id, orden_opciones) VALUES (?, 1, 1, '1,2,3,4')",
+  ).run(intento).lastInsertRowid;
+  db.prepare(
+    "INSERT INTO respuestas (intento_pregunta_id, opcion_id, segundos_en_pantalla, respondido_en) VALUES (?, 1, 0, '2026-01-01')",
+  ).run(ip);
+
+  borrarSesion(db, sesion.id);
+
+  assert.equal(db.prepare('SELECT count(*) AS t FROM sesiones WHERE id = ?').get(sesion.id).t, 0);
+  assert.equal(db.prepare('SELECT count(*) AS t FROM intentos WHERE sesion_id = ?').get(sesion.id).t, 0);
+  assert.equal(db.prepare('SELECT count(*) AS t FROM intento_preguntas WHERE intento_id = ?').get(intento).t, 0);
+  assert.equal(db.prepare('SELECT count(*) AS t FROM respuestas WHERE intento_pregunta_id = ?').get(ip).t, 0);
+  cerrarBd(db);
+});
+
+test('una sesión cerrada con cero intentos se borra sin pedir descarga previa', () => {
+  const db = preparar();
+  const sesion = crearSesion(db, base);
+  abrirSesion(db, sesion.id);
+  cerrarSesion(db, sesion.id);
+  assert.doesNotThrow(() => borrarSesion(db, sesion.id));
   cerrarBd(db);
 });

@@ -4,7 +4,7 @@
 
 Lo que el docente descarga al terminar una sesión. Es el contrato con **la plataforma externa de retroalimentación**, así que es el documento más estable del proyecto: cambiarlo rompe a un consumidor que no controlamos.
 
-Producido por la feature [016 · Estándar preguntas-icfes](../features/016-estandar-preguntas-icfes/spec.md), que reemplaza a la [009 · Exportación de resultados](../features/009-exportacion-resultados/spec.md) original (`formato_version: 1`, ver [`export-resultados-v1.md`](export-resultados-v1.md)).
+Producido por la feature [016 · Estándar preguntas-icfes](../features/016-estandar-preguntas-icfes/spec.md), que reemplaza a la [009 · Exportación de resultados](../features/009-exportacion-resultados/spec.md) original (`formato_version: 1`, ver [`export-resultados-v1.md`](export-resultados-v1.md)). La reducción a dos formatos (Excel + ZIP) es de la [025 · Exportaciones: Excel rico + ZIP reproducible](../features/025-exporaciones-excel-zip/spec.md).
 
 ## Qué cambia respecto a v1
 
@@ -25,54 +25,120 @@ versionado del contrato.
   `evidencia`, `estandar_asociado` y `que_evalua`. El campo `imagen` (nombre
   de archivo único) desaparece: las imágenes ahora son bloques dentro de
   `contexto`, `enunciado` u `opciones_mostradas[].contenido`.
-- **CSV detalle:** gana una columna `competencia` al final. El resto de
-  columnas no cambia de nombre ni de posición; `enunciado`,
-  `opcion_elegida_texto` y `opcion_correcta_texto` siguen siendo texto plano
-  (se concatenan solo los bloques de tipo `texto`; imágenes y tablas no
-  aparecen en el CSV).
-- **CSV resumen:** sin cambios de columnas.
 
-## Qué se descarga
+## Qué se descarga (a partir de la 025)
 
-Tres archivos, elegibles por separado, siempre referidos a **una sesión** y opcionalmente filtrados **por curso**:
+Dos archivos, elegibles por separado, siempre referidos a **una sesión** y opcionalmente filtrados **por curso**:
 
 | Archivo | Grano | Para qué |
 |---|---|---|
-| `resultados-detalle.csv` | Una fila por respuesta | Retroalimentación pregunta a pregunta. Es el que consume la otra plataforma |
-| `resultados-resumen.csv` | Una fila por estudiante | Pasar notas a la planilla |
-| `resultados.json` | Todo, anidado | Reproceso completo y auditoría |
+| `resultados.xlsx` | Tres hojas en un libro | Ver en planilla: resumen por estudiante, detalle por pregunta con las cuatro opciones, y el banco visto por la clase |
+| `reproduccion.zip` | JSON + `imagenes/` + (opcional) `imagenes_faltantes.txt` | Reconstruir la evaluación en otra plataforma, con las imágenes referenciadas empaquetadas |
 
-Nombre de archivo sugerido: `opentest_<sesion>_<curso>_<detalle|resumen>_<AAAA-MM-DD>.csv`.
+Nombre de archivo sugerido:
 
-## `resultados-detalle.csv`
+- `opentest_<sesion>_<curso>_resultados_<AAAA-MM-DD>.xlsx`
+- `opentest_<sesion>_<curso>_reproduccion_<AAAA-MM-DD>.zip`
 
-```csv
-formato_version,sesion,curso,codigo,nombres,apellidos,n_pregunta,pregunta_id,enunciado,opcion_elegida_texto,opcion_correcta_texto,acierto,saltada,segundos,competencia
-2,Ciencias P2,10A,2024001,María Fernanda,Gómez Ruiz,1,58,"¿Cuál es la idea principal?","La migración","La migración",1,0,34,"Pensamiento social"
+Los endpoints `GET /api/docente/sesiones/:id/export/detalle` y
+`/resumen` y `/json` quedan **obsoletos** desde la 025: devuelven 404.
+El JSON sólo se distribuye dentro del ZIP. Quien necesite el JSON
+suelto puede extraerlo del ZIP con cualquier herramienta estándar.
+
+## `resultados.xlsx`
+
+Libro con tres hojas, en este orden. Cabecera de cada hoja en **negrita**
+sobre fondo verde institucional; fila 1 congelada. Las celdas numéricas
+salen como número (no como texto) para que se puedan ordenar y sumar
+directamente desde la planilla.
+
+### Hoja `Resumen`
+
+Una fila por intento, igual que el CSV resumen de v1 más `formato_version: 2`.
+
+Cabeceras: `formato_version, sesion, codigo, nombres, apellidos, curso, total_preguntas, respondidas, saltadas, aciertos, puntaje, porcentaje, inicio, entrega, motivo_entrega`.
+
+### Hoja `Detalle`
+
+Una fila por `(intento, pregunta)`. Trae **las cuatro opciones** que se le
+mostraron al estudiante, cada una con su `id`, su texto y la marca de
+correcta, además de la opción que eligió y la metadata pedagógica de la
+pregunta.
+
+Cabeceras: `formato_version, sesion, curso, codigo, nombres, apellidos, n_pregunta, pregunta_id, competencia, componente, afirmacion, evidencia, estandar_asociado, que_evalua, opcion_a_id, opcion_a_texto, opcion_a_es_correcta, opcion_b_id, opcion_b_texto, opcion_b_es_correcta, opcion_c_id, opcion_c_texto, opcion_c_es_correcta, opcion_d_id, opcion_d_texto, opcion_d_es_correcta, opcion_elegida_id, acierto, saltada, segundos`.
+
+- Las cuatro opciones van **en el orden exacto** que se le presentaron al
+  estudiante (mismo orden que `opciones_mostradas` en el JSON).
+- `opcion_a_texto` / `opcion_b_texto` / `opcion_c_texto` / `opcion_d_texto`
+  son sólo los bloques `texto` concatenados de cada opción (las
+  imágenes y tablas no entran en el Excel, igual que en el CSV v1).
+- `opcion_a_es_correcta` etc. es `1` o `0`.
+- `opcion_elegida_id` es el `opcion_id` elegido, o vacío si la pregunta
+  fue saltada.
+
+### Hoja `Banco`
+
+Una fila por pregunta del banco, con su metadata pedagógica, los textos
+de las cuatro opciones y los conteos de cuántas veces la pregunta fue
+presentada / acertada / saltada en la sesión.
+
+Cabeceras: `pregunta_id, competencia, componente, afirmacion, evidencia, estandar_asociado, que_evalua, opcion_a_texto, opcion_b_texto, opcion_c_texto, opcion_d_texto, veces_presentada, veces_acertada, veces_saltada`.
+
+- `veces_presentada`: cantidad de intentos en cuya prueba sorteada
+  cayó esta pregunta.
+- `veces_acertada`: cuántas veces la opción marcada coincide con la
+  correcta del banco.
+- `veces_saltada`: cuántas veces la pregunta quedó con `opcion_id = NULL`
+  en `respuestas` (el estudiante abrió la pregunta pero no eligió
+  opción).
+
+## `reproduccion.zip`
+
+ZIP con tres tipos de entradas:
+
+```
+reproduccion.zip
+├── resultados.json
+├── imagenes/<archivo>.<ext>
+├── imagenes/<archivo2>.<ext>
+└── imagenes_faltantes.txt   ← sólo si falta alguna imagen en disco
 ```
 
-| Columna | Tipo | Significado |
-|---|---|---|
-| `formato_version` | entero | `2` en esta versión |
-| `sesion`, `curso`, `codigo`, `nombres`, `apellidos` | texto | Igual que en v1 |
-| `n_pregunta` | entero | Posición en la prueba de este estudiante (1..N) |
-| `pregunta_id` | entero | Identidad de la pregunta en el banco |
-| `enunciado` | texto | Solo los bloques de tipo texto del enunciado, concatenados |
-| `opcion_elegida_texto` / `opcion_correcta_texto` | texto | Solo los bloques de texto de esa opción. Vacío si la saltó o si la opción es puramente imagen/tabla |
-| `acierto`, `saltada`, `segundos` | igual que en v1 | |
-| `competencia` | texto | La competencia pedagógica de la pregunta, según el estándar preguntas-icfes |
+### `resultados.json`
 
-## `resultados-resumen.csv`
+El árbol `formato_version: 2` completo, byte-idéntico al JSON de v2.
+Ver el bloque de abajo.
 
-Sin cambios respecto a v1 (ver [`export-resultados-v1.md`](export-resultados-v1.md)), salvo `formato_version: 2`.
+### `imagenes/<archivo>`
 
-## `resultados.json`
+Cada nombre de archivo que aparezca como bloque
+`{tipo: 'imagen', archivo: 'X.png'}` en `contexto`, `enunciado` o
+`opciones[].contenido` de las preguntas que efectivamente se usaron en
+los `intento_preguntas` de la sesión. El archivo se copia tal cual desde
+`data/uploads/imagenes/`. Si una imagen referenciada no existe en
+disco, se omite y se nombra en `imagenes_faltantes.txt`.
+
+### `imagenes_faltantes.txt`
+
+Sólo aparece cuando hay imágenes referenciadas que no se pudieron
+empaquetar. Un nombre de archivo por línea. La exportación **no**
+falla por esto.
+
+## `resultados.json` (dentro del ZIP)
 
 ```json
 {
   "formato_version": 2,
   "exportado_en": "2026-08-24T09:10:00",
-  "sesion": { "nombre": "Ciencias P2", "banco": "Ciencias · Periodo 2", "cursos": ["10A", "10B"], "n_preguntas": 20, "duracion_minutos": 60, "segundos_minimos_pregunta": 10 },
+  "sesion": {
+    "id": 42,
+    "nombre": "Ciencias P2",
+    "banco": "Ciencias · Periodo 2",
+    "cursos": ["10A", "10B"],
+    "n_preguntas": 20,
+    "duracion_minutos": 60,
+    "segundos_minimos_pregunta": 10
+  },
   "intentos": [
     {
       "codigo": "2024001", "nombres": "María Fernanda", "apellidos": "Gómez Ruiz", "curso": "10A",
@@ -109,6 +175,9 @@ Sin cambios respecto a v1 (ver [`export-resultados-v1.md`](export-resultados-v1.
 
 `opciones_mostradas` va **en el orden exacto en que el estudiante las vio**, igual que en v1.
 
+El campo `sesion.id` se agregó en la 025. Es opcional para los
+consumidores que sólo leen `sesion.nombre` y compañía.
+
 ## Política de versiones
 
 Sin cambios respecto a v1:
@@ -119,4 +188,8 @@ Sin cambios respecto a v1:
 
 ## Reglas
 
-Sin cambios respecto a v1: UTF-8 con BOM en los CSV, separador `,`, números sin separador de miles, se exportan todos los intentos incluidos los que no entregaron.
+UTF-8 con BOM sólo en los CSV (ya no se sirven). En el Excel y el ZIP el
+encoding es UTF-8 sin BOM (es la convención del formato). El JSON dentro
+del ZIP va formateado con dos espacios de indentación.
+
+Se exportan todos los intentos incluidos los que no entregaron.

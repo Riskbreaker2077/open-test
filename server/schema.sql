@@ -78,7 +78,13 @@ CREATE TABLE IF NOT EXISTS sesiones (
   comenzada_en                TEXT,
   pausada_en                  TEXT,
   segundos_pausados           INTEGER NOT NULL DEFAULT 0,
-  creado_en                   TEXT NOT NULL
+  creado_en                   TEXT NOT NULL,
+  -- ISO 8601 de la primera descarga de resultados, escrita por el handler de
+  -- exportación la primera vez que el docente baja cualquiera de los cuatro
+  -- archivos (detalle/resumen/json/excel). NULL = aún no se descargó. Mientras
+  -- sea NULL, `borrarSesion` rechaza la petición para no destruir la única
+  -- copia de la evidencia sin que el docente la tenga fuera.
+  descargado_en               TEXT
 );
 
 -- Pueden coexistir varias sesiones abiertas: 10A en Ciencias mientras 10B

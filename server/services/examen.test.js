@@ -12,11 +12,13 @@ import {
   obtenerSesion,
   pausarSesion,
 } from './sesiones.js';
+import { forzarEntrega } from './intentos.js';
 import {
   entregarIntento,
   estadoDelExamen,
   guardarRespuesta,
   obtenerPregunta,
+  pausarIntentoComoEstudiante,
 } from './examen.js';
 
 const INICIO = new Date('2026-08-26T10:00:00.000Z');
@@ -171,18 +173,110 @@ test('recargar conserva la pregunta actual y la respuesta', () => {
   cerrarBd(db);
 });
 
-test('entrega manual y desde la última pregunta son idempotentes', () => {
-  const manual = preparar({ minimo: 0 });
-  const primera = entregarIntento(manual.db, manual.intento, 'manual', INICIO);
-  const segunda = entregarIntento(manual.db, manual.intento, 'manual', new Date(INICIO.getTime() + 1000));
+test('rechaza entrega manual cuando quedan preguntas sin responder', () => {
+  const { db, intento } = preparar({ minimo: 0 });
+  const pregunta1 = obtenerPregunta(db, intento, 1, INICIO);
+  guardarRespuesta(db, intento, { n: 1, opcionId: pregunta1.opciones[0].id, segundos: 0 }, INICIO);
+
+  assert.throws(
+    () => entregarIntento(db, intento, 'manual', new Date(INICIO.getTime() + 1000)),
+    (err) => err.estado === 409 && /3 pregunta\(s\) sin responder/.test(err.message),
+  );
+  assert.equal(db.prepare('SELECT entregado_en FROM intentos WHERE id = ?').get(intento.id).entregado_en, null);
+  cerrarBd(db);
+});
+
+test('rechaza entrega desde la última pregunta cuando quedan pendientes', () => {
+  const { db, intento } = preparar({ minimo: 0 });
+  const pregunta = obtenerPregunta(db, intento, 4, INICIO);
+  guardarRespuesta(db, intento, { n: 4, opcionId: pregunta.opciones[0].id, segundos: 0 }, INICIO);
+
+  assert.throws(
+    () => entregarIntento(db, intento, 'ultima_pregunta', new Date(INICIO.getTime() + 1000)),
+    (err) => err.estado === 409 && /3 pregunta\(s\) sin responder/.test(err.message),
+  );
+  assert.equal(db.prepare('SELECT entregado_en FROM intentos WHERE id = ?').get(intento.id).entregado_en, null);
+  cerrarBd(db);
+});
+
+test('entrega manual con todas respondidas cierra el intento y es idempotente', () => {
+  const { db, intento } = preparar({ minimo: 0 });
+  for (let n = 1; n <= 4; n += 1) {
+    const pregunta = obtenerPregunta(db, intento, n, INICIO);
+    guardarRespuesta(
+      db,
+      intento,
+      { n, opcionId: pregunta.opciones[0].id, segundos: 0 },
+      new Date(INICIO.getTime() + n * 1000),
+    );
+  }
+
+  const primera = entregarIntento(db, intento, 'manual', new Date(INICIO.getTime() + 5000));
+  const segunda = entregarIntento(db, intento, 'manual', new Date(INICIO.getTime() + 6000));
   assert.equal(primera.nueva, true);
   assert.equal(segunda.nueva, false);
   assert.equal(segunda.intento.entregado_en, primera.intento.entregado_en);
-  cerrarBd(manual.db);
+  assert.equal(segunda.intento.motivo_entrega, 'manual');
+  cerrarBd(db);
+});
 
-  const ultima = preparar({ minimo: 0 });
-  obtenerPregunta(ultima.db, ultima.intento, 4, INICIO);
-  assert.equal(entregarIntento(ultima.db, ultima.intento, 'ultima_pregunta', INICIO).intento.motivo_entrega,
-    'ultima_pregunta');
-  cerrarBd(ultima.db);
+test('entrega desde la última pregunta con todas respondidas cierra el intento', () => {
+  const { db, intento } = preparar({ minimo: 0 });
+  for (let n = 1; n <= 4; n += 1) {
+    const pregunta = obtenerPregunta(db, intento, n, INICIO);
+    guardarRespuesta(
+      db,
+      intento,
+      { n, opcionId: pregunta.opciones[0].id, segundos: 0 },
+      new Date(INICIO.getTime() + n * 1000),
+    );
+  }
+
+  const entrega = entregarIntento(db, intento, 'ultima_pregunta', new Date(INICIO.getTime() + 5000));
+  assert.equal(entrega.intento.motivo_entrega, 'ultima_pregunta');
+  cerrarBd(db);
+});
+
+test('el cierre por vencimiento del reloj no pasa por la guarda de pendientes', () => {
+  const { db, intento } = preparar({ minimo: 0, duracion: 1 });
+  const pregunta1 = obtenerPregunta(db, intento, 1, INICIO);
+  guardarRespuesta(db, intento, { n: 1, opcionId: pregunta1.opciones[0].id, segundos: 0 },
+    new Date(INICIO.getTime() + 1000));
+
+  const vencido = estadoDelExamen(db, intento, new Date(INICIO.getTime() + 61000));
+  assert.equal(vencido.intento.motivo_entrega, 'tiempo');
+  assert.equal(vencido.sesion.estado, 'cerrada');
+  cerrarBd(db);
+});
+
+test('la entrega forzada por el docente cierra aunque haya preguntas sin responder', () => {
+  const { db, intento } = preparar({ minimo: 0 });
+  const pregunta1 = obtenerPregunta(db, intento, 1, INICIO);
+  guardarRespuesta(db, intento, { n: 1, opcionId: pregunta1.opciones[0].id, segundos: 0 }, INICIO);
+
+  const entrega = forzarEntrega(db, intento.id, new Date(INICIO.getTime() + 5000));
+  assert.equal(entrega.intento.motivo_entrega, 'forzada_docente');
+  cerrarBd(db);
+});
+
+test('pausar desde el lado del estudiante pone la sesión en pausada y deja el intento sin entregar', () => {
+  const { db, intento } = preparar({ minimo: 0 });
+  obtenerPregunta(db, intento, 1, INICIO);
+
+  const sesion = pausarIntentoComoEstudiante(db, intento, INICIO);
+
+  assert.equal(sesion.estado, 'pausada');
+  assert.equal(db.prepare('SELECT entregado_en FROM intentos WHERE id = ?').get(intento.id).entregado_en, null);
+  cerrarBd(db);
+});
+
+test('pausar desde el estudiante es idempotente si la sesión ya está pausada', () => {
+  const { db, intento } = preparar({ minimo: 0 });
+  obtenerPregunta(db, intento, 1, INICIO);
+
+  pausarIntentoComoEstudiante(db, intento, INICIO);
+  const segunda = pausarIntentoComoEstudiante(db, intento, new Date(INICIO.getTime() + 5000));
+
+  assert.equal(segunda.estado, 'pausada');
+  cerrarBd(db);
 });

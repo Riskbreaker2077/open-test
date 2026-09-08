@@ -6,6 +6,7 @@ import {
   estadoDelExamen,
   guardarRespuesta,
   obtenerPregunta,
+  pausarIntentoComoEstudiante,
 } from '../services/examen.js';
 import { obtenerResultado } from '../services/calificacion.js';
 
@@ -94,6 +95,19 @@ export function rutasExamen(db) {
     } catch (err) {
       res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
     }
+  });
+
+  router.post('/pausar', conIntento(db), (req, res) => {
+    try {
+      pausarIntentoComoEstudiante(db, req.intento);
+    } catch (err) {
+      // Aun si falla, limpiamos la cookie: si el estudiante tocó el botón,
+      // ya no queremos que esta tablet quede con sesión viva.
+      res.clearCookie(NOMBRE_COOKIE_ESTUDIANTE, { path: '/' });
+      return res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+    res.clearCookie(NOMBRE_COOKIE_ESTUDIANTE, { path: '/' });
+    res.json({ ok: true });
   });
 
   router.get('/resultado', conIntento(db), (req, res) => {

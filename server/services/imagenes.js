@@ -3,6 +3,7 @@ import { basename, extname } from 'node:path';
 import { join } from 'node:path';
 import { RUTA_IMAGENES } from '../db.js';
 import { EXTENSIONES_IMAGEN } from '../importers/preguntas.js';
+import { analizarBloques } from './bloques.js';
 
 export const MAX_BYTES_IMAGEN = 3 * 1024 * 1024;
 /** Por encima de esto, una tablet modesta empieza a sufrir. */
@@ -62,4 +63,34 @@ export function listarImagenes() {
 
 export function nombresDisponibles() {
   return new Set(listarImagenes());
+}
+
+/**
+ * Conjunto de nombres de archivo referenciados por los bloques
+ * `tipo: 'imagen'` de las preguntas que efectivamente cayeron en los
+ * intento_preguntas de la sesión. Cruza banco → intento_preguntas y
+ * parsea `contexto` / `enunciado` / `opciones[].texto` con
+ * `analizarBloques`.
+ */
+export function imagenesDeSesion(db, sesionId) {
+  const nombres = new Set();
+  const filas = db.prepare(`
+    SELECT p.contexto, p.enunciado, o.texto
+    FROM intento_preguntas ip
+    JOIN preguntas p ON p.id = ip.pregunta_id
+    LEFT JOIN opciones o ON o.pregunta_id = p.id
+    WHERE ip.intento_id IN (SELECT id FROM intentos WHERE sesion_id = ?)
+  `).all(sesionId);
+
+  for (const fila of filas) {
+    for (const campo of ['contexto', 'enunciado', 'texto']) {
+      if (!fila[campo]) continue;
+      for (const bloque of analizarBloques(fila[campo])) {
+        if (bloque.tipo === 'imagen' && bloque.archivo) {
+          nombres.add(bloque.archivo);
+        }
+      }
+    }
+  }
+  return nombres;
 }

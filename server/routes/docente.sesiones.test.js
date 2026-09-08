@@ -202,7 +202,7 @@ test('monitorea convocados y permite forzar una entrega calificada', async () =>
   assert.equal(final.monitoreo.contadores.entregados, 1);
 });
 
-test('descarga los tres formatos de una sesión cerrada con nombre saneado', async () => {
+test('descarga los dos formatos de una sesión cerrada con nombre saneado', async () => {
   const { sesion } = await post('/api/docente/sesiones', { ...NUEVA, nombre: 'Ciencias, período 2' });
   await post(`/api/docente/sesiones/${sesion.id}/abrir`);
   await fetch(`${base}/api/examen/entrar`, {
@@ -212,51 +212,78 @@ test('descarga los tres formatos de una sesión cerrada con nombre saneado', asy
   });
   await post(`/api/docente/sesiones/${sesion.id}/cerrar`);
 
-  for (const tipo of ['detalle', 'resumen', 'json']) {
-    const respuesta = await llamar(`/api/docente/sesiones/${sesion.id}/export/${tipo}?curso=10A`);
-    assert.equal(respuesta.status, 200);
-    assert.match(
-      respuesta.headers.get('content-disposition'),
-      new RegExp(`opentest_ciencias_periodo_2_10a_${tipo}_\\d{4}-\\d{2}-\\d{2}\\.${tipo === 'json' ? 'json' : 'csv'}`),
-    );
-    if (tipo === 'json') {
-      assert.equal((await respuesta.json()).intentos.length, 1);
-    } else {
-      const bytes = new Uint8Array(await respuesta.arrayBuffer());
-      assert.deepEqual([...bytes.slice(0, 3)], [0xEF, 0xBB, 0xBF]);
-    }
-  }
-});
-
-test('descarga el Excel de una sesión cerrada como ZIP válido', async () => {
-  const { sesion } = await post('/api/docente/sesiones', { ...NUEVA, nombre: 'Ciencias, período 2' });
-  await post(`/api/docente/sesiones/${sesion.id}/abrir`);
-  await fetch(`${base}/api/examen/entrar`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ codigo: '2024001', sesionId: sesion.id }),
-  });
-  await post(`/api/docente/sesiones/${sesion.id}/cerrar`);
-
-  const respuesta = await llamar(`/api/docente/sesiones/${sesion.id}/export/excel?curso=10A`);
-  assert.equal(respuesta.status, 200);
-  assert.equal(
-    respuesta.headers.get('content-type'),
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  );
+  const excel = await llamar(`/api/docente/sesiones/${sesion.id}/export/excel?curso=10A`);
+  assert.equal(excel.status, 200);
   assert.match(
-    respuesta.headers.get('content-disposition'),
+    excel.headers.get('content-disposition'),
     /opentest_ciencias_periodo_2_10a_resultados_\d{4}-\d{2}-\d{2}\.xlsx/,
   );
-  const bytes = new Uint8Array(await respuesta.arrayBuffer());
-  assert.deepEqual([...bytes.slice(0, 2)], [0x50, 0x4b]);
+  assert.deepEqual([...new Uint8Array(await excel.arrayBuffer()).slice(0, 2)], [0x50, 0x4b]);
+
+  const zip = await llamar(`/api/docente/sesiones/${sesion.id}/export/zip?curso=10A`);
+  assert.equal(zip.status, 200);
+  assert.match(
+    zip.headers.get('content-disposition'),
+    /opentest_ciencias_periodo_2_10a_reproduccion_\d{4}-\d{2}-\d{2}\.zip/,
+  );
+  assert.equal(zip.headers.get('content-type'), 'application/zip');
 });
 
 test('rechaza exportar una evaluación que todavía está abierta', async () => {
   const { sesion } = await post('/api/docente/sesiones', NUEVA);
   await post(`/api/docente/sesiones/${sesion.id}/abrir`);
-  const respuesta = await llamar(`/api/docente/sesiones/${sesion.id}/export/resumen`);
+  const respuesta = await llamar(`/api/docente/sesiones/${sesion.id}/export/excel`);
   assert.equal(respuesta.status, 409);
+});
+
+test('descargar escribe descargado_en la primera vez y la deja igual las siguientes', async () => {
+  const { sesion } = await post('/api/docente/sesiones', NUEVA);
+  await post(`/api/docente/sesiones/${sesion.id}/abrir`);
+  await fetch(`${base}/api/examen/entrar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ codigo: '2024001', sesionId: sesion.id }),
+  });
+  await post(`/api/docente/sesiones/${sesion.id}/cerrar`);
+
+  assert.equal(db.prepare('SELECT descargado_en FROM sesiones WHERE id = ?').get(sesion.id).descargado_en, null);
+
+  const primera = await llamar(`/api/docente/sesiones/${sesion.id}/export/excel`);
+  assert.equal(primera.status, 200);
+  const primeraMarca = db.prepare('SELECT descargado_en FROM sesiones WHERE id = ?').get(sesion.id).descargado_en;
+  assert.ok(primeraMarca, 'la primera descarga debe escribir la marca');
+  assert.doesNotMatch(primeraMarca, /^1970|^null$/);
+
+  await new Promise((resolver) => setTimeout(resolver, 20));
+  const segunda = await llamar(`/api/docente/sesiones/${sesion.id}/export/zip`);
+  assert.equal(segunda.status, 200);
+  const segundaMarca = db.prepare('SELECT descargado_en FROM sesiones WHERE id = ?').get(sesion.id).descargado_en;
+  assert.equal(segundaMarca, primeraMarca, 'descargas siguientes no mueven la marca');
+});
+
+test('DELETE rechaza una evaluación con intentos pero sin descarga, y acepta tras descargar', async () => {
+  const { sesion } = await post('/api/docente/sesiones', NUEVA);
+  await post(`/api/docente/sesiones/${sesion.id}/abrir`);
+  await fetch(`${base}/api/examen/entrar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ codigo: '2024001', sesionId: sesion.id }),
+  });
+  await post(`/api/docente/sesiones/${sesion.id}/cerrar`);
+
+  const antes = await llamar(`/api/docente/sesiones/${sesion.id}`, { method: 'DELETE' });
+  assert.equal(antes.status, 409);
+  const mensaje = (await antes.json()).mensaje;
+  assert.match(mensaje, /Antes de borrar la evaluación, descarga sus resultados/);
+  assert.equal(db.prepare('SELECT count(*) AS t FROM sesiones WHERE id = ?').get(sesion.id).t, 1);
+
+  const descarga = await llamar(`/api/docente/sesiones/${sesion.id}/export/zip`);
+  assert.equal(descarga.status, 200);
+  assert.ok(db.prepare('SELECT descargado_en FROM sesiones WHERE id = ?').get(sesion.id).descargado_en);
+
+  const despues = await llamar(`/api/docente/sesiones/${sesion.id}`, { method: 'DELETE' });
+  assert.equal(despues.status, 200);
+  assert.equal(db.prepare('SELECT count(*) AS t FROM sesiones WHERE id = ?').get(sesion.id).t, 0);
 });
 
 test('todas las rutas de evaluaciones exigen contraseña', async () => {
@@ -272,7 +299,9 @@ test('todas las rutas de evaluaciones exigen contraseña', async () => {
     ['/api/docente/sesiones/1/cerrar', 'POST'],
     ['/api/docente/sesiones/1/monitoreo', 'GET'],
     ['/api/docente/intentos/1/forzar-entrega', 'POST'],
-    ['/api/docente/sesiones/1/export/detalle', 'GET'],
+    ['/api/docente/sesiones/1/export/excel', 'GET'],
+    ['/api/docente/sesiones/1/export/zip', 'GET'],
+    ['/api/docente/sesiones/1/export/json', 'GET'],
     ['/api/docente/proyeccion/1', 'GET'],
     ['/api/docente/qr.svg?texto=http%3A%2F%2Flocalhost', 'GET'],
     ['/api/docente/sesiones/1', 'DELETE'],
