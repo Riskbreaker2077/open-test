@@ -2,7 +2,7 @@
 
 ## Última actualización y rama activa
 
-- 08/09/2026 — `main`, **todo sin commitear**: la 026 implementada + cambios pendientes de sesiones anteriores (020 + fix de `postject`). No se ha hecho commit; decidir en la próxima sesión qué se commitea y en cuántos commits.
+- 09/09/2026 — `main`, **limpio y pusheado**: la 026 commiteada en `edec510` (un solo commit; 020 y el fix de `postject` ya estaban commiteados en sesiones anteriores — `a64331d` y `8a061d7` — la nota anterior era incorrecta).
 
 ## Feature/tarea en curso
 
@@ -33,14 +33,13 @@
 
 ## Estado
 
-- Git: **todo sin commitear** (020 + fix postject + 026 completa). Sin commit ni push en esta sesión.
+- Git: **limpio y pusheado** hasta `edec510` (412 tests en verde, lint limpio al commitear).
 - Servidor: no probado en un navegador real (igual que al iniciar la sesión; el render de grupos en tablet va a la validación física).
 
 ## Siguiente tarea
 
-1. **Decidir el commit**: hay tres lotes mezclados sin commitear (020, fix de `postject`, 026). Sugerencia: separar en commits por lote antes de pushear.
-2. Verificación física en equipo destino (lista completa en `roadmap.md → Siguiente`), con `ejemplos/banco-grupos-ingles.zip` para el recorrido visual de los tres grupos.
-3. Política de recuperación de contraseña del panel docente (pendiente de sesiones atrás) antes de documentarla en `GUIA-DOCENTE.md`.
+1. Verificación física en equipo destino (lista completa en `roadmap.md → Siguiente`), con `ejemplos/banco-grupos-ingles.zip` para el recorrido visual de los tres grupos.
+2. Política de recuperación de contraseña del panel docente (pendiente de sesiones atrás) antes de documentarla en `GUIA-DOCENTE.md`.
 
 ## Bloqueos / decisiones pendientes
 
