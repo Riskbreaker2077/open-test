@@ -1,8 +1,21 @@
 import { hostname } from 'node:os';
 import { crearApp } from './app.js';
 import { abrirBd, cerrarBd, RUTA_BD_POR_DEFECTO } from './db.js';
+import { esModoRecuperacion, recuperarContrasena } from './recuperacion.js';
 import { hostnameEsAmigable, urlsDeIntranet } from './red.js';
 import { abrirNavegador, siguientePuertoLibre } from './arranque.js';
+
+// Modo de recuperación: restablece la contraseña del panel desde la consola
+// del propio equipo y no arranca el servidor. Exige acceso físico, que es
+// exactamente el límite que la feature 011 fijó para la recuperación.
+if (esModoRecuperacion(process.argv)) {
+  try {
+    process.exit(await recuperarContrasena());
+  } catch (err) {
+    console.error(`\n  No se pudo restablecer la contraseña: ${err.message}\n`);
+    process.exit(1);
+  }
+}
 
 const solicitado = Number(process.env.PORT) || 3000;
 const puerto = await siguientePuertoLibre(solicitado);

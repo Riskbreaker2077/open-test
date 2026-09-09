@@ -358,3 +358,40 @@ Todo sin commit (hay tres lotes mezclados: 020, fix de postject, 026).
 Criterios visuales (tablet, proyector, Excel real) aplazados a la sesión de
 validación física, como en las features anteriores. `RESTART.md`
 actualizado.
+
+## 09/09/2026 — Cierre de la 026 y 027 · Recuperación de la contraseña
+
+La sesión empezó retomando la nota del restart de que había tres lotes sin
+commitear. Resultó incorrecta: `git log` mostró que la 020 (`a64331d`) y el fix
+de `postject` (`8a061d7`) ya estaban commiteados. Solo quedaba el lote de la 026,
+que se verificó (412/412 tests, lint de 90 archivos) y se commiteó como un solo
+commit (`edec510`, 42 archivos) y se pusheó.
+
+Luego se implementó la 027 siguiendo el protocolo SDD: spec, plan y tasks en
+`spec/features/027-recuperar-contrasena/` antes de tocar código. El diseño lo
+fijó la propia 011: la recuperación exige acceso físico al equipo y no vive en
+la interfaz web (ni enlace, ni aviso en la pantalla de entrada; las preguntas de
+seguridad y el correo quedaron descartados por los límites de `mission.md`).
+
+La implementación es `server/recuperacion.js`, con `esModoRecuperacion` (función
+pura sobre argv), `restablecerContrasena` (función pura testeable que reutiliza
+`establecerContrasena` de la 011: misma regla de longitud, sal nueva, transacción
+sobre `config`) y `recuperarContrasena` (flujo de consola con entrada/salida/
+rutaBd/abrir inyectables). El gancho va en `server/index.js` antes de abrir la
+base o calcular puertos; sin el parámetro el arranque es idéntico, y el SEA lo
+recibe gratis porque `sea-entry.cjs` importa ese mismo `index.js`.
+
+Tres bugs del propio desarrollo se encontraron con tests: (1) el lector de
+entradas sin TTY descartaba el resto del trozo después del primer `\n` y
+consumía el evento `end`, colgando la segunda lectura; se creó `crearLector`
+con un búfer compartido por flujo; (2) el alias de guión simple estaba mal
+construido (`slice(1)` ya quita un guión y se le agregaba otro); (3) el
+`argv.slice(2)` de la detección rompía el caso SEA, donde el ejecutable es
+`argv[0]` y el parámetro llega en `argv[1]`; se cambió por un filtro de
+elementos que empiezan por guión.
+
+La suite quedó en 426/426 (412 + 14 nuevos) y el lint en 92 archivos limpios.
+`GUIA-DOCENTE.md → Olvidé la contraseña` se reescribió con el procedimiento
+paso a paso y el criterio pendiente de la 011 quedó marcado apuntando a la 027.
+Pendiente solo la verificación física del diálogo en una terminal Windows real
+(máscara por carácter y `Ctrl+C`), en cola con la sesión de validación final.

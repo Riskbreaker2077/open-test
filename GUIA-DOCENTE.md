@@ -163,7 +163,15 @@ Excel lo trató como número. Configure la columna como **Texto** antes de guard
 
 ### Olvidé la contraseña
 
-La contraseña no se puede leer ni recuperar. No borre la carpeta `data`: contiene todos los resultados. Restaure una copia de seguridad anterior cuya contraseña recuerde o solicite ayuda técnica para conservar los datos.
+La contraseña no se puede leer: solo se puede **cambiar por una nueva** desde el mismo equipo. El procedimiento exige estar frente al portátil (quien pueda abrir una ventana de comandos en su equipo puede hacerlo, así que guárdelo con el mismo cuidado con el que cuida el archivo de resultados) y **no borra ningún dato**: estudiantes, bancos y resultados quedan intactos.
+
+1. Cierre OpenTest si está abierto (la ventana del servidor).
+2. Abra una ventana de comandos en la carpeta del programa: mantenga `Mayús`, haga clic derecho sobre un espacio en blanco de la carpeta y elija **Abrir ventana de PowerShell aquí**.
+3. Escriba `.\OpenTest.exe --recuperar-contrasena` y pulse Enter. (También sirve crear un acceso directo a `OpenTest.exe` y añadir ` --recuperar-contrasena` al final del campo *Destino*.)
+4. La ventana pedirá la contraseña nueva dos veces. Lo que escriba aparece como asteriscos.
+5. Al confirmar "Contraseña restablecida", cierre la ventana y abra OpenTest con normalidad. Entre con la contraseña nueva.
+
+Si aún no había creado ninguna contraseña (pantalla de primer uso), no necesita este procedimiento: abra OpenTest con normalidad y el propio programa le pedirá crearla.
 
 ### SmartScreen o el antivirus bloquean OpenTest
 

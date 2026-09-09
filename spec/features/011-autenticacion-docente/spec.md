@@ -27,7 +27,7 @@ Es el cambio que convierte la separación de superficies de `mission.md` en algo
 - [x] Tras varios intentos fallidos seguidos desde la misma IP se aplica una espera creciente, para que no se pruebe a ciegas desde una tablet.
 - [x] Hay un botón de cerrar sesión que invalida la cookie.
 - [x] El docente puede cambiar su contraseña indicando la actual.
-- [ ] Si olvida la contraseña, hay un procedimiento documentado de recuperación que exige acceso físico al equipo (no un enlace en la interfaz). _(pendiente: se documenta en `GUIA-DOCENTE.md`, feature 010.)_
+- [x] Si olvida la contraseña, hay un procedimiento de recuperación que exige acceso físico al equipo (no un enlace en la interfaz): `OpenTest.exe --recuperar-contrasena`, implementado en la [027](../027-recuperar-contrasena/spec.md) y documentado en `GUIA-DOCENTE.md`.
 - [x] Ninguna página del estudiante enlaza a `/docente/` ni lo menciona (test que revisa los archivos servidos).
 
 ## Fuera de alcance
