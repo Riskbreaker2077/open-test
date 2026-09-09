@@ -2,7 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { abrirBd, cerrarBd } from '../db.js';
 import { guardarBanco } from './bancos.js';
-import { preguntaDeEjemplo } from '../fixtures-preguntas.js';
+import {
+  grupoBancoOpciones,
+  preguntaDeEjemplo,
+  preguntaMiembroBancoOpciones,
+} from '../fixtures-preguntas.js';
 import { guardarEstudiantes } from './estudiantes.js';
 import { iniciarOReanudarIntento } from './intentos.js';
 import { abrirSesion, comenzarSesion, crearSesion, obtenerSesion } from './sesiones.js';
@@ -87,7 +91,7 @@ test('el servidor revela la correcta y las justificaciones únicamente en nivel 
     orden: 1, contexto: [], enunciado: [{ tipo: 'texto', texto: 'Pregunta' }],
     competencia: 'Comp', componente: 'Compo', afirmacion: 'Afirm', evidencia: 'Evid',
     estandar_asociado: 'Est', que_evalua: 'Qué evalúa',
-    respuesta_id: 1, opcion_id: 2, opcion_correcta_id: 1,
+    respuesta_id: 1, opcion_id: 2, opcion_correcta_id: 1, valor: 1, tipo_item: 'estandar',
     opciones: [
       { id: 1, contenido: [{ tipo: 'texto', texto: 'Primera' }], justificacion: 'Porque sí es correcta' },
       { id: 2, contenido: [{ tipo: 'texto', texto: 'Marcada' }], justificacion: 'Porque no lo es' },
@@ -105,4 +109,103 @@ test('el servidor revela la correcta y las justificaciones únicamente en nivel 
   assert.match(completo, /Porque sí es correcta/);
   assert.match(completo, /Porque no lo es/);
   assert.match(completo, /Qué evalúa/);
+});
+
+// --- Grupos y peso por pregunta (feature 026) ------------------------------
+
+test('calificarIntento suma valor por pregunta, no solo el conteo de aciertos', () => {
+  const preguntas = [
+    { tipo_item: 'estandar', valor: 1, opcion_id: 1, opcion_correcta_id: 1 },
+    { tipo_item: 'estandar', valor: 3, opcion_id: null, opcion_correcta_id: 1 },
+    { tipo_item: 'estandar', valor: 2, opcion_id: 1, opcion_correcta_id: 1 },
+    { tipo_item: 'estandar', valor: 1, opcion_id: 2, opcion_correcta_id: 1 },
+  ];
+  const resultado = calificarIntento(preguntas);
+  assert.equal(resultado.aciertos, 2);
+  assert.equal(resultado.puntaje, 3, '1 (acertada) + 2 (acertada) = 3 puntos');
+});
+
+test('calificarIntento trata matching por respuesta_banco_id vs respuesta_pool_id', () => {
+  const preguntas = [
+    {
+      tipo_item: 'miembro_banco_opciones',
+      valor: 1,
+      respuesta_pool_id: 'p2',
+      respuesta_banco_id: 'p2',
+      opciones: [],
+    },
+    {
+      tipo_item: 'miembro_banco_opciones',
+      valor: 1,
+      respuesta_pool_id: 'p1',
+      respuesta_banco_id: 'p3',
+      opciones: [],
+    },
+  ];
+  const resultado = calificarIntento(preguntas);
+  assert.equal(resultado.aciertos, 1, 'solo la primera acierta');
+  assert.equal(resultado.puntaje, 1);
+});
+
+test('calificarIntento da puntaje 0 cuando el matching queda sin responder', () => {
+  const preguntas = [{
+    tipo_item: 'miembro_banco_opciones',
+    valor: 1,
+    respuesta_pool_id: 'p1',
+    respuesta_banco_id: null,
+    opciones: [],
+  }];
+  const resultado = calificarIntento(preguntas);
+  assert.equal(resultado.aciertos, 0);
+  assert.equal(resultado.puntaje, 0);
+});
+
+test('la calificación persiste el puntaje total sumando valor de matching', () => {
+  const db = abrirBd(':memory:');
+  const grupo = grupoBancoOpciones({ id: 'g-bo' });
+  // La pregunta miembro hereda la metadata del grupo en guardarBanco; lo
+  // simulamos aquí pasándole competencia explícita (en producción el
+  // importador lo valida y guardarBanco la rellena desde el grupo).
+  const m1 = preguntaMiembroBancoOpciones('g-bo', grupo.banco, {
+    respuesta_pool_id: 'p1',
+    competencia: grupo.metadata_pedagogica.competencia,
+  });
+  // Banco de 4 entradas; la correcta es p1.
+  guardarBanco(
+    db,
+    'Inglés',
+    [
+      m1,
+      preguntaDeEjemplo({ enunciado: [{ tipo: 'texto', texto: 'P2?' }] }),
+      preguntaDeEjemplo({ enunciado: [{ tipo: 'texto', texto: 'P3?' }] }),
+      preguntaDeEjemplo({ enunciado: [{ tipo: 'texto', texto: 'P4?' }] }),
+    ],
+    [grupo],
+  );
+  guardarEstudiantes(db, [{ codigo: '1', nombres: 'A', apellidos: 'B', curso: '10A' }]);
+  const creada = crearSesion(db, { nombre: 'S', banco_id: 1, cursos: ['10A'], n_preguntas: 4 });
+  abrirSesion(db, creada.id);
+  const intento = iniciarOReanudarIntento(db, obtenerSesion(db, creada.id), { codigo: '1', curso: '10A' }).intento;
+
+  // Encontrar la fila del matching y marcarla como correcta.
+  const filaMatching = db.prepare(`
+    SELECT ip.id FROM intento_preguntas ip
+    JOIN preguntas p ON p.id = ip.pregunta_id
+    WHERE ip.intento_id = ? AND p.tipo_item = 'miembro_banco_opciones'
+  `).get(intento.id);
+  assert.ok(filaMatching, 'la pregunta de matching debe estar en la prueba');
+  db.prepare(`
+    INSERT INTO respuestas (intento_pregunta_id, segundos_en_pantalla, respondido_en)
+    VALUES (?, 1, '2026-09-08T08:00:00Z')
+  `).run(filaMatching.id);
+  db.prepare('UPDATE intento_preguntas SET respuesta_banco_id = ? WHERE id = ?').run('p1', filaMatching.id);
+
+  const resultado = preguntasCalificables(db, intento.id);
+  const matching = resultado.find((p) => p.tipo_item === 'miembro_banco_opciones');
+  assert.equal(matching.respuesta_banco_id, 'p1');
+
+  const entrega = entregarIntentoCalificado(db, intento.id, 'manual', '2026-09-08T08:01:00Z');
+  assert.equal(entrega.aciertos, 1);
+  assert.equal(entrega.puntaje, 1, 'valor por defecto 1');
+  cerrarBd(db);
 });

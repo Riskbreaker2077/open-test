@@ -52,12 +52,92 @@ function exigirEnCurso(vigente) {
 
 function filaPregunta(db, intentoId, orden) {
   return db.prepare(`
-    SELECT ip.id AS intento_pregunta_id, ip.orden, ip.orden_opciones,
-           p.contexto, p.enunciado
+    SELECT ip.id AS intento_pregunta_id, ip.orden, ip.orden_opciones, ip.pregunta_id,
+           p.contexto, p.enunciado,
+           p.grupo_id, p.tipo_item, p.respuesta_pool_id, p.numero_blanco
     FROM intento_preguntas ip
     JOIN preguntas p ON p.id = ip.pregunta_id
     WHERE ip.intento_id = ? AND ip.orden = ?
   `).get(intentoId, orden);
+}
+
+function cargarGrupo(db, grupoId) {
+  const fila = db.prepare(`
+    SELECT id, tipo, contexto, banco, metadata_pedagogica
+    FROM grupos WHERE id = ?
+  `).get(grupoId);
+  if (!fila) return null;
+  let banco = [];
+  try {
+    banco = JSON.parse(fila.banco ?? '[]');
+  } catch {
+    banco = [];
+  }
+  const grupo = {
+    id: fila.id,
+    tipo: fila.tipo,
+    contexto: analizarBloques(fila.contexto),
+    metadata_pedagogica: (() => {
+      try {
+        return JSON.parse(fila.metadata_pedagogica ?? '{}');
+      } catch {
+        return {};
+      }
+    })(),
+  };
+  // El banco solo aplica al matching: para los otros tipos la clave no va.
+  // Las entradas ya vienen parseadas del JSON del grupo; no se vuelven a pasar
+  // por analizarBloques (que envolvería un array en un bloque de texto).
+  if (fila.tipo === 'banco_opciones') {
+    grupo.banco = banco
+      .filter((entrada) => !entrada.es_ejemplo)
+      .map((entrada) => ({
+        id: entrada.id,
+        contenido: Array.isArray(entrada.contenido) ? entrada.contenido : [],
+      }));
+  }
+  return grupo;
+}
+
+/** Devuelve las preguntas miembro de un grupo, con sus opciones y la respuesta propia ya dada. */
+function preguntasHermanas(db, grupoId, intentoPreguntaIdExcluir) {
+  const filas = db.prepare(`
+    SELECT ip.id AS intento_pregunta_id, ip.orden, ip.orden_opciones, ip.respuesta_banco_id,
+           ip.pregunta_id, p.enunciado, p.tipo_item, p.numero_blanco,
+           r.opcion_id AS respuesta_opcion_id
+    FROM intento_preguntas ip
+    JOIN preguntas p ON p.id = ip.pregunta_id
+    LEFT JOIN respuestas r ON r.intento_pregunta_id = ip.id
+    WHERE p.grupo_id = ?
+      AND ip.id != COALESCE(?, -1)
+    ORDER BY ip.orden
+  `).all(grupoId, intentoPreguntaIdExcluir);
+
+  return filas.map((fila) => {
+    const base = {
+      orden: fila.orden,
+      pregunta_id: fila.pregunta_id,
+      tipo_item: fila.tipo_item ?? 'estandar',
+      enunciado: analizarBloques(fila.enunciado),
+      numero_blanco: fila.numero_blanco ?? null,
+      respuestaBancoId: fila.respuesta_banco_id ?? null,
+      opcionId: fila.respuesta_opcion_id ?? null,
+    };
+    // Ojo: `respuesta_pool_id` (la entrada correcta del banco) NUNCA sale
+    // hacia la tablet — es la pista de la respuesta.
+    if (fila.tipo_item === 'miembro_banco_opciones') {
+      // Las opciones son las entradas del banco: el caller las añade desde
+      // el grupo, no desde esta fila.
+      return base;
+    }
+    const ids = fila.orden_opciones.split(',').map(Number);
+    const opciones = db.prepare('SELECT id, texto FROM opciones WHERE pregunta_id = ?').all(fila.pregunta_id);
+    const porId = new Map(opciones.map((opcion) => [
+      opcion.id,
+      { id: opcion.id, contenido: analizarBloques(opcion.texto) },
+    ]));
+    return { ...base, opciones: ids.map((id) => porId.get(id)) };
+  });
 }
 
 export function obtenerPregunta(db, intento, orden, ahora = new Date()) {
@@ -77,34 +157,82 @@ export function obtenerPregunta(db, intento, orden, ahora = new Date()) {
     db.prepare(`
       UPDATE intentos SET pregunta_actual = ?, pregunta_mostrada_en = ? WHERE id = ?
     `).run(numero, mostradaEn, intento.id);
+  } else if (
+    (fila.tipo_item === 'miembro_banco_opciones' || fila.tipo_item === 'miembro_texto_con_blancos')
+    && fila.grupo_id
+  ) {
+    // Reanudación en mitad de una pantalla de grupo: mientras quede algún
+    // miembro sin enviar, el mínimo vuelve a correr desde ahora (decisión
+    // confirmada en el plan de la 026).
+    const pendientes = db.prepare(`
+      SELECT count(*) AS t
+      FROM intento_preguntas ipg
+      LEFT JOIN respuestas r ON r.intento_pregunta_id = ipg.id
+      WHERE ipg.intento_id = ?
+        AND ipg.pregunta_id IN (SELECT id FROM preguntas WHERE grupo_id = ?)
+        AND r.id IS NULL
+    `).get(intento.id, fila.grupo_id).t;
+    if (pendientes > 0) {
+      mostradaEn = iso(ahora);
+      db.prepare('UPDATE intentos SET pregunta_mostrada_en = ? WHERE id = ?').run(mostradaEn, intento.id);
+    }
   }
 
-  const ids = fila.orden_opciones.split(',').map(Number);
-  const opciones = db.prepare(`
-    SELECT id, texto FROM opciones
-    WHERE pregunta_id = (SELECT pregunta_id FROM intento_preguntas WHERE id = ?)
-  `).all(fila.intento_pregunta_id);
-  const porId = new Map(opciones.map((opcion) => [opcion.id, { id: opcion.id, contenido: analizarBloques(opcion.texto) }]));
+  const preguntaActual = (() => {
+    const base = {
+      pregunta_id: fila.pregunta_id,
+      tipo_item: fila.tipo_item ?? 'estandar',
+      enunciado: analizarBloques(fila.enunciado),
+    };
+    if (fila.tipo_item === 'miembro_banco_opciones') return base;
+    const ids = fila.orden_opciones.split(',').map(Number);
+    const opciones = db.prepare('SELECT id, texto FROM opciones WHERE pregunta_id = ?').all(fila.pregunta_id);
+    const porId = new Map(opciones.map((opcion) => [
+      opcion.id,
+      { id: opcion.id, contenido: analizarBloques(opcion.texto) },
+    ]));
+    return { ...base, opciones: ids.map((id) => porId.get(id)) };
+  })();
+
   const respuesta = db.prepare(`
     SELECT opcion_id, segundos_en_pantalla FROM respuestas WHERE intento_pregunta_id = ?
   `).get(fila.intento_pregunta_id);
+  const respuestaBanco = fila.tipo_item === 'miembro_banco_opciones'
+    ? db.prepare('SELECT respuesta_banco_id FROM intento_preguntas WHERE id = ?').get(fila.intento_pregunta_id)
+    : null;
 
   const segundosVista = Math.max(0, Math.floor(
     ((ahora instanceof Date ? ahora : new Date(ahora)) - new Date(mostradaEn)) / 1000,
   ));
-  return {
+
+  const base = {
     orden: numero,
     total: vigente.sesion.n_preguntas,
+    pregunta_id: fila.pregunta_id,
+    tipo_item: preguntaActual.tipo_item,
     contexto: analizarBloques(fila.contexto),
-    enunciado: analizarBloques(fila.enunciado),
-    opciones: ids.map((id) => porId.get(id)),
-    respondida: Boolean(respuesta),
+    enunciado: preguntaActual.enunciado,
+    opciones: preguntaActual.opciones ?? [],
+    respondida: Boolean(respuesta) || Boolean(respuestaBanco?.respuesta_banco_id),
     opcionId: respuesta?.opcion_id ?? null,
+    respuestaBancoId: respuestaBanco?.respuesta_banco_id ?? null,
     segundosEnPantalla: respuesta?.segundos_en_pantalla ?? 0,
     segundosMinimos: vigente.sesion.segundos_minimos_pregunta,
     segundosParaAvanzar: Math.max(0, vigente.sesion.segundos_minimos_pregunta - segundosVista),
     segundosRestantes: vigente.segundosRestantes,
   };
+
+  // Si la pregunta pertenece a un grupo, devolvemos el grupo resuelto
+  // (contexto siempre; banco + hermanos para matching y cloze). El renderer
+  // del estudiante decide cómo pintarlo según el tipo.
+  if (fila.grupo_id) {
+    base.grupo = cargarGrupo(db, fila.grupo_id);
+    if (base.grupo && (base.grupo.tipo === 'banco_opciones' || base.grupo.tipo === 'texto_con_blancos')) {
+      base.grupo.preguntas = preguntasHermanas(db, fila.grupo_id, fila.intento_pregunta_id);
+    }
+  }
+
+  return base;
 }
 
 export function guardarRespuesta(db, intento, datos, ahora = new Date()) {
@@ -114,7 +242,15 @@ export function guardarRespuesta(db, intento, datos, ahora = new Date()) {
   const numero = Number(datos.n);
   const fila = filaPregunta(db, intento.id, numero);
   if (!fila) throw error('Esa pregunta no forma parte de tu prueba.', 404);
-  if (vigente.intento.pregunta_actual !== numero || !vigente.intento.pregunta_mostrada_en) {
+  // La pantalla de un grupo (matching/cloze) muestra a todos sus miembros
+  // con `pregunta_actual` apuntando al primero: se puede responder a
+  // cualquier miembro mientras ese grupo siga en pantalla.
+  let enPantalla = vigente.intento.pregunta_actual === numero;
+  if (!enPantalla && fila.grupo_id) {
+    const actual = filaPregunta(db, intento.id, vigente.intento.pregunta_actual);
+    enPantalla = Boolean(actual) && actual.grupo_id === fila.grupo_id;
+  }
+  if (!enPantalla || !vigente.intento.pregunta_mostrada_en) {
     throw error('Abre esta pregunta antes de guardar la respuesta.', 409);
   }
 
@@ -127,11 +263,35 @@ export function guardarRespuesta(db, intento, datos, ahora = new Date()) {
     throw error(`Espera ${faltan} segundo(s) antes de avanzar.`, 409);
   }
 
-  const opcionId = datos.opcionId === null ? null : Number(datos.opcionId);
-  if (opcionId !== null) {
-    const permitidas = new Set(fila.orden_opciones.split(',').map(Number));
-    if (!Number.isInteger(opcionId) || !permitidas.has(opcionId)) {
-      throw error('Esa opción no pertenece a esta pregunta.');
+  const esMatching = fila.tipo_item === 'miembro_banco_opciones';
+  let opcionId = null;
+  let respuestaBancoId = null;
+  if (esMatching) {
+    respuestaBancoId = datos.respuestaBancoId === null || datos.respuestaBancoId === undefined
+      ? null
+      : String(datos.respuestaBancoId);
+    if (respuestaBancoId !== null) {
+      // El id debe estar en el banco del grupo.
+      const banco = JSON.parse(
+        db.prepare('SELECT banco FROM grupos WHERE id = ?').get(fila.grupo_id)?.banco ?? '[]',
+      );
+      const idsValidos = new Set(
+        banco.filter((e) => !e.es_ejemplo).map((e) => String(e.id)),
+      );
+      if (!idsValidos.has(respuestaBancoId)) {
+        throw error('Esa opción no pertenece al banco de esta pregunta.');
+      }
+    }
+    db.prepare('UPDATE intento_preguntas SET respuesta_banco_id = ? WHERE id = ?').run(
+      respuestaBancoId, fila.intento_pregunta_id,
+    );
+  } else {
+    opcionId = datos.opcionId === null ? null : Number(datos.opcionId);
+    if (opcionId !== null) {
+      const permitidas = new Set(fila.orden_opciones.split(',').map(Number));
+      if (!Number.isInteger(opcionId) || !permitidas.has(opcionId)) {
+        throw error('Esa opción no pertenece a esta pregunta.');
+      }
     }
   }
 
@@ -152,7 +312,13 @@ export function guardarRespuesta(db, intento, datos, ahora = new Date()) {
       respondido_en = excluded.respondido_en
   `).run(fila.intento_pregunta_id, opcionId, segundos, iso(ahora));
 
-  return { n: numero, opcionId, segundosEnPantalla: segundos, segundosRestantes: vigente.segundosRestantes };
+  return {
+    n: numero,
+    opcionId,
+    respuestaBancoId,
+    segundosEnPantalla: segundos,
+    segundosRestantes: vigente.segundosRestantes,
+  };
 }
 
 /**

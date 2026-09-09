@@ -1,5 +1,16 @@
 # Contrato · Exportación de resultados, versión 2
 
+> **Obsoleto desde la feature 026.** Este contrato queda sustituido por
+> [`export-resultados-v3.md`](export-resultados-v3.md) (`formato_version: 3`),
+> que añade los campos opcionales de v1.1.0 (`grado`, `prueba`, `procedencia`,
+> `verificado`, `fuentes`, `procedencia_justificacion`,
+> `justificacion_verificada`), los de v1.2.0+ (`nivel_mcer`, `valor`,
+> `grupo_id`, `tipo_item`, `respuesta_banco_id`) y el campo
+> `version_estandar` por pregunta. La subida de versión es **aditiva**: todos
+> los consumidores que ya leen este v2 siguen entendiendo v3 porque los
+> campos nuevos son opcionales y la estructura general no cambia. Este archivo
+> se conserva como referencia histórica de las features 016 y 025.
+
 `formato_version: 2`
 
 Lo que el docente descarga al terminar una sesión. Es el contrato con **la plataforma externa de retroalimentación**, así que es el documento más estable del proyecto: cambiarlo rompe a un consumidor que no controlamos.

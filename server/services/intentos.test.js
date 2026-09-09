@@ -2,7 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { abrirBd, cerrarBd } from '../db.js';
 import { guardarBanco } from './bancos.js';
-import { preguntaDeEjemplo, preguntasDeEjemplo } from '../fixtures-preguntas.js';
+import {
+  grupoBancoOpciones,
+  grupoContextoCompartido,
+  grupoTextoConBlancos,
+  preguntaDeEjemplo,
+  preguntaMiembroBancoOpciones,
+  preguntaMiembroContextoCompartido,
+  preguntaMiembroTextoConBlancos,
+  preguntasDeEjemplo,
+} from '../fixtures-preguntas.js';
 import { guardarEstudiantes } from './estudiantes.js';
 import { abrirSesion, cerrarSesion, crearSesion, obtenerSesion } from './sesiones.js';
 import {
@@ -256,5 +265,75 @@ test('si la prueba no se puede generar, no queda un intento a medias', () => {
   assert.throws(() => iniciarOReanudarIntento(db, obtenerSesion(db, 1), ANA), /tiene 1 pregunta/);
   assert.equal(db.prepare('SELECT count(*) AS t FROM intentos').get().t, 0, 'sin intento huérfano');
   assert.equal(db.prepare('SELECT count(*) AS t FROM intento_preguntas').get().t, 0);
+  cerrarBd(db);
+});
+
+// --- Grupos de preguntas (feature 026) ------------------------------------
+
+test('la materialización preserva todos los miembros de un grupo en órdenes consecutivos', () => {
+  const db = abrirBd(':memory:');
+  const grupo = grupoContextoCompartido({ id: 'g-cc' });
+  const miembros = [
+    preguntaMiembroContextoCompartido('g-cc'),
+    preguntaMiembroContextoCompartido('g-cc'),
+    preguntaMiembroContextoCompartido('g-cc'),
+  ];
+  guardarBanco(db, 'Ciencias', [...miembros, ...preguntasDeEjemplo(20)], [grupo]);
+
+  guardarEstudiantes(db, [ANA]);
+  const sesion = crearSesion(db, { nombre: 'Parcial', banco_id: 1, cursos: ['10A'], n_preguntas: 6 });
+  abrirSesion(db, sesion.id);
+
+  const { intento } = iniciarOReanudarIntento(db, obtenerSesion(db, sesion.id), ANA);
+  const prueba = pruebaDelIntento(db, intento.id);
+
+  // Los 3 miembros del grupo entraron (o ninguno). Si entraron, comparten grupo_id.
+  const miembrosEnPrueba = prueba.filter((p) => p.grupo_id === 'g-cc');
+  assert.ok(
+    miembrosEnPrueba.length === 0 || miembrosEnPrueba.length === 3,
+    `el grupo entró completo (3) o no entró, no partido: ${miembrosEnPrueba.length}`,
+  );
+  cerrarBd(db);
+});
+
+test('la materialización de matching guarda los ids del banco como orden_opciones', () => {
+  const db = abrirBd(':memory:');
+  const grupo = grupoBancoOpciones({ id: 'g-bo' });
+  const miembro = preguntaMiembroBancoOpciones('g-bo', grupo.banco, { respuesta_pool_id: 'p1' });
+  guardarBanco(db, 'Inglés', [miembro, ...preguntasDeEjemplo(20)], [grupo]);
+
+  guardarEstudiantes(db, [ANA]);
+  const sesion = crearSesion(db, { nombre: 'Parcial', banco_id: 1, cursos: ['10A'], n_preguntas: 5 });
+  abrirSesion(db, sesion.id);
+
+  const { intento } = iniciarOReanudarIntento(db, obtenerSesion(db, sesion.id), ANA);
+  const prueba = pruebaDelIntento(db, intento.id);
+
+  const filaMiembro = prueba.find((p) => p.grupo_id === 'g-bo');
+  if (filaMiembro) {
+    // ordenOpciones trae los ids del banco (p1, p2, p3, p4) en algún orden.
+    const orden = filaMiembro.ordenOpciones.map(String).sort();
+    assert.deepEqual(orden, ['p1', 'p2', 'p3', 'p4']);
+  }
+  cerrarBd(db);
+});
+
+test('cloze: el miembro tiene opciones propias y orden_opciones las permuta', () => {
+  const db = abrirBd(':memory:');
+  const grupo = grupoTextoConBlancos({ id: 'g-tb' });
+  const m1 = preguntaMiembroTextoConBlancos('g-tb', 1);
+  const m2 = preguntaMiembroTextoConBlancos('g-tb', 2);
+  guardarBanco(db, 'Inglés', [m1, m2, ...preguntasDeEjemplo(20)], [grupo]);
+
+  guardarEstudiantes(db, [ANA]);
+  const sesion = crearSesion(db, { nombre: 'Parcial', banco_id: 1, cursos: ['10A'], n_preguntas: 6 });
+  abrirSesion(db, sesion.id);
+
+  const { intento } = iniciarOReanudarIntento(db, obtenerSesion(db, sesion.id), ANA);
+  const prueba = pruebaDelIntento(db, intento.id);
+  const fila = prueba.find((p) => p.grupo_id === 'g-tb');
+  if (fila) {
+    assert.equal(fila.ordenOpciones.length, 3, 'cada miembro cloze trae 3 opciones');
+  }
   cerrarBd(db);
 });

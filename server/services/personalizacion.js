@@ -77,21 +77,28 @@ export function cuotasPorCompetencia(tamanosPorGrupo, total) {
 }
 
 /**
- * @param preguntas   [{ id, opciones: [{ id }], competencia? }] — el banco entero.
+ * @param preguntas   [{ id, opciones: [{ id }], competencia?, grupo_id? }] — el banco entero.
  *                    `competencia` es opcional: sin ella (o en un banco anterior
  *                    a la 016, donde queda en blanco) todo el banco cae en un
  *                    único grupo y el sorteo es puramente al azar, como antes.
+ *                    `grupo_id`, presente desde la 026, marca a una pregunta
+ *                    como miembro de un grupo; el muestreador trata un grupo
+ *                    como una unidad indivisible: si entra una pregunta del
+ *                    grupo, entran todas, y la cuota por competencia se reparte
+ *                    por el peso del grupo (cantidad de miembros).
  * @param nPreguntas  cuántas sortear
  * @param semilla     determina íntegramente el resultado
- * @returns [{ orden, preguntaId, ordenOpciones: [idOpcion] }]
+ * @returns [{ orden, preguntaId, ordenOpciones: [idOpcion|banco_id] }]
  */
 export function generarPrueba({ preguntas, nPreguntas, semilla }) {
   if (!Array.isArray(preguntas)) throw new Error('Hacen falta las preguntas del banco.');
 
-  if (preguntas.length < nPreguntas) {
+  // Total de preguntas en el banco contando cada miembro de grupo como 1.
+  const totalPreguntas = preguntas.length;
+  if (totalPreguntas < nPreguntas) {
     throw Object.assign(
       new Error(
-        `El banco tiene ${preguntas.length} pregunta(s) y la evaluación sortea ${nPreguntas}.`,
+        `El banco tiene ${totalPreguntas} pregunta(s) y la evaluación sortea ${nPreguntas}.`,
       ),
       { estado: 409 },
     );
@@ -99,22 +106,118 @@ export function generarPrueba({ preguntas, nPreguntas, semilla }) {
 
   const prng = crearPrng(semilla);
 
-  const grupos = new Map();
+  // Cada pregunta standalone es una unidad con peso 1; cada grupo se
+  // consolida en una sola unidad con peso = cantidad de miembros, para que
+  // entre o salga entero. Las cuotas por competencia reparten `nPreguntas`
+  // proporcionalmente al peso total de cada competencia (cada pregunta
+  // cuenta como 1; un grupo cuenta como su cantidad de miembros).
+  const standalone = [];
+  const gruposPorId = new Map();
   for (const pregunta of preguntas) {
-    const clave = pregunta.competencia ?? '';
-    if (!grupos.has(clave)) grupos.set(clave, []);
-    grupos.get(clave).push(pregunta);
+    if (pregunta.grupo_id) {
+      if (!gruposPorId.has(pregunta.grupo_id)) {
+        gruposPorId.set(pregunta.grupo_id, []);
+      }
+      gruposPorId.get(pregunta.grupo_id).push(pregunta);
+    } else {
+      standalone.push(pregunta);
+    }
   }
-  const tamanos = new Map([...grupos].map(([clave, del]) => [clave, del.length]));
-  const cuotas = cuotasPorCompetencia(tamanos, nPreguntas);
 
-  const seleccionadas = [...cuotas].flatMap(([clave, cuota]) => muestrear(grupos.get(clave), cuota, prng));
+  const unidades = [];
+  for (const pregunta of standalone) {
+    unidades.push({
+      competencia: pregunta.competencia ?? '',
+      peso: 1,
+      miembros: [pregunta],
+    });
+  }
+  for (const miembros of gruposPorId.values()) {
+    unidades.push({
+      competencia: miembros[0].competencia ?? '',
+      peso: miembros.length,
+      miembros,
+    });
+  }
+
+  const pesosPorCompetencia = new Map();
+  for (const u of unidades) {
+    pesosPorCompetencia.set(
+      u.competencia,
+      (pesosPorCompetencia.get(u.competencia) ?? 0) + u.peso,
+    );
+  }
+
+  // `cuotasPorCompetencia` reparte `nPreguntas` entre los grupos por peso.
+  // Eso puede pedir más unidades de las que hay (cap improbable pero posible
+  // si una competencia tiene muy poco peso); se trunca al techo.
+  const cuotas = cuotasPorCompetencia(pesosPorCompetencia, nPreguntas);
+
+  // Para cada competencia, sortea unidades hasta sumar la cuota en peso.
+  const seleccionadas = [];
+  for (const [competencia, cupoEnUnidades] of cuotas) {
+    const candidatas = unidades.filter((u) => u.competencia === competencia);
+    const elegidas = muestrearUnidades(candidatas, cupoEnUnidades, prng);
+    for (const u of elegidas) {
+      for (const m of u.miembros) seleccionadas.push(m);
+    }
+  }
+
+  // Si las cuotas suman menos de nPreguntas (porque un grupo consumió
+  // sobrantes o una cuota se truncó), agregamos unidades al azar hasta
+  // llegar al total — pero sin pasarnos: un grupo que ya no cabe entero
+  // se omite antes que partirlo.
+  while (seleccionadas.length < nPreguntas) {
+    const restantes = preguntas.filter((p) => !seleccionadas.includes(p));
+    if (restantes.length === 0) break;
+    const candidato = muestrear(restantes, 1, prng)[0];
+    if (!candidato) break;
+    const hermanos = candidato.grupo_id
+      ? preguntas.filter((p) => p.grupo_id === candidato.grupo_id && !seleccionadas.includes(p))
+      : [];
+    if (seleccionadas.length + 1 + hermanos.length > nPreguntas) break;
+    seleccionadas.push(candidato);
+    for (const hermano of hermanos) seleccionadas.push(hermano);
+  }
 
   return barajar(seleccionadas, prng).map((pregunta, i) => ({
     orden: i + 1,
     preguntaId: pregunta.id,
     ordenOpciones: barajar(pregunta.opciones.map((o) => o.id), prng),
   }));
+}
+
+/**
+ * Sortea unidades de un banco hasta sumar `cupo` puntos de peso, sin
+ * partir unidades: si la siguiente no entra, se omite.
+ *
+ * Los grupos (peso = cantidad de miembros) entran antes que las preguntas
+ * standalone (peso = 1) cuando caben: así un grupo nunca queda partido y
+ * las standalone rellenan lo que sobra del cupo. Dentro de cada categoría
+ * el orden es aleatorio.
+ */
+function muestrearUnidades(unidades, cupo, prng) {
+  const grupos = unidades.filter((u) => u.miembros.length > 1);
+  const standalone = unidades.filter((u) => u.miembros.length === 1);
+
+  const gruposBarajados = barajar(grupos, prng);
+  const standaloneBarajados = barajar(standalone, prng);
+
+  const elegidas = [];
+  let pesoAcumulado = 0;
+  for (const unidad of gruposBarajados) {
+    if (pesoAcumulado + unidad.peso <= cupo) {
+      elegidas.push(unidad);
+      pesoAcumulado += unidad.peso;
+    }
+  }
+  for (const unidad of standaloneBarajados) {
+    if (pesoAcumulado + unidad.peso <= cupo) {
+      elegidas.push(unidad);
+      pesoAcumulado += unidad.peso;
+    }
+  }
+  return elegidas;
 }
 
 /**

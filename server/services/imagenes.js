@@ -92,5 +92,35 @@ export function imagenesDeSesion(db, sesionId) {
       }
     }
   }
+
+  // Los grupos que cayeron en la sesión también traen imágenes en su
+  // contexto compartido y en las entradas de su banco (matching).
+  const grupos = db.prepare(`
+    SELECT DISTINCT g.contexto, g.banco
+    FROM grupos g
+    JOIN preguntas p ON p.grupo_id = g.id
+    JOIN intento_preguntas ip ON ip.pregunta_id = p.id
+    WHERE ip.intento_id IN (SELECT id FROM intentos WHERE sesion_id = ?)
+  `).all(sesionId);
+
+  for (const grupo of grupos) {
+    for (const bloque of analizarBloques(grupo.contexto)) {
+      if (bloque.tipo === 'imagen' && bloque.archivo) nombres.add(bloque.archivo);
+    }
+    for (const bloque of bloquesDeBanco(grupo.banco)) {
+      if (bloque.tipo === 'imagen' && bloque.archivo) nombres.add(bloque.archivo);
+    }
+  }
+
   return nombres;
+}
+
+function bloquesDeBanco(bancoJson) {
+  let banco = [];
+  try {
+    banco = JSON.parse(bancoJson ?? '[]');
+  } catch {
+    return [];
+  }
+  return banco.flatMap((entrada) => (Array.isArray(entrada?.contenido) ? entrada.contenido : []));
 }

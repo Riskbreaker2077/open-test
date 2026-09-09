@@ -25,9 +25,16 @@ function tarjetaDe(pregunta, nivel) {
   envoltura.append(estado);
 
   if (nivel === 'completo') {
-    const correcta = pregunta.opciones.findIndex((opcion) => opcion.id === pregunta.opcionCorrectaId);
+    // En matching la correcta es una entrada del banco (respuestaPoolId),
+    // no una opción propia.
+    const esMatching = pregunta.tipoItem === 'miembro_banco_opciones';
+    const idCorrecto = esMatching ? pregunta.respuestaPoolId : pregunta.opcionCorrectaId;
+    const correcta = pregunta.opciones.findIndex(
+      (opcion) => opcion && String(opcion.id) === String(idCorrecto),
+    );
+    const elegida = esMatching ? (pregunta.respuestaBancoId ?? undefined) : (pregunta.opcionId ?? undefined);
     envoltura.append(renderizarPregunta(pregunta, {
-      elegida: pregunta.opcionId ?? undefined,
+      elegida,
       correcta,
       mostrarJustificacion: true,
     }));

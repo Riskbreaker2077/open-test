@@ -19,6 +19,10 @@ En la carpeta `ejemplos` hay archivos que puede abrir, copiar y adaptar:
 - `estudiantes-ejemplo.csv`
 - `banco-ejemplo.json`
 - `participacion-ciudadana-20-preguntas.zip` — banco completo con cinco imágenes.
+- `banco-grupos-ingles.zip` — banco de 10 preguntas en inglés con un ejemplo de
+  cada tipo de grupo: una lectura compartida, un emparejamiento y un ejercicio
+  de completar espacios. Úselo para ver cómo se ven los tres tipos antes de
+  armar el suyo.
 
 Plantilla mínima de estudiantes:
 
@@ -34,15 +38,14 @@ Guarde el archivo como **CSV UTF-8**.
 Las preguntas se cargan siempre en un ZIP con `paquete.json` en la raíz y las
 imágenes dentro de `imagenes/`. En **Bancos de preguntas**, use **Sube
 preguntas e imágenes en un ZIP**, revise la vista previa y confirme. Cada
-pregunta de `paquete.json` necesita, además del enunciado y las cuatro
-opciones:
+pregunta de `paquete.json` necesita, además del enunciado y sus opciones:
 
 - **Competencia, componente, afirmación, evidencia y estándar asociado** — de
   dónde sale la pregunta en su tabla de especificaciones.
 - **Qué evalúa** — una frase que explica qué mide esa pregunta en concreto.
-- Una **justificación por cada una de las cuatro opciones**, no solo de la
-  correcta: por qué esa opción es correcta o, si no lo es, cuál es el error
-  específico de esa opción.
+- Una **justificación por cada opción** (en matching, una justificación por
+  descripción), no solo de la correcta: por qué esa opción es correcta o, si
+  no lo es, cuál es el error específico de esa opción.
 - El contexto, el enunciado y cada opción pueden combinar texto, una imagen
   (solo el nombre del archivo, por ejemplo `cabildo-abierto.png`) o una tabla.
 
@@ -75,6 +78,35 @@ Este formato sigue el estándar abierto `preguntas-icfes`
 (github.com/riskbreaker2077/preguntas-icfes), pensado para preguntas tipo
 ICFES y compartido con otras plataformas.
 
+### Tipos de pregunta admitidos
+
+Además de la pregunta clásica (enunciado + opciones), el paquete puede traer
+**grupos** en la lista `grupos` del `paquete.json`. Hay tres tipos, y en el
+banco de ejemplo `banco-grupos-ingles.zip` hay uno de cada uno:
+
+- **Lectura compartida** (`contexto_compartido`): varias preguntas sobre un
+  mismo texto o tabla. En la tablet el texto se muestra una sola vez arriba y
+  cada pregunta aparece en su propia pantalla, sin repetir el párrafo.
+- **Emparejamiento** (`banco_opciones`): una caja de palabras y varias
+  descripciones que el estudiante relaciona. Todas las descripciones y la
+  caja se ven **en la misma pantalla**; cada respuesta acertada vale un punto.
+- **Completar espacios** (`texto_con_blancos`): un pasaje con espacios
+  numerados y opciones para llenar cada uno. También se responde en una sola
+  pantalla.
+
+Las preguntas de un grupo se declaran en `preguntas` con `grupo_id` (y, para
+emparejamiento y completar, `tipo_item`). Si varias preguntas del grupo no
+traen los seis campos de metadata, pueden heredarlos del campo
+`metadata_pedagogica` del grupo.
+
+**Aviso importante:** si el contenido de una pregunta o grupo incluye el
+marcador `{{numero:...}}` (numeración dinámica del estándar), OpenTest lo
+**excluye** al importar — todavía no sabe sustituirlo, y mostrarlo en la
+tablet sería mostrar contenido roto. Al confirmar la carga verá una lista
+clara de lo que se quedó fuera y por qué; el resto del banco se importa
+normalmente. Si necesita esas preguntas, quite el marcador del paquete y
+vuelva a cargarlo.
+
 ## 3. Preparar una evaluación
 
 1. Entre a **Estudiantes**, seleccione el archivo y revise la vista previa antes de confirmar.
@@ -99,12 +131,10 @@ Si una tablet se bloqueó o un estudiante se retiró, use **Forzar entrega** jun
 
 Después de cerrar, entre a **Descargar resultados**. Puede elegir todos los cursos o uno solo:
 
-- **Detalle CSV:** una fila por pregunta; úselo para retroalimentación.
-- **Resumen CSV:** una fila por estudiante; úselo para pasar notas.
-- **JSON:** conserva toda la prueba y el orden exacto de las opciones para auditoría.
-- **Excel (.xlsx):** un solo archivo con las dos tablas anteriores (resumen y detalle) ya maquetado, cabecera fija y columnas ajustadas — ábralo directamente, sin dar formato a mano.
+- **Excel (.xlsx):** un solo archivo con tres hojas — resumen por estudiante, detalle por pregunta con las opciones que vio cada quien, y el banco visto por la clase — con cabecera fija y columnas ajustadas. Ábralo directamente, sin dar formato a mano.
+- **Reproducción (.zip):** el JSON completo de la evaluación (formato 3) con las imágenes empaquetadas, para reproducir la prueba en otra plataforma.
 
-Excel puede convertir códigos como `00123` en `123`. Al importar el CSV, marque la columna `codigo` como **Texto**.
+Excel puede convertir códigos como `00123` en `123`. Al importar la planilla a otro sistema, marque la columna `codigo` como **Texto**.
 
 ## 7. Ver qué falló más el grupo
 

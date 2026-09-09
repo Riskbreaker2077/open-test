@@ -111,6 +111,57 @@ const MIGRACIONES = [
       anadirColumna(db, 'sesiones', 'descargado_en', 'TEXT');
     },
   },
+  {
+    version: 5,
+    descripcion: 'Grupos de preguntas y campos informativos de v1.1.0/v1.2.0+',
+    aplicar(db) {
+      // Tabla nueva: contenedor del contexto compartido (contexto_compartido,
+      // texto_con_blancos) o banco de opciones compartido (banco_opciones).
+      // El id es el mismo string que el estándar usa en `paquete.grupos[i].id`.
+      // Se crea antes de las columnas `grupo_id` que la referencian, porque
+      // SQLite no acepta un ALTER ADD COLUMN que apunte a una tabla inexistente.
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS grupos (
+          id                   TEXT PRIMARY KEY,
+          banco_id             INTEGER NOT NULL REFERENCES bancos (id) ON DELETE CASCADE,
+          tipo                 TEXT NOT NULL
+                                CHECK (tipo IN ('contexto_compartido', 'banco_opciones', 'texto_con_blancos')),
+          contexto             TEXT NOT NULL DEFAULT '[]',
+          banco                TEXT NOT NULL DEFAULT '[]',
+          metadata_pedagogica  TEXT NOT NULL DEFAULT '{}'
+        );
+      `);
+      db.exec('CREATE INDEX IF NOT EXISTS idx_grupos_banco ON grupos (banco_id)');
+
+      // Columnas nuevas en `preguntas` para los tres tipos de grupo, los
+      // campos informativos de v1.1.0 y los nuevos de v1.2.0+.
+      anadirColumna(db, 'preguntas', 'grupo_id', 'TEXT REFERENCES grupos (id) ON DELETE CASCADE');
+      anadirColumna(
+        db,
+        'preguntas',
+        'tipo_item',
+        "TEXT CHECK (tipo_item IN ('estandar', 'miembro_banco_opciones', 'miembro_texto_con_blancos'))",
+      );
+      anadirColumna(db, 'preguntas', 'respuesta_pool_id', 'TEXT');
+      anadirColumna(db, 'preguntas', 'numero_blanco', 'INTEGER');
+      anadirColumna(db, 'preguntas', 'nivel_mcer', 'TEXT');
+      anadirColumna(db, 'preguntas', 'valor', 'REAL NOT NULL DEFAULT 1 CHECK (valor > 0)');
+      anadirColumna(db, 'preguntas', 'grado', 'TEXT');
+      anadirColumna(db, 'preguntas', 'prueba', 'TEXT');
+      anadirColumna(db, 'preguntas', 'procedencia', "TEXT NOT NULL DEFAULT '{}'");
+      anadirColumna(db, 'preguntas', 'verificado', "TEXT NOT NULL DEFAULT '{}'");
+      anadirColumna(db, 'preguntas', 'fuentes', "TEXT NOT NULL DEFAULT '{}'");
+      anadirColumna(db, 'preguntas', 'version_estandar', 'TEXT');
+      db.exec('CREATE INDEX IF NOT EXISTS idx_preguntas_grupo ON preguntas (grupo_id)');
+
+      // Trazabilidad de la justificación por opción (v1.1.0).
+      anadirColumna(db, 'opciones', 'procedencia_justificacion', 'TEXT');
+      anadirColumna(db, 'opciones', 'justificacion_verificada', 'INTEGER');
+
+      // Respuesta de matching/cloze: id elegido dentro del banco del grupo.
+      anadirColumna(db, 'intento_preguntas', 'respuesta_banco_id', 'TEXT');
+    },
+  },
 ];
 
 export const ULTIMA_VERSION = MIGRACIONES.at(-1)?.version ?? 0;

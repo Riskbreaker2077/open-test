@@ -2,7 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { abrirBd, cerrarBd } from '../db.js';
 import { guardarBanco } from './bancos.js';
-import { preguntaDeEjemplo } from '../fixtures-preguntas.js';
+import {
+  grupoBancoOpciones,
+  grupoContextoCompartido,
+  grupoTextoConBlancos,
+  preguntaDeEjemplo,
+  preguntaMiembroBancoOpciones,
+  preguntaMiembroContextoCompartido,
+  preguntaMiembroTextoConBlancos,
+} from '../fixtures-preguntas.js';
 import { guardarEstudiantes } from './estudiantes.js';
 import { iniciarOReanudarIntento } from './intentos.js';
 import {
@@ -278,5 +286,174 @@ test('pausar desde el estudiante es idempotente si la sesión ya está pausada',
   const segunda = pausarIntentoComoEstudiante(db, intento, new Date(INICIO.getTime() + 5000));
 
   assert.equal(segunda.estado, 'pausada');
+  cerrarBd(db);
+});
+
+// --- Grupos de preguntas (feature 026) -------------------------------------
+
+function prepararConBanco(bancoOpts) {
+  const db = abrirBd(':memory:');
+  bancoOpts(db);
+  const estudiante = { codigo: '1001', nombres: 'Ana', apellidos: 'Gómez', curso: '10A' };
+  guardarEstudiantes(db, [estudiante]);
+  return { db, estudiante };
+}
+
+test('contexto_compartido: la ruta sirve el contexto del grupo una sola vez', () => {
+  const { db } = prepararConBanco((d) => {
+    const grupo = grupoContextoCompartido({ id: 'g-cc' });
+    const m1 = preguntaMiembroContextoCompartido('g-cc');
+    const m2 = preguntaMiembroContextoCompartido('g-cc');
+    guardarBanco(d, 'Sociales', [m1, m2, ...Array.from({ length: 18 }, () => preguntaDeEjemplo())], [grupo]);
+  });
+  const creada = crearSesion(db, { nombre: 'P', banco_id: 1, cursos: ['10A'], n_preguntas: 20 });
+  abrirSesion(db, creada.id);
+  const intento = iniciarOReanudarIntento(db, obtenerSesion(db, creada.id), { codigo: '1001', curso: '10A' }).intento;
+  comenzarSesion(db, creada.id, INICIO);
+
+  // Buscar el orden de un miembro del grupo.
+  const fila = db.prepare(`
+    SELECT ip.orden FROM intento_preguntas ip
+    JOIN preguntas p ON p.id = ip.pregunta_id
+    WHERE ip.intento_id = ? AND p.grupo_id = 'g-cc' LIMIT 1
+  `).get(intento.id);
+  assert.ok(fila, 'alguno de los miembros del grupo está en la prueba');
+
+  const pregunta = obtenerPregunta(db, intento, fila.orden, INICIO);
+  assert.ok(pregunta.grupo, 'la respuesta trae el grupo resuelto');
+  assert.equal(pregunta.grupo.tipo, 'contexto_compartido');
+  assert.ok(pregunta.grupo.contexto.length > 0, 'el contexto del grupo viene pintable');
+  // El miembro es de tipo estándar: no viene banco ni hermanos (se muestran una por pantalla).
+  assert.equal(pregunta.grupo.banco, undefined);
+  assert.equal(pregunta.grupo.preguntas, undefined);
+  assert.doesNotMatch(JSON.stringify(pregunta), /es_correcta|justificacion/i);
+  cerrarBd(db);
+});
+
+test('banco_opciones: la ruta sirve el banco sin el ejemplo y los hermanos sin la correcta', () => {
+  const { db } = prepararConBanco((d) => {
+    const grupo = grupoBancoOpciones({
+      id: 'g-bo',
+      banco: [
+        { id: 'p1', contenido: [{ tipo: 'texto', texto: 'phloem' }] },
+        { id: 'p2', contenido: [{ tipo: 'texto', texto: 'xylem' }] },
+        { id: 'p3', contenido: [{ tipo: 'texto', texto: 'stoma' }], es_ejemplo: true },
+      ],
+    });
+    const m1 = preguntaMiembroBancoOpciones('g-bo', grupo.banco, { respuesta_pool_id: 'p1' });
+    const m2 = preguntaMiembroBancoOpciones('g-bo', grupo.banco, { respuesta_pool_id: 'p2' });
+    guardarBanco(d, 'Inglés', [m1, m2, ...Array.from({ length: 18 }, () => preguntaDeEjemplo())], [grupo]);
+  });
+  const creada = crearSesion(db, { nombre: 'P', banco_id: 1, cursos: ['10A'], n_preguntas: 20 });
+  abrirSesion(db, creada.id);
+  const intento = iniciarOReanudarIntento(db, obtenerSesion(db, creada.id), { codigo: '1001', curso: '10A' }).intento;
+  comenzarSesion(db, creada.id, INICIO);
+
+  const fila = db.prepare(`
+    SELECT ip.orden FROM intento_preguntas ip
+    JOIN preguntas p ON p.id = ip.pregunta_id
+    WHERE ip.intento_id = ? AND p.grupo_id = 'g-bo' LIMIT 1
+  `).get(intento.id);
+  assert.ok(fila);
+
+  const pregunta = obtenerPregunta(db, intento, fila.orden, INICIO);
+  assert.equal(pregunta.tipo_item, 'miembro_banco_opciones');
+  assert.ok(pregunta.grupo);
+  assert.equal(pregunta.grupo.tipo, 'banco_opciones');
+  // La entrada de ejemplo se filtra: el estudiante no puede elegirla.
+  assert.deepEqual(pregunta.grupo.banco.map((e) => e.id).sort(), ['p1', 'p2']);
+  // Los hermanos vienen resueltos, sin pista de cuál es la correcta.
+  assert.equal(pregunta.grupo.preguntas.length, 1, 'el otro miembro viene como hermano');
+  const texto = JSON.stringify(pregunta);
+  assert.doesNotMatch(texto, /es_correcta|justificacion|respuesta_pool_id/i);
+  cerrarBd(db);
+});
+
+test('texto_con_blancos: la ruta sirve el pasaje del grupo y los huecos numerados', () => {
+  const { db } = prepararConBanco((d) => {
+    const grupo = grupoTextoConBlancos({ id: 'g-tb' });
+    const m1 = preguntaMiembroTextoConBlancos('g-tb', 1);
+    const m2 = preguntaMiembroTextoConBlancos('g-tb', 2);
+    guardarBanco(d, 'Inglés', [m1, m2, ...Array.from({ length: 18 }, () => preguntaDeEjemplo())], [grupo]);
+  });
+  const creada = crearSesion(db, { nombre: 'P', banco_id: 1, cursos: ['10A'], n_preguntas: 20 });
+  abrirSesion(db, creada.id);
+  const intento = iniciarOReanudarIntento(db, obtenerSesion(db, creada.id), { codigo: '1001', curso: '10A' }).intento;
+  comenzarSesion(db, creada.id, INICIO);
+
+  const fila = db.prepare(`
+    SELECT ip.orden FROM intento_preguntas ip
+    JOIN preguntas p ON p.id = ip.pregunta_id
+    WHERE ip.intento_id = ? AND p.grupo_id = 'g-tb' LIMIT 1
+  `).get(intento.id);
+  assert.ok(fila);
+
+  const pregunta = obtenerPregunta(db, intento, fila.orden, INICIO);
+  assert.equal(pregunta.tipo_item, 'miembro_texto_con_blancos');
+  assert.ok(pregunta.grupo);
+  assert.equal(pregunta.grupo.tipo, 'texto_con_blancos');
+  assert.ok(pregunta.grupo.contexto.length > 0, 'el pasaje compartido viene');
+  assert.equal(pregunta.grupo.preguntas.length, 1, 'el otro hueco viene como hermano');
+  assert.ok(pregunta.opciones.length >= 2, 'el hueco tiene sus propias opciones');
+  assert.doesNotMatch(JSON.stringify(pregunta), /es_correcta|justificacion/i);
+  cerrarBd(db);
+});
+
+test('matching: guardarRespuesta escribe respuesta_banco_id y rechaza ids fuera del banco', () => {
+  const { db } = prepararConBanco((d) => {
+    const grupo = grupoBancoOpciones({ id: 'g-bo' });
+    const m1 = preguntaMiembroBancoOpciones('g-bo', grupo.banco, { respuesta_pool_id: 'p1' });
+    const m2 = preguntaMiembroBancoOpciones('g-bo', grupo.banco, { respuesta_pool_id: 'p2' });
+    guardarBanco(d, 'Inglés', [m1, m2, ...Array.from({ length: 18 }, () => preguntaDeEjemplo())], [grupo]);
+  });
+  const creada = crearSesion(db, { nombre: 'P', banco_id: 1, cursos: ['10A'], n_preguntas: 20, segundos_minimos_pregunta: 0 });
+  abrirSesion(db, creada.id);
+  const intento = iniciarOReanudarIntento(db, obtenerSesion(db, creada.id), { codigo: '1001', curso: '10A' }).intento;
+  comenzarSesion(db, creada.id, INICIO);
+
+  const fila = db.prepare(`
+    SELECT ip.orden FROM intento_preguntas ip
+    JOIN preguntas p ON p.id = ip.pregunta_id
+    WHERE ip.intento_id = ? AND p.grupo_id = 'g-bo' LIMIT 1
+  `).get(intento.id);
+  assert.ok(fila);
+
+  obtenerPregunta(db, intento, fila.orden, INICIO);
+
+  // Un id que no está en el banco se rechaza.
+  assert.throws(
+    () => guardarRespuesta(db, intento, { n: fila.orden, respuestaBancoId: 'no-existe', segundos: 1 },
+      new Date(INICIO.getTime() + 1000)),
+    /no pertenece al banco/,
+  );
+
+  // Un id válido se guarda en respuesta_banco_id y no en respuestas.opcion_id.
+  const respuesta = guardarRespuesta(db, intento, { n: fila.orden, respuestaBancoId: 'p2', segundos: 1 },
+    new Date(INICIO.getTime() + 1000));
+  assert.equal(respuesta.respuestaBancoId, 'p2');
+
+  const filaGuardada = db.prepare(`
+    SELECT ip.respuesta_banco_id, r.opcion_id
+    FROM intento_preguntas ip
+    LEFT JOIN respuestas r ON r.intento_pregunta_id = ip.id
+    WHERE ip.intento_id = ? AND ip.orden = ?
+  `).get(intento.id, fila.orden);
+  assert.equal(filaGuardada.respuesta_banco_id, 'p2');
+  assert.equal(filaGuardada.opcion_id, null, 'para matching, respuestas.opcion_id queda NULL');
+  cerrarBd(db);
+});
+
+test('una pregunta standalone no trae grupo en la respuesta', () => {
+  const { db } = prepararConBanco((d) => {
+    guardarBanco(d, 'Ciencias', Array.from({ length: 20 }, () => preguntaDeEjemplo()));
+  });
+  const creada = crearSesion(db, { nombre: 'P', banco_id: 1, cursos: ['10A'], n_preguntas: 4 });
+  abrirSesion(db, creada.id);
+  const intento = iniciarOReanudarIntento(db, obtenerSesion(db, creada.id), { codigo: '1001', curso: '10A' }).intento;
+  comenzarSesion(db, creada.id, INICIO);
+
+  const pregunta = obtenerPregunta(db, intento, 1, INICIO);
+  assert.equal(pregunta.grupo, undefined);
+  assert.equal(pregunta.tipo_item, 'estandar');
   cerrarBd(db);
 });

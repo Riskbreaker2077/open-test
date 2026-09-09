@@ -2,65 +2,48 @@
 
 ## Última actualización y rama activa
 
-- 28/08/2026 — `main`, 1 commit adelante de `origin/main` (no pusheado todavía).
+- 08/09/2026 — `main`, **todo sin commitear**: la 026 implementada + cambios pendientes de sesiones anteriores (020 + fix de `postject`). No se ha hecho commit; decidir en la próxima sesión qué se commitea y en cuántos commits.
 
 ## Feature/tarea en curso
 
-- Ninguna en curso. Acaba de completarse la **020 · Gestión manual de estudiantes** ([spec](spec/features/020-gestion-manual-estudiantes/spec.md)). Las 20 features del roadmap están implementadas y los 345 tests en verde. Lo único que falta antes de dar el proyecto por cerrado es la sesión de validación física en red local — ver "Siguiente tarea" abajo.
+- **026 · Grupos de preguntas y campos informativos — IMPLEMENTADA.** Código, tests, contratos, ejemplo y guía listos. 412 tests en verde, lint limpio (90 archivos), `git diff --check` limpio. Spec marcada *implementado ✅* y movida a "Hecho" en el roadmap. Lo único pendiente de la 026 es la **verificación física** (tablet/proyector/Excel real), aplazada a la sesión de validación en equipo destino junto con lo de 012/013/021/022/025.
 
 ## Qué se hizo en esta sesión
 
-### `main` (sin commitear todavía)
+### 026 implementada de punta a punta
 
-- **020 · Gestión manual de estudiantes** ([spec](spec/features/020-gestion-manual-estudiantes/), [plan](spec/features/020-gestion-manual-estudiantes/plan.md), [tasks](spec/features/020-gestion-manual-estudiantes/tasks.md)):
-  - Servicio `crearEstudiante` y `actualizarEstudiante` en `server/services/estudiantes.js`, con validación extraída a `validarEstudianteIndividual` en `server/importers/estudiantes.js` para que el modal y la importación compartan los mismos mensajes en español.
-  - Rutas nuevas: `POST /api/docente/estudiantes` y `PUT /api/docente/estudiantes/:codigo` (ambas bajo `/api/docente/*`, protegidas por la sesión del docente). Errores tipados: `400` con `errores[]` cuando la validación falla, `409` cuando el código ya existe, `404` cuando se edita un código inexistente. El `codigo` del body se ignora al editar.
-  - Pantalla `public/docente/estudiantes.html`: botón **"+ Nuevo estudiante"** arriba del listado, y un `<dialog>` modal al pie con los cuatro campos del contrato. Cada fila gana un botón **Editar** (al lado de **Eliminar**); en modo edición el `codigo` queda en solo lectura.
-  - Estilos mínimos locales en `estudiantes.html` (sin tocar `public/shared/base.css`): el modal y la fila con dos acciones.
-  - 16 tests nuevos: 9 en `server/services/estudiantes.test.js` y 7 en `server/routes/docente.estudiantes.test.js`.
-  - `npm test`: 345/345 en verde. `npm run lint`: 87 archivos sin errores.
-- Documentación: la 020 se movió a "Hecho ✅" en `spec/constitution/roadmap.md`, AGENTS.md y este archivo se actualizaron.
+- **Contratos**: `paquete-preguntas-icfes.md` ampliado con "Tipos de pregunta admitidos" (tres grupos) + campos informativos + aviso de `{{numero:<id>}}`; `export-resultados-v2.md` marcado obsoleto; creado `export-resultados-v3.md` (`formato_version: 3`).
+- **Validador**: `server/importers/estandar-preguntas-icfes.js` reemplazado entero por la copia upstream v1.4.0 (mensajes ya en español). El v1.4.0 admite 2+ opciones, grupos, metadata heredada, `nivel_mcer`, `valor`, `version_estandar` por pregunta y validación de referencia de `{{numero:ID}}`.
+- **Esquema**: migración v5 en `server/migraciones.js` (tabla `grupos` + 12 columnas en `preguntas` + 2 en `opciones` + `respuesta_banco_id` en `intento_preguntas`). `schema.sql` al día; **ojo**: `idx_preguntas_grupo` se crea en `db.js`/migración, no en `schema.sql`, porque en una base antigua la columna no existe cuando se aplica el esquema.
+- **Importador**: `preguntas.js` devuelve `{nombre, preguntas, grupos, exclusiones, errores, avisos}` y excluye (con aviso accionable) toda pregunta/grupo cuyo texto traiga `{{numero:...}}`.
+- **Bancos**: `guardarBanco(db, nombre, preguntas, grupos)` inserta grupos en la misma transacción y hereda `metadata_pedagogica` del grupo; `obtenerBanco` devuelve `preguntas` (sueltas) y `grupos` con sus miembros anidados.
+- **Personalización**: los grupos son unidades indivisibles (peso = nº de miembros); cuotas por competencia por peso; nunca supera `nPreguntas` ni parte un grupo (hay fix + test de regresión del overshoot del fallback).
+- **Intentos**: matching materializa `orden_opciones` con los ids de las entradas del banco; `pruebaDelIntento` expone `grupo_id`/`tipo_item`.
+- **Examen (servidor)**: `obtenerPregunta` resuelve el grupo (contexto; banco sin `es_ejemplo` + hermanos para matching/cloze; `respuesta_pool_id` NUNCA sale). `guardarRespuesta` acepta `respuestaBancoId` validado contra el banco y permite responder cualquier miembro del grupo en pantalla. En reanudación con miembros pendientes, el mínimo vuelve a correr.
+- **Calificación**: suma `valor` (default 1); matching se califica por `respuesta_banco_id` vs `respuesta_pool_id`; `armarResultado`/resultado del estudiante resuelven matching.
+- **Render**: `pregunta.js` gana `letrasDeOpciones(n)`, `renderizarGrupo` (3 tipos, con `correctas` para el panel) y `renderizarMiembroMatching`. `examen.js` del estudiante distingue pantalla de grupo (matching/cloze todo en una pantalla, se guarda al avanzar; contexto_compartido una pregunta por pantalla con el contexto arriba). `examen.html` gana el contenedor `#grupo`. CSS mínimo en `base.css`.
+- **Panel docente**: `verBanco` muestra grupos como `<details>` plegables con la correcta marcada; la vista previa de importación solo muestra preguntas con opciones propias (los miembros se ven con "Ver" tras importar).
+- **Exportación v3**: JSON con `banco.grupos`, campos informativos por pregunta/opción, `respuesta_banco_id`; hojas Detalle y Banco del `.xlsx` con las columnas nuevas; `imagenesDeSesion` incluye imágenes de contexto/banco de grupo.
+- **Ejemplos y guía**: `ejemplos/banco-grupos-ingles.zip` (10 preguntas: lectura compartida + matching + cloze + 1 standalone, validado contra el importador real); `GUIA-DOCENTE.md` con sección "Tipos de pregunta admitidos", aviso `{{numero:...}}`, ejemplo nuevo y descargas corregidas a Excel+ZIP.
+
+### Tests
+
+- 412/412 en verde (eran 380). Dos asserts se actualizaron por diseño de la feature: la regla de opciones 4→2+ en el importador y `formato_version` 2→3 en exportación. Suite vieja sin grupos intacta (prueba de que la ampliación es aditiva).
+- Lint: 90 archivos sin errores. `git diff --check` OK.
 
 ## Estado
 
-- Git: cambios sin commitear todavía en `main` (1 commit adelante de `origin/main`, pero no es de la 020 — es el fix de `postject` para Node 24 de la sesión anterior). **No se pidió commit ni push en esta sesión.**
-- Tests: 345/345 en verde. Lint: 87 archivos sin errores.
-- Build: **no verificado en esta sesión ni en ninguna anterior desde este entorno.** `scripts/build-exe.js` se niega a correr fuera de Windows.
-- Servidor: no probado en un navegador real. La 020 añade UI nueva (modal `<dialog>`) que conviene ver al menos una vez en un navegador antes de la sesión de validación.
+- Git: **todo sin commitear** (020 + fix postject + 026 completa). Sin commit ni push en esta sesión.
+- Servidor: no probado en un navegador real (igual que al iniciar la sesión; el render de grupos en tablet va a la validación física).
 
-## Siguiente tarea — es esta, no hay otra feature que planear
+## Siguiente tarea
 
-**La sesión de validación en red local con equipo Windows real.** No es delegable: necesita hardware físico (portátil Windows, tablets, proyector, wifi). Antes de esa sesión, quien la organice debe tener listo:
-
-**Equipo y red**
-1. Portátil Windows 10/11 de 64 bits, con Node 22 instalado *solo para construir* (`npm install && npm run build:exe` — el `.exe` resultante no necesita Node para correr).
-2. Copiar la carpeta `OpenTest-Windows` completa (no solo el `.exe`) al equipo final.
-3. Tablets/dispositivos de estudiantes y el portátil en la **misma red wifi**, confirmando con el responsable de la red que esa wifi no tiene **aislamiento de clientes** activado.
-4. Permitir OpenTest en el cortafuegos de Windows para redes privadas, y aceptar SmartScreen/antivirus.
-
-**Contenido**
-5. La base de datos parte **vacía** en la máquina Windows: reimportar estudiantes y banco allí.
-6. Lista real de estudiantes, o `ejemplos/estudiantes-ejemplo.csv` para el ensayo.
-7. Banco de preguntas real en el estándar preguntas-icfes, o `ejemplos/participacion-ciudadana-20-preguntas.zip` para el ensayo.
-8. Contraseña del panel docente decidida y guardada en un lugar seguro — no se puede recuperar desde la interfaz.
-
-**Antes del día real**
-9. Correr la "Prueba de humo" de `GUIA-DOCENTE.md` al menos una vez en el equipo destino.
-10. Proyector conectado y probado, con la pantalla de proyección legible desde el fondo del salón.
-
-**Verificaciones físicas que solo esta sesión puede cerrar**
-11. QR escaneado desde una tablet real abre el portal del estudiante (012, 013).
-12. Usabilidad táctil real en tablet — botones ≥44px, sin scroll horizontal — en portal, examen y resultado (013, 006, 007).
-13. Aviso en pantalla si se pierde la red al responder (006).
-14. Tildes correctas al abrir los CSV en Excel de Windows (009).
-15. `npm run build:exe` produce un ejecutable que arranca sin Node, abre el navegador, y la pantalla del docente se ve bien (010, 014).
-16. El `.xlsx` de la 018 abre en Excel/LibreOffice reales sin diálogo de reparación.
-17. La pantalla de Estadísticas (019) funciona con clics reales en un navegador.
-18. **Modal de creación/edición de estudiantes (020)** se ve y se opera bien en un navegador real; verificar que `Esc` cierra, que el foco vuelve al botón que lo abrió, y que el `codigo` en readonly se distingue visualmente.
+1. **Decidir el commit**: hay tres lotes mezclados sin commitear (020, fix de `postject`, 026). Sugerencia: separar en commits por lote antes de pushear.
+2. Verificación física en equipo destino (lista completa en `roadmap.md → Siguiente`), con `ejemplos/banco-grupos-ingles.zip` para el recorrido visual de los tres grupos.
+3. Política de recuperación de contraseña del panel docente (pendiente de sesiones atrás) antes de documentarla en `GUIA-DOCENTE.md`.
 
 ## Bloqueos / decisiones pendientes
 
-- Todo lo de "Siguiente tarea" depende del equipo físico — nada de esto avanza sin la máquina Windows, tablets y proyector.
-- Decidir la política de recuperación de contraseña del panel docente (gap conocido) antes de documentarla en `GUIA-DOCENTE.md`.
-- Backlog abierto, sin tocar esta sesión: monitoreo en vivo enriquecido, backup con un clic, y decidir si/cómo migrar bancos anteriores a la 016.
-- Pendiente de esta sesión: commitear los cambios de la 020 y pushear a `origin/main`. No se hizo porque no se pidió.
+- Sin bloqueos técnicos de la 026.
+- Recuperación de contraseña del panel: sigue pendiente.
+- Nota: la 021 exige `pregunta_actual` del primer miembro del grupo; el servidor ya acepta responder cualquier miembro del grupo en pantalla (verificado por test).

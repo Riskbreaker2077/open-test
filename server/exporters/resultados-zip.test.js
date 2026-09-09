@@ -52,7 +52,7 @@ test('aReproduccionZip incluye resultados.json parseable', () => {
   const buffer = aReproduccionZip(db, armarExportacion(db, sesionId));
   const archivos = leerZip(buffer);
   const json = JSON.parse(archivos.find((a) => a.nombre === 'resultados.json').contenido.toString('utf-8'));
-  assert.equal(json.formato_version, 2);
+  assert.equal(json.formato_version, 3);
   cerrarBd(db);
 });
 

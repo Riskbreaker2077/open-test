@@ -2,26 +2,54 @@ import { analizarBloques } from './bloques.js';
 
 const error = (mensaje, estado = 400) => Object.assign(new Error(mensaje), { estado });
 
-/** Calcula sobre toda la prueba asignada, incluidas las preguntas no vistas. */
+/**
+ * Calcula sobre toda la prueba asignada, incluidas las preguntas no vistas.
+ *
+ * Cada pregunta aporta `valor` (default 1) al puntaje. Un matching de 5
+ * miembros acertados suma 5 puntos, no 1.
+ *
+ * Para preguntas `miembro_banco_opciones`, el acierto se decide comparando
+ * `respuesta_banco_id` contra `respuesta_pool_id` de la pregunta (la
+ * entrada del banco marcada como correcta al empaquetar). Las preguntas
+ * sin opciones propias se identifican porque su `opciones` está vacío.
+ */
 export function calificarIntento(preguntas) {
   const total = preguntas.length;
-  const aciertos = preguntas.filter(
-    (pregunta) => pregunta.opcion_id !== null && pregunta.opcion_id === pregunta.opcion_correcta_id,
-  ).length;
+  let aciertos = 0;
+  let puntaje = 0;
+
+  for (const pregunta of preguntas) {
+    const valor = Number(pregunta.valor ?? 1);
+    let acierto = false;
+    if (pregunta.tipo_item === 'miembro_banco_opciones') {
+      const elegida = pregunta.respuesta_banco_id ?? null;
+      acierto = elegida !== null && pregunta.respuesta_pool_id === elegida;
+    } else {
+      const elegida = pregunta.opcion_id;
+      acierto = elegida !== null && pregunta.opcion_correcta_id === elegida;
+    }
+    if (acierto) {
+      aciertos += 1;
+      puntaje += valor;
+    }
+  }
+
   return {
     aciertos,
-    puntaje: aciertos,
+    puntaje,
     total,
-    porcentaje: total === 0 ? 0 : Number(((aciertos / total) * 100).toFixed(1)),
+    porcentaje: total === 0 ? 0 : Number(((puntaje / total) * 100).toFixed(1)),
   };
 }
 
 /** Lee la prueba materializada sin perder el orden que vio el estudiante. */
 export function preguntasCalificables(db, intentoId) {
   const filas = db.prepare(`
-    SELECT ip.orden, ip.orden_opciones, p.contexto, p.enunciado,
+    SELECT ip.orden, ip.orden_opciones, ip.respuesta_banco_id,
+           p.contexto, p.enunciado,
            p.competencia, p.componente, p.afirmacion, p.evidencia,
            p.estandar_asociado, p.que_evalua,
+           p.grupo_id, p.tipo_item, p.respuesta_pool_id, p.valor,
            r.id AS respuesta_id, r.opcion_id,
            (SELECT id FROM opciones WHERE pregunta_id = p.id AND es_correcta = 1) AS opcion_correcta_id
     FROM intento_preguntas ip
@@ -33,6 +61,35 @@ export function preguntasCalificables(db, intentoId) {
 
   const opciones = db.prepare('SELECT id, texto, justificacion FROM opciones WHERE id IN (?, ?, ?, ?)');
   return filas.map((fila) => {
+    if (fila.tipo_item === 'miembro_banco_opciones') {
+      // El orden guardado son los ids de las entradas del banco del grupo,
+      // no ids de la tabla opciones: se resuelven contra grupos.banco.
+      const grupo = fila.grupo_id
+        ? db.prepare('SELECT banco FROM grupos WHERE id = ?').get(fila.grupo_id)
+        : null;
+      const banco = (() => {
+        try {
+          return JSON.parse(grupo?.banco ?? '[]');
+        } catch {
+          return [];
+        }
+      })();
+      const porId = new Map(banco.map((entrada) => [
+        String(entrada.id),
+        {
+          id: entrada.id,
+          contenido: Array.isArray(entrada.contenido) ? entrada.contenido : [],
+          justificacion: undefined,
+        },
+      ]));
+      const ids = fila.orden_opciones.split(',').filter(Boolean);
+      return {
+        ...fila,
+        contexto: analizarBloques(fila.contexto),
+        enunciado: analizarBloques(fila.enunciado),
+        opciones: ids.map((id) => porId.get(String(id))),
+      };
+    }
     const ids = fila.orden_opciones.split(',').map(Number);
     const porId = new Map(opciones.all(...ids).map((opcion) => [
       opcion.id,
@@ -74,6 +131,9 @@ export function entregarIntentoCalificado(db, intentoId, motivo, entregadoEn) {
 
 function estadoDe(pregunta) {
   if (pregunta.respuesta_id === null) return 'sin_llegar';
+  if (pregunta.tipo_item === 'miembro_banco_opciones') {
+    return pregunta.respuesta_banco_id === pregunta.respuesta_pool_id ? 'acertada' : 'fallada';
+  }
   if (pregunta.opcion_id === null) return 'saltada';
   return pregunta.opcion_id === pregunta.opcion_correcta_id ? 'acertada' : 'fallada';
 }
@@ -94,13 +154,24 @@ export function armarResultado(intento, preguntas, nivel) {
   return {
     ...base,
     preguntas: preguntas.map((pregunta) => {
-      const elegida = pregunta.opciones.find((opcion) => opcion.id === pregunta.opcion_id) ?? null;
-      // La justificación de la opción elegida es tan reveladora de la
-      // correcta como `es_correcta`: se oculta salvo en nivel completo,
-      // igual que `opciones`/`opcionCorrectaId` más abajo.
-      const respuesta = elegida && nivel !== 'completo'
-        ? { id: elegida.id, contenido: elegida.contenido }
-        : elegida;
+      let elegida;
+      let respuesta;
+      if (pregunta.tipo_item === 'miembro_banco_opciones') {
+        // La respuesta del matching es un id del banco del grupo, no un opcion_id.
+        const idElegido = pregunta.respuesta_banco_id ?? null;
+        elegida = pregunta.opciones.find((o) => String(o.id) === String(idElegido)) ?? null;
+        respuesta = idElegido
+          ? { banco_id: idElegido, contenido: elegida?.contenido ?? [] }
+          : null;
+      } else {
+        elegida = pregunta.opciones.find((opcion) => opcion.id === pregunta.opcion_id) ?? null;
+        // La justificación de la opción elegida es tan reveladora de la
+        // correcta como `es_correcta`: se oculta salvo en nivel completo,
+        // igual que `opciones`/`opcionCorrectaId` más abajo.
+        respuesta = elegida && nivel !== 'completo'
+          ? { id: elegida.id, contenido: elegida.contenido }
+          : elegida;
+      }
       const resultado = {
         orden: pregunta.orden,
         contexto: pregunta.contexto,
@@ -112,6 +183,11 @@ export function armarResultado(intento, preguntas, nivel) {
         resultado.opciones = pregunta.opciones;
         resultado.opcionId = pregunta.opcion_id;
         resultado.opcionCorrectaId = pregunta.opcion_correcta_id;
+        resultado.respuestaBancoId = pregunta.respuesta_banco_id ?? null;
+        resultado.respuestaPoolId = pregunta.respuesta_pool_id ?? null;
+        resultado.grupoId = pregunta.grupo_id ?? null;
+        resultado.tipoItem = pregunta.tipo_item ?? 'estandar';
+        resultado.valor = pregunta.valor ?? 1;
         resultado.competencia = pregunta.competencia;
         resultado.componente = pregunta.componente;
         resultado.afirmacion = pregunta.afirmacion;

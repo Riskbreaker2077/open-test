@@ -1,0 +1,35 @@
+# Tareas · 026 Grupos de preguntas y campos informativos
+
+- [x] Ampliar `spec/contracts/paquete-preguntas-icfes.md` con la sección "Tipos de pregunta admitidos" (los tres grupos, los campos informativos, la nota sobre `{{numero:<id>}}`); marcar `export-resultados-v2.md` como obsoleto.
+- [x] Crear `spec/contracts/export-resultados-v3.md` con los campos nuevos y `formato_version: 3`.
+- [x] Reemplazar `server/importers/estandar-preguntas-icfes.js` por la copia v1.4.0 del estándar (sin ediciones a mano); los mensajes ya venían en español; comentario de cabecera actualizado.
+- [x] Migración v5 en `server/migraciones.js`: `CREATE TABLE grupos` + 12 `ALTER TABLE ADD COLUMN` en `preguntas` + 2 en `opciones` + 1 en `intento_preguntas`.
+- [x] Actualizar `server/schema.sql` para que una base nueva nazca con la tabla `grupos` y todas las columnas nuevas al día. (`idx_preguntas_grupo` vive en `db.js`/migración: en una base antigua la columna no existe cuando se aplica `schema.sql`.)
+- [x] Reescribir `server/importers/preguntas.js`: persistir grupos (con contexto, banco, metadata_pedagogica), persistir campos informativos, filtrar preguntas/grupos con `{{numero:<id>}}` con aviso claro. (La persistencia de grupos vive en `bancos.guardarBanco`; el importador entrega `grupos` y `exclusiones`.)
+- [x] `server/services/bancos.js`: `guardarBanco` inserta grupos en transacción con preguntas (y hereda `metadata_pedagogica` del grupo cuando la miembro no trae los 6 campos); `obtenerBanco` devuelve grupos y sus preguntas miembro anidadas.
+- [x] `server/services/examen.js`: la ruta resuelve el grupo completo (contexto/banco sin `es_ejemplo`/hermanos) cuando la pregunta pertenece a uno; `guardarRespuesta` acepta `respuesta_banco_id` validado contra el banco y permite responder cualquier miembro del grupo en pantalla; nunca expone `es_correcta`, `justificacion` ni `respuesta_pool_id`. En reanudación, el mínimo vuelve a correr si quedan miembros sin enviar.
+- [x] `server/services/intentos.js`: `materializarPrueba` no parte un grupo (el muestreador lo garantiza); cada miembro ocupa un `orden` propio; en matching, `orden_opciones` lleva los ids de las entradas del banco.
+- [x] `server/services/calificacion.js`: suma `valor` (1 por defecto); para `miembro_banco_opciones` compara `respuesta_banco_id` contra `respuesta_pool_id`; `armarResultado` y el resultado del estudiante resuelven matching.
+- [x] `server/services/personalizacion.js`: el muestreo trata los grupos como unidades indivisibles (cuotas por peso = cantidad de miembros); nunca supera `nPreguntas` ni parte un grupo.
+- [x] `public/shared/pregunta.js`: `renderizarPregunta` sin hardcode de 4 letras (helper `letrasDeOpciones(n)`), soporte para `miembro_banco_opciones` y `miembro_texto_con_blancos`; nueva función `renderizarGrupo` para los tres tipos.
+- [x] `public/estudiante/examen.js`: detecta grupo en la pregunta actual; `contexto_compartido` pinta el contexto del grupo una sola vez encima; `banco_opciones` y `texto_con_blancos` pintan todas las preguntas miembro en una pantalla y envían sus respuestas al avanzar (saltando al primer orden fuera del grupo).
+- [x] `public/estudiante/examen.html`: contenedor extra `#grupo` para el render del grupo.
+- [x] `public/docente/bancos.js` + `bancos.html`: detalle del banco agrupa preguntas por grupo en secciones plegables (`<details>`), con contexto/banco del grupo y la correcta marcada.
+- [x] `server/exporters/resultados.js`: `formato_version: 3`, campos nuevos por pregunta y por opción en JSON; columnas adicionales en las hojas Detalle y Banco de `resultados.xlsx`; el JSON lleva `banco.grupos` (los grupos preservados en `reproduccion.zip`).
+- [x] `server/fixtures-preguntas.js`: factories para los tres tipos de grupo y para preguntas con campos informativos; los tests existentes con `banco()` sin grupos siguen pasando (dos asserts del importador se actualizaron porque v1.2.0 cambió la regla de 4 → 2+ opciones, y `formato_version` 2 → 3 en exportación: son los cambios que la propia feature define).
+- [x] Tests:
+  - `server/importers/preguntas.test.js`: banco con grupos importa entero; `{{numero:ID}}` excluye con motivo (pregunta suelta, grupo por contexto, grupo por banco).
+  - `server/migraciones.test.js`: una base pre-v5 gana columnas y tabla `grupos` sin perder datos.
+  - `server/services/bancos.test.js`: grupos persistidos, campos informativos, `obtenerBanco` anida miembros.
+  - `server/services/examen.test.js`: la ruta sirve el grupo resuelto al estudiante, sin filtrar campos prohibidos; matching guarda `respuesta_banco_id`.
+  - `server/services/intentos.test.js`: miembros del grupo en la prueba, `orden_opciones` con ids del banco en matching.
+  - `server/services/calificacion.test.js`: `valor` se suma; matching por `respuesta_banco_id`.
+  - `server/services/personalizacion.test.js`: grupo nunca partido; cuota por peso; sin superar `nPreguntas`.
+  - `server/exporters/resultados.test.js`: `formato_version: 3`, campos nuevos en JSON, Detalle y Banco.
+  - `public/shared/pregunta.test.js`: helpers `letrasDeOpciones` y `textoPlano`.
+  - Suite entera (`npm test`) en verde: 412 tests.
+- [x] Ejemplo `ejemplos/banco-grupos-ingles.zip`: 10 preguntas en inglés con un grupo de cada tipo, validado contra el importador real.
+- [x] `GUIA-DOCENTE.md`: sección "Tipos de pregunta admitidos" con el aviso de exclusión por `{{numero:<id>}}`; nota del ejemplo nuevo; descargas actualizadas a Excel+ZIP.
+- [x] `npm test`, `npm run lint` y `git diff --check` en verde.
+- [x] Mover la feature a "Hecho" en `spec/constitution/roadmap.md` (último en la lista).
+- [ ] Validar contra los criterios de aceptación de `spec.md`. (Los criterios visuales — tablet, proyector, apertura del `.xlsx` en Excel real — quedan para la sesión de validación física en el equipo destino, igual que en las features anteriores.)

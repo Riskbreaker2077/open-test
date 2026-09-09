@@ -264,3 +264,97 @@ siguiente. Cada fila gana un botón **Editar** al lado de **Eliminar**.
 La suite completa terminó con **345 de 345 tests aprobados** (16 nuevos:
 9 en el servicio, 7 en la integración de las rutas) y lint sobre 87
 archivos sin errores. Cambios sin commit.
+
+## 08/09/2026 — Spec/plan/tasks de la 026 (sin código)
+
+El estándar externo `preguntas-icfes` está en v1.4.0 y OpenTest solo había
+adoptado v1.0.0 — un banco real de Sociales/Inglés con lecturas
+compartidas, emparejamientos o *cloze* no se podía importar. El validador
+vendorizado rechazaba cualquier paquete que declarara los tres tipos de
+grupo de v1.2.0 (`contexto_compartido`, `banco_opciones`,
+`texto_con_blancos`), los campos informativos de v1.1.0 (`grado`,
+`prueba`, `procedencia`, `verificado`, `fuentes` por pregunta;
+`procedencia_justificacion` y `justificacion_verificada` por opción) o los
+nuevos campos de v1.2.0+ (`nivel_mcer`, `valor` por pregunta). El
+estándar también añadió en v1.4.0 el marcador `{{numero:<id>}}` para los
+pasajes *cloze*, que el validador solo valida como referencia pero no
+sustituye.
+
+Se decidió ampliar la adopción en una sola feature (026), no en tres
+separadas, porque los cambios van juntos: validador, esquema, importador,
+render y calificación tocan las mismas preguntas. Decisiones acordadas
+con el usuario:
+
+- Validador se reemplaza por la copia v1.4.0 upstream, sin ediciones a
+  mano (la regla de la 016).
+- Los campos informativos se guardan en la BD pero no se muestran en el
+  panel del docente (queda para feature futura).
+- El marcador `{{numero:<id>}}` se excluye del banco al importar, no se
+  sustituye (la sustitución depende del orden de entrega, información
+  que vive del lado de la plataforma; OpenTest tiene orden fijo por
+  intento pero la implementación se aplaza).
+- El tiempo mínimo por pregunta en matching/cloze se aplica al primer
+  miembro de la pantalla del grupo; los hermanos heredan el visto bueno
+  mientras el estudiante siga en esa pantalla. Confirmado por el
+  usuario.
+- Los grupos se materializan como filas separadas en `intento_preguntas`,
+  una por miembro, con `grupo_id` para que el renderer las reúna en una
+  sola pantalla cuando el tipo lo requiera. Así se mantiene la
+  invariante crítica de la 005 (cada `orden` es una fila inmutable).
+
+Se escribieron los tres documentos en
+`spec/features/026-grupos-de-preguntas/`:
+
+- `spec.md` — alcance, contrato, modelo de datos (migración v5: tabla
+  `grupos` + 16 columnas nuevas), invariantes, render del estudiante,
+  calificación con `valor`, criterios de aceptación y fuera de alcance.
+- `plan.md` — enfoque en cinco bloques (contrato+validador, esquema,
+  importador, servicios+render, panel+export), decisiones con
+  justificación, orden de implementación.
+- `tasks.md` — 29 tareas granulares, ya marcadas como `[ ]`.
+
+Cambios sin commit. `RESTART.md` actualizado para apuntar a la 026 como
+siguiente tarea.
+
+## 08/09/2026 — 026 · Grupos de preguntas y campos informativos (implementación)
+
+Implementación completa de la 026 en una sola sesión, siguiendo el orden del
+plan (contrato+validador → esquema → importador → servicios → render →
+panel+export → tests → ejemplo/guía).
+
+- **Validador v1.4.0**: reemplazado entero desde upstream
+  (github.com/riskbreaker2077/preguntas-icfes, rama `main`). Los mensajes ya
+  venían en español. Cualquier test que dependa de la regla vieja de
+  "exactamente 4 opciones" se actualizó: v1.2.0 exige 2+.
+- **Migración v5**: tabla `grupos` + columnas nuevas. Una lección: el índice
+  `idx_preguntas_grupo` no puede vivir en `schema.sql` porque sobre una base
+  antigua el `CREATE TABLE preguntas` es un no-op y la columna `grupo_id` no
+  existe aún cuando se aplica el esquema; se crea en `db.js` después de
+  aplicar `schema.sql` y migraciones.
+- **Sorteo con grupos**: las unidades son la pregunta standalone (peso 1) y el
+  grupo entero (peso = miembros). Se detectó y corrigió un overshoot del
+  fallback (podía superar `nPreguntas` al añadir un grupo completo); test de
+  regresión incluido.
+- **Seguridad**: `respuesta_pool_id` (la correcta del matching) nunca sale por
+  `/api/examen/*`; verificado con `doesNotMatch` sobre la respuesta completa,
+  incluidos los hermanos del grupo. `guardarRespuesta` valida el
+  `respuestaBancoId` contra el banco del grupo y rechaza el id `es_ejemplo`.
+- **Render**: `renderizarGrupo` cubre los tres tipos y lo consumen el examen
+  del estudiante y el panel del docente (misma función, sin divergencias).
+  Matching y cloze se rinden en una sola pantalla; contexto compartido, una
+  pregunta por pantalla con el contexto arriba.
+- **Exportación v3**: JSON con `banco.grupos` y campos informativos; hojas
+  Detalle y Banco con columnas nuevas; `export-resultados-v2.md` obsoleto.
+- **Ejemplo**: `ejemplos/banco-grupos-ingles.zip` (10 preguntas, un grupo de
+  cada tipo), validado contra el importador real. El validador mismo detectó
+  un error del primer borrador: la entrada `es_ejemplo` no puede ser respuesta
+  de una pregunta real.
+- **Guía**: `GUIA-DOCENTE.md` ganó la sección "Tipos de pregunta admitidos"
+  con el aviso de exclusión por `{{numero:...}}`; de paso se corrigió la
+  sección de descargas (aún listaba los CSV/JSON que la 025 retiró).
+
+Estado final: 412 tests en verde, lint limpio, `git diff --check` limpio.
+Todo sin commit (hay tres lotes mezclados: 020, fix de postject, 026).
+Criterios visuales (tablet, proyector, Excel real) aplazados a la sesión de
+validación física, como en las features anteriores. `RESTART.md`
+actualizado.

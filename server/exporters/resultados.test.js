@@ -3,7 +3,11 @@ import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
 import { abrirBd, cerrarBd } from '../db.js';
 import { guardarBanco } from '../services/bancos.js';
-import { preguntaDeEjemplo } from '../fixtures-preguntas.js';
+import {
+  grupoBancoOpciones,
+  preguntaDeEjemplo,
+  preguntaMiembroBancoOpciones,
+} from '../fixtures-preguntas.js';
 import { guardarEstudiantes } from '../services/estudiantes.js';
 import { iniciarOReanudarIntento } from '../services/intentos.js';
 import { abrirSesion, cerrarSesion, crearSesion, obtenerSesion } from '../services/sesiones.js';
@@ -39,12 +43,12 @@ function preparar({ cantidad = 2, nPreguntas = 4 } = {}) {
   return { db, sesionId: sesion.id, intentos };
 }
 
-test('el JSON conserva formato_version 2 y los bloques completos', () => {
+test('el JSON conserva formato_version 3 y los bloques completos', () => {
   const { db, sesionId } = preparar();
   cerrarSesion(db, sesionId);
   const exportacion = armarExportacion(db, sesionId);
   const json = JSON.parse(aJson(exportacion));
-  assert.equal(json.formato_version, 2);
+  assert.equal(json.formato_version, 3);
   assert.ok(Array.isArray(json.intentos[0].preguntas[0].opciones_mostradas));
   assert.ok(json.intentos[0].preguntas[0].opciones_mostradas[0].contenido.length > 0);
   cerrarBd(db);
@@ -162,4 +166,78 @@ test('aExcelRico de 40 intentos por 20 preguntas tarda menos de 2 segundos', () 
   assert.ok(buffer.length > 0);
   assert.ok(duracion < 2000, `tardó ${duracion.toFixed(1)} ms`);
   cerrarBd(db);
+});
+
+// --- Grupos y campos informativos (feature 026) ----------------------------
+
+test('formato_version 3 trae grupo_id, tipo_item, respuesta_banco_id y banco.grupos en el JSON', () => {
+  const db = abrirBd(':memory:');
+  const grupo = grupoBancoOpciones({ id: 'g-bo' });
+  const m1 = preguntaMiembroBancoOpciones('g-bo', grupo.banco, {
+    respuesta_pool_id: 'p1',
+    competencia: grupo.metadata_pedagogica.competencia,
+    valor: 2,
+    grado: '9',
+    prueba: 'saber11',
+  });
+  guardarBanco(
+    db,
+    'Inglés',
+    [m1, ...Array.from({ length: 19 }, (_, i) => preguntaDeEjemplo({ id: `p-${i}` }))],
+    [grupo],
+  );
+  const estudiantes = [{ codigo: '2001', nombres: 'A', apellidos: 'B', curso: '10A' }];
+  guardarEstudiantes(db, estudiantes);
+  const sesion = crearSesion(db, { nombre: 'S', banco_id: 1, cursos: ['10A'], n_preguntas: 20 });
+  abrirSesion(db, sesion.id);
+  const abierta = obtenerSesion(db, sesion.id);
+  const intento = iniciarOReanudarIntento(db, abierta, estudiantes[0]).intento;
+
+  // Responder el matching con la correcta.
+  const fila = db.prepare(`
+    SELECT ip.id FROM intento_preguntas ip
+    JOIN preguntas p ON p.id = ip.pregunta_id
+    WHERE ip.intento_id = ? AND p.tipo_item = 'miembro_banco_opciones'
+  `).get(intento.id);
+  db.prepare(`
+    INSERT INTO respuestas (intento_pregunta_id, segundos_en_pantalla, respondido_en)
+    VALUES (?, 5, '2026-09-08T08:00:00Z')
+  `).run(fila.id);
+  db.prepare('UPDATE intento_preguntas SET respuesta_banco_id = ? WHERE id = ?').run('p1', fila.id);
+
+  cerrarSesion(db, sesion.id);
+  const json = JSON.parse(aJson(armarExportacion(db, sesion.id)));
+  assert.equal(json.formato_version, 3);
+  assert.ok(Array.isArray(json.banco.grupos));
+  assert.equal(json.banco.grupos[0].id, 'g-bo');
+
+  const matching = json.intentos[0].preguntas.find((p) => p.tipo_item === 'miembro_banco_opciones');
+  assert.equal(matching.grupo_id, 'g-bo');
+  assert.equal(matching.valor, 2);
+  assert.equal(matching.grado, '9');
+  assert.equal(matching.prueba, 'saber11');
+  assert.equal(matching.respuesta_banco_id, 'p1');
+  assert.equal(matching.acierto, true);
+  assert.equal(matching.opciones_mostradas.length, 4, 'el banco sin el ejemplo: 4 entradas');
+
+  const filas = filasDetalle(armarExportacion(db, sesion.id));
+  const filaMatching = filas.find((f) => f.tipo_item === 'miembro_banco_opciones');
+  assert.equal(filaMatching.respuesta_banco_id, 'p1');
+  assert.equal(filaMatching.grupo_id, 'g-bo');
+  assert.equal(filaMatching.valor, 2);
+  cerrarBd(db);
+});
+
+test('la hoja Detalle gana las columnas nuevas del contrato v3', () => {
+  for (const cabecera of [
+    'grupo_id', 'tipo_item', 'valor', 'nivel_mcer', 'grado', 'prueba', 'version_estandar',
+    'procedencia_contenido', 'verificado_contenido', 'fuentes_respuesta_correcta',
+    'opcion_a_procedencia_justificacion', 'opcion_b_justificacion_verificada',
+    'respuesta_banco_id',
+  ]) {
+    assert.ok(CABECERAS_DETALLE.includes(cabecera), `falta ${cabecera} en Detalle`);
+  }
+  for (const cabecera of ['grupo_id', 'tipo_item', 'valor', 'nivel_mcer', 'grado', 'prueba', 'version_estandar']) {
+    assert.ok(CABECERAS_BANCO.includes(cabecera), `falta ${cabecera} en Banco`);
+  }
 });

@@ -1,5 +1,5 @@
 import { api } from './panel.js';
-import { renderizarPregunta } from '/shared/pregunta.js';
+import { renderizarGrupo, renderizarPregunta } from '/shared/pregunta.js';
 
 const imagenes = document.getElementById('imagenes');
 const estadoImagenes = document.getElementById('estado-imagenes');
@@ -145,18 +145,58 @@ cerrarDetalle.addEventListener('click', () => {
   detalle.hidden = true;
 });
 
+const ETIQUETA_TIPO_GRUPO = {
+  contexto_compartido: 'Contexto compartido',
+  banco_opciones: 'Emparejamiento (banco de opciones)',
+  texto_con_blancos: 'Completar espacios (texto con blancos)',
+};
+
+function seccionDeGrupo(grupo) {
+  const seccion = document.createElement('details');
+  seccion.className = 'grupo-docente';
+  seccion.dataset.grupoId = grupo.id ?? '';
+
+  const resumen = document.createElement('summary');
+  resumen.textContent = `${ETIQUETA_TIPO_GRUPO[grupo.tipo] ?? grupo.tipo} — ${grupo.preguntas.length} pregunta(s)`;
+  seccion.append(resumen);
+
+  // La correcta de cada miembro: la entrada del banco en matching, o la
+  // opción marcada en los miembros con opciones propias.
+  const correctas = {};
+  for (const miembro of grupo.preguntas) {
+    if (miembro.tipo_item === 'miembro_banco_opciones') {
+      if (miembro.respuesta_pool_id) correctas[miembro.pregunta_id] = miembro.respuesta_pool_id;
+    } else {
+      const correcta = (miembro.opciones ?? []).find((o) => o.es_correcta === 1);
+      if (correcta) correctas[miembro.pregunta_id] = correcta.id;
+    }
+  }
+
+  seccion.append(renderizarGrupo(grupo, {
+    preguntas: grupo.preguntas,
+    mostrarJustificacion: true,
+    correctas,
+  }));
+  return seccion;
+}
+
 async function verBanco(id) {
   const { banco } = await api(`/api/docente/bancos/${id}`);
 
-  detalleTitulo.textContent = `${banco.nombre} — ${banco.preguntas.length} preguntas`;
-  detallePreguntas.replaceChildren(
-    ...banco.preguntas.map((pregunta) =>
-      renderizarPregunta(pregunta, {
-        correcta: pregunta.opciones.findIndex((o) => o.es_correcta === 1),
-        mostrarJustificacion: true,
-      }),
-    ),
-  );
+  const totalMiembros = (banco.grupos ?? []).reduce((suma, g) => suma + g.preguntas.length, 0);
+  const total = banco.preguntas.length + totalMiembros;
+  const conGrupos = (banco.grupos ?? []).length > 0;
+  detalleTitulo.textContent = conGrupos
+    ? `${banco.nombre} — ${total} preguntas en ${(banco.grupos ?? []).length} grupo(s)`
+    : `${banco.nombre} — ${total} preguntas`;
+
+  const piezas = banco.preguntas.map((pregunta) =>
+    renderizarPregunta(pregunta, {
+      correcta: pregunta.opciones.findIndex((o) => o.es_correcta === 1),
+      mostrarJustificacion: true,
+    }));
+  for (const grupo of banco.grupos ?? []) piezas.push(seccionDeGrupo(grupo));
+  detallePreguntas.replaceChildren(...piezas);
   detalle.hidden = false;
   detalle.scrollIntoView({ block: 'start' });
 }

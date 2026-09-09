@@ -241,3 +241,32 @@ test('la base migrada gana la columna descargado_en en sesiones, en null', () =>
     limpiar();
   }
 });
+
+test('la migración v5 crea la tabla grupos y añade las columnas de la 026', () => {
+  const { ruta, limpiar } = carpetaTemporal();
+  try {
+    baseAntigua(ruta);
+    const db = abrirBd(ruta);
+
+    const columnasPreguntas = new Set(db.pragma('table_info(preguntas)').map((c) => c.name));
+    for (const col of [
+      'grupo_id', 'tipo_item', 'respuesta_pool_id', 'numero_blanco',
+      'nivel_mcer', 'valor', 'grado', 'prueba',
+      'procedencia', 'verificado', 'fuentes', 'version_estandar',
+    ]) {
+      assert.ok(columnasPreguntas.has(col), `preguntas.${col} debe existir`);
+    }
+    assert.equal(db.prepare('SELECT count(*) AS t FROM grupos').get().t, 0);
+
+    const columnasOpciones = new Set(db.pragma('table_info(opciones)').map((c) => c.name));
+    assert.ok(columnasOpciones.has('procedencia_justificacion'));
+    assert.ok(columnasOpciones.has('justificacion_verificada'));
+
+    const columnasIntento = new Set(db.pragma('table_info(intento_preguntas)').map((c) => c.name));
+    assert.ok(columnasIntento.has('respuesta_banco_id'));
+
+    cerrarBd(db);
+  } finally {
+    limpiar();
+  }
+});

@@ -24,12 +24,33 @@ CREATE TABLE IF NOT EXISTS bancos (
   creado_en TEXT NOT NULL
 );
 
+-- Un grupo del estándar externo: contexto compartido (contexto_compartido,
+-- texto_con_blancos) o banco de opciones compartido (banco_opciones). Las
+-- preguntas miembro apuntan a él vía preguntas.grupo_id; al borrar el banco,
+-- la cascada del FK borra primero los grupos. Esta tabla se crea ANTES de
+-- `preguntas` para que la FK de `preguntas.grupo_id` sea válida.
+CREATE TABLE IF NOT EXISTS grupos (
+  id                   TEXT PRIMARY KEY,
+  banco_id             INTEGER NOT NULL REFERENCES bancos (id) ON DELETE CASCADE,
+  tipo                 TEXT NOT NULL
+                         CHECK (tipo IN ('contexto_compartido', 'banco_opciones', 'texto_con_blancos')),
+  contexto             TEXT NOT NULL DEFAULT '[]',
+  banco                TEXT NOT NULL DEFAULT '[]',
+  metadata_pedagogica  TEXT NOT NULL DEFAULT '{}'
+);
+
+CREATE INDEX IF NOT EXISTS idx_grupos_banco ON grupos (banco_id);
+
 -- Sigue el estándar externo preguntas-icfes v1
 -- (https://github.com/riskbreaker2077/preguntas-icfes, ver
 -- spec/contracts/paquete-preguntas-icfes.md). `contexto` y `enunciado`
 -- guardan JSON serializado: un array de bloques `{tipo: texto|imagen|tabla, ...}`,
 -- nunca texto plano. `imagen` queda como columna heredada, sin usar desde la
 -- 016: las imágenes ahora son bloques dentro de contexto/enunciado/opciones.
+-- La feature 026 añade el grupo al que pertenece la pregunta (`grupo_id`),
+-- el `tipo_item` que define cómo se rinde, y los campos informativos y de
+-- trazabilidad de v1.1.0/v1.2.0+ del estándar (procedencia, verificado,
+-- fuentes, grado, prueba, nivel_mcer, valor, version_estandar).
 CREATE TABLE IF NOT EXISTS preguntas (
   id                INTEGER PRIMARY KEY AUTOINCREMENT,
   banco_id          INTEGER NOT NULL REFERENCES bancos (id) ON DELETE CASCADE,
@@ -41,21 +62,42 @@ CREATE TABLE IF NOT EXISTS preguntas (
   afirmacion        TEXT NOT NULL DEFAULT '',
   evidencia         TEXT NOT NULL DEFAULT '',
   estandar_asociado TEXT NOT NULL DEFAULT '',
-  que_evalua        TEXT NOT NULL DEFAULT ''
+  que_evalua        TEXT NOT NULL DEFAULT '',
+  grupo_id          TEXT REFERENCES grupos (id) ON DELETE CASCADE,
+  tipo_item         TEXT
+                      CHECK (tipo_item IN ('estandar', 'miembro_banco_opciones', 'miembro_texto_con_blancos')),
+  respuesta_pool_id TEXT,
+  numero_blanco     INTEGER,
+  nivel_mcer        TEXT,
+  valor             REAL NOT NULL DEFAULT 1 CHECK (valor > 0),
+  grado             TEXT,
+  prueba            TEXT,
+  procedencia       TEXT NOT NULL DEFAULT '{}',
+  verificado        TEXT NOT NULL DEFAULT '{}',
+  fuentes           TEXT NOT NULL DEFAULT '{}',
+  version_estandar  TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_preguntas_banco ON preguntas (banco_id);
+-- idx_preguntas_grupo se crea en db.js / migración v5: depende de la
+-- columna preguntas.grupo_id, que en una base antigua todavía no existe
+-- cuando se aplica schema.sql (CREATE TABLE preguntas es un no-op y la
+-- columna la añade la migración después).
 
--- Invariante: exactamente 4 opciones por pregunta y exactamente una correcta,
+-- Invariante: al menos 2 opciones por pregunta y exactamente una correcta,
 -- y cada opción trae su propia justificación (incluidas las incorrectas). No
--- es expresable en SQL; lo garantiza el importador (features 003 y 016).
+-- es expresable en SQL; lo garantiza el importador (features 003, 016 y 026).
 -- `texto` guarda JSON serializado: un array de bloques, igual que `contexto`.
+-- Las columnas `procedencia_justificacion` y `justificacion_verificada` son
+-- los campos informativos de v1.1.0 aplicados a la justificación por opción.
 CREATE TABLE IF NOT EXISTS opciones (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  pregunta_id   INTEGER NOT NULL REFERENCES preguntas (id) ON DELETE CASCADE,
-  texto         TEXT NOT NULL,
-  es_correcta   INTEGER NOT NULL CHECK (es_correcta IN (0, 1)),
-  justificacion TEXT NOT NULL DEFAULT ''
+  id                          INTEGER PRIMARY KEY AUTOINCREMENT,
+  pregunta_id                 INTEGER NOT NULL REFERENCES preguntas (id) ON DELETE CASCADE,
+  texto                       TEXT NOT NULL,
+  es_correcta                 INTEGER NOT NULL CHECK (es_correcta IN (0, 1)),
+  justificacion               TEXT NOT NULL DEFAULT '',
+  procedencia_justificacion   TEXT,
+  justificacion_verificada    INTEGER
 );
 
 CREATE INDEX IF NOT EXISTS idx_opciones_pregunta ON opciones (pregunta_id);
@@ -112,12 +154,16 @@ CREATE INDEX IF NOT EXISTS idx_intentos_sesion ON intentos (sesion_id);
 -- La prueba materializada. Se escribe una sola vez al iniciar el intento y
 -- nunca se regenera: es lo que permite reanudar tras una caída y auditar
 -- después qué vio exactamente cada estudiante.
+-- `respuesta_banco_id` guarda el id elegido dentro del banco del grupo para
+-- preguntas `miembro_banco_opciones` (que no tienen opciones propias); en
+-- el resto de las preguntas queda NULL y la respuesta va en respuestas.opcion_id.
 CREATE TABLE IF NOT EXISTS intento_preguntas (
-  id             INTEGER PRIMARY KEY AUTOINCREMENT,
-  intento_id     INTEGER NOT NULL REFERENCES intentos (id) ON DELETE CASCADE,
-  orden          INTEGER NOT NULL,
-  pregunta_id    INTEGER NOT NULL REFERENCES preguntas (id),
-  orden_opciones TEXT NOT NULL,
+  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  intento_id          INTEGER NOT NULL REFERENCES intentos (id) ON DELETE CASCADE,
+  orden               INTEGER NOT NULL,
+  pregunta_id         INTEGER NOT NULL REFERENCES preguntas (id),
+  orden_opciones      TEXT NOT NULL,
+  respuesta_banco_id  TEXT,
   UNIQUE (intento_id, orden)
 );
 

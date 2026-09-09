@@ -232,3 +232,92 @@ test('un banco sin competencia (anterior a la 016) se sortea como antes: al azar
   assert.equal(generada.length, 20);
   assert.equal(new Set(generada.map((f) => f.preguntaId)).size, 20);
 });
+
+// --- Grupos de preguntas (feature 026) ------------------------------------
+
+test('un grupo nunca queda partido: si entra una pregunta, entran todas sus hermanas', () => {
+  // Banco: 20 standalone + 1 grupo con 3 miembros = 23 total.
+  const standalone = banco(20);
+  const grupo = [
+    { id: 'g-m1', grupo_id: 'g-1', opciones: [{ id: 1 }] },
+    { id: 'g-m2', grupo_id: 'g-1', opciones: [{ id: 2 }] },
+    { id: 'g-m3', grupo_id: 'g-1', opciones: [{ id: 3 }] },
+  ];
+  const preguntas = [...standalone, ...grupo];
+
+  for (const semilla of ['ana', 'beto', 'caro', 'dani', 'elsa', 'fer']) {
+    const generada = generarPrueba({ preguntas, nPreguntas: 5, semilla });
+    const miembrosGrupo = generada.filter(
+      (f) => typeof f.preguntaId === 'string' && f.preguntaId.startsWith('g-m'),
+    );
+    if (miembrosGrupo.length > 0) {
+      assert.equal(
+        miembrosGrupo.length,
+        grupo.length,
+        `semilla ${semilla}: el grupo entró completo o no entró`,
+      );
+    }
+  }
+});
+
+test('el muestreador trata un grupo como una unidad a efectos de cuota', () => {
+  // 4 standalone de "lectura" + 1 grupo de 4 miembros en "lectura" = 8 de lectura.
+  // 8 standalone de "matematicas".
+  const preguntas = [];
+  for (let i = 1; i <= 4; i += 1) {
+    preguntas.push({ id: `L${i}`, competencia: 'lectura', opciones: [{ id: i }] });
+  }
+  for (let i = 1; i <= 4; i += 1) {
+    preguntas.push({
+      id: `G${i}`,
+      competencia: 'lectura',
+      grupo_id: 'g-lectura',
+      opciones: [{ id: 100 + i }],
+    });
+  }
+  for (let i = 1; i <= 8; i += 1) {
+    preguntas.push({ id: `M${i}`, competencia: 'matematicas', opciones: [{ id: 200 + i }] });
+  }
+
+  // Sortea 8 de 16 totales. La mitad del peso está en cada competencia,
+  // así que la cuota por competencia es ~4 puntos de peso cada una.
+  for (const semilla of ['s1', 's2', 's3', 's4', 's5']) {
+    const generada = generarPrueba({ preguntas, nPreguntas: 8, semilla });
+    const porId = new Map(preguntas.map((p) => [p.id, p]));
+    const conteo = { lectura: 0, matematicas: 0 };
+    for (const fila of generada) {
+      const p = porId.get(fila.preguntaId);
+      if (p) conteo[p.competencia] += 1;
+    }
+    // El grupo entró entero o no entró; en cualquier caso no se parte.
+    const miembrosGrupo = generada.filter((f) => f.preguntaId.startsWith('G'));
+    assert.ok(
+      miembrosGrupo.length === 0 || miembrosGrupo.length === 4,
+      `semilla ${semilla}: grupo partido (${miembrosGrupo.length}/4 miembros)`,
+    );
+    // Y la suma da 8.
+    assert.equal(generada.length, 8);
+    // La cuota se aproxima a 4±1 por competencia (las standalone pesan 1,
+    // el grupo 4 — un grupo completo pesa tanto como 4 standalone).
+    assert.ok(conteo.lectura >= 3 && conteo.lectura <= 5, `semilla ${semilla}: cuota lectura=${conteo.lectura}`);
+    assert.ok(conteo.matematicas >= 3 && conteo.matematicas <= 5, `semilla ${semilla}: cuota matematicas=${conteo.matematicas}`);
+  }
+});
+
+test('el sorteo nunca supera nPreguntas ni parte un grupo, aunque el grupo no quepa', () => {
+  const grupo = [1, 2, 3, 4].map((i) => ({ id: `G${i}`, grupo_id: 'g-1', opciones: [{ id: i }] }));
+  const standalone = Array.from({ length: 6 }, (_, i) => ({ id: `S${i}`, opciones: [{ id: 100 + i }] }));
+  const preguntas = [...grupo, ...standalone];
+
+  for (const semilla of ['a', 'b', 'c', 'd', 'e']) {
+    for (const n of [3, 5, 7, 10]) {
+      const generada = generarPrueba({ preguntas, nPreguntas: n, semilla });
+      assert.ok(generada.length <= n, `semilla ${semilla}, n=${n}: salieron ${generada.length}`);
+      const enGrupo = generada.filter((f) => String(f.preguntaId).startsWith('G'));
+      assert.ok(
+        enGrupo.length === 0 || enGrupo.length === 4,
+        `semilla ${semilla}, n=${n}: grupo partido (${enGrupo.length}/4)`,
+      );
+    }
+  }
+});

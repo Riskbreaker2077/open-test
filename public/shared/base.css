@@ -267,3 +267,9 @@ fieldset.campo { padding: 0; margin-bottom: 1rem; border: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* Grupos de preguntas (026): contexto compartido, matching y cloze. */
+.grupo-preguntas { display: grid; gap: 1rem; }
+.grupo-preguntas .pregunta--miembro-grupo { border-top: 2px dashed var(--borde); padding-top: 1rem; }
+.opciones--banco { grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); }
+.opcion--banco { flex-direction: column; align-items: stretch; }

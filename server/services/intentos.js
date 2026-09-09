@@ -96,9 +96,20 @@ export function materializarPrueba(db, intento) {
 /** La prueba tal como se le mostró, en su orden. */
 export function pruebaDelIntento(db, intentoId) {
   return db
-    .prepare('SELECT * FROM intento_preguntas WHERE intento_id = ? ORDER BY orden')
+    .prepare(`
+      SELECT ip.*, p.grupo_id, p.tipo_item
+      FROM intento_preguntas ip
+      JOIN preguntas p ON p.id = ip.pregunta_id
+      WHERE ip.intento_id = ?
+      ORDER BY ip.orden
+    `)
     .all(intentoId)
-    .map((fila) => ({ ...fila, ordenOpciones: fila.orden_opciones.split(',').map(Number) }));
+    .map((fila) => ({
+      ...fila,
+      grupo_id: fila.grupo_id ?? null,
+      tipo_item: fila.tipo_item ?? 'estandar',
+      ordenOpciones: fila.orden_opciones.split(',').map(Number),
+    }));
 }
 
 export function intentoPorToken(db, token) {

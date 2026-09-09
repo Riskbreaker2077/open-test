@@ -33,6 +33,12 @@ export function abrirBd(ruta = RUTA_BD_POR_DEFECTO) {
     aplicarMigraciones(db);
   }
 
+  // Índice que depende de una columna añadida por la migración v5: para una
+  // base nueva la columna ya está, y para una antigua la migración v5 ya la
+  // añadió. Vive fuera de schema.sql porque al aplicar schema.sql sobre una
+  // base antigua el CREATE TABLE preguntas es un no-op y la columna no existe.
+  db.exec('CREATE INDEX IF NOT EXISTS idx_preguntas_grupo ON preguntas (grupo_id)');
+
   return db;
 }
 

@@ -163,8 +163,12 @@ export function rutasDocente(db) {
       conContexto: resultado.preguntas.filter((p) => p.contexto.length > 0).length,
       conImagen: resultado.preguntas.filter((p) => tieneBloqueImagen(p)).length,
       imagenesIncluidas: resultado.imagenes.length,
+      grupos: (resultado.grupos ?? []).length,
     },
-    muestra: resultado.preguntas.slice(0, 3),
+    // Solo preguntas con opciones propias: los miembros de matching/cloze se
+    // previsualizan completos con "Ver" después de importar (necesitan el
+    // contexto/banco del grupo).
+    muestra: resultado.preguntas.filter((p) => Array.isArray(p.opciones)).slice(0, 3),
   });
 
   router.post('/bancos/paquete/validar', cuerpoZip, (req, res) => {
@@ -181,7 +185,7 @@ export function rutasDocente(db) {
     const titulo = req.query.nombre?.trim() || resultado.nombre || 'Banco sin nombre';
     res.json({
       ok: true,
-      resumen: guardarBanco(db, titulo, resultado.preguntas),
+      resumen: guardarBanco(db, titulo, resultado.preguntas, resultado.grupos),
       imagenes: resultado.imagenes.map((imagen) => imagen.nombre),
     });
   });
