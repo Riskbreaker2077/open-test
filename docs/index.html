@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>OpenTest — evaluación en el aula, sin internet</title>
+<meta name="description" content="OpenTest: cada estudiante recibe una prueba distinta, personalizada y calificada al instante, sobre un servidor que corre en el portátil del docente y sin internet.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b263b'/%3E%3Cpath d='M18 33l9 9 19-21' stroke='%23d18037' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --azul-950: #0b263b;
+    --azul-900: #12324a;
+    --azul-800: #1b455f;
+    --azul-100: #dce8ed;
+    --rojo-700: #9f2728;
+    --rojo-600: #b83a32;
+    --rojo-100: #f5dfda;
+    --dorado-600: #b5762d;
+    --dorado-500: #d18037;
+    --dorado-100: #f4e5cf;
+    --verde-700: #34703d;
+    --verde-100: #dfebdf;
+    --tinta: #18252e;
+    --tinta-suave: #566873;
+    --papel: #ffffff;
+    --fondo: #f2f5f4;
+    --borde: #dbe3e4;
+    --radio: 18px;
+    --ancho: 68rem;
+    --sombra: 0 16px 42px rgb(15 42 57 / 10%);
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--fondo); }
+  body {
+    margin: 0;
+    padding: 0 1rem;
+    color: var(--tinta);
+    background:
+      radial-gradient(circle at 92% 3%, rgb(209 128 55 / 10%), transparent 28rem),
+      var(--fondo);
+    font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--rojo-700); }
+  h1, h2, h3 {
+    margin: 0 0 0.6em;
+    color: var(--azul-900);
+    font-family: Georgia, "Times New Roman", serif;
+    line-height: 1.15;
+  }
+  h1 { font-size: clamp(2.1rem, 5.5vw, 3.4rem); letter-spacing: -0.02em; }
+  h2 { font-size: clamp(1.5rem, 3.4vw, 2.1rem); }
+  h3 { font-size: 1.15rem; }
+  p { margin: 0 0 1rem; color: var(--tinta-suave); }
+  code {
+    background: var(--azul-100);
+    color: var(--azul-950);
+    padding: 0.12em 0.4em;
+    border-radius: 5px;
+    font-size: 0.9em;
+  }
+  .contenedor { width: min(100%, var(--ancho)); margin: 0 auto; }
+
+  header.barra {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 0;
+  }
+  .marca { display: flex; align-items: center; gap: 0.65rem; text-decoration: none; }
+  .marca__icono {
+    width: 2.25rem; height: 2.25rem; border-radius: 8px;
+    background: var(--azul-950);
+    display: grid; place-items: center;
+    flex: 0 0 auto;
+  }
+  .marca__icono svg { width: 1.3rem; height: 1.3rem; }
+  .marca strong { color: var(--azul-950); font-size: 1.2rem; }
+  nav.enlaces { display: flex; gap: 1.5rem; font-weight: 600; font-size: 0.95rem; }
+  nav.enlaces a { text-decoration: none; color: var(--azul-900); }
+  nav.enlaces a:hover { color: var(--rojo-700); }
+
+  .sobretitulo {
+    display: flex; align-items: center; gap: 0.7rem;
+    color: var(--rojo-700); font-size: 0.72rem; font-weight: 800;
+    letter-spacing: 0.13em; text-transform: uppercase; margin-bottom: 0.7rem;
+  }
+  .sobretitulo::before { width: 2.1rem; height: 2px; background: var(--dorado-500); content: ""; }
+
+  .hero {
+    padding: clamp(2.5rem, 6vw, 5rem) 0 clamp(2rem, 5vw, 3.5rem);
+    text-align: center;
+  }
+  .hero p.lead {
+    font-size: clamp(1.05rem, 2.2vw, 1.3rem);
+    max-width: 42rem;
+    margin: 0 auto 1.75rem;
+  }
+  .hero__botones {
+    display: flex; gap: 0.9rem; justify-content: center; flex-wrap: wrap;
+  }
+  .boton {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.98rem;
+    border: 2px solid transparent;
+  }
+  .boton--primario { background: var(--rojo-600); color: #fff; }
+  .boton--primario:hover { background: var(--rojo-700); }
+  .boton--secundario { background: var(--papel); color: var(--azul-900); border-color: var(--borde); }
+  .boton--secundario:hover { border-color: var(--azul-800); }
+
+  .franja-estado {
+    background: var(--dorado-100);
+    color: var(--dorado-600);
+    border: 1px solid rgb(213 128 55 / 30%);
+    border-radius: var(--radio);
+    padding: 0.85rem 1.25rem;
+    font-size: 0.92rem;
+    max-width: 40rem;
+    margin: 0 auto 2.5rem;
+  }
+  .franja-estado strong { color: var(--dorado-600); }
+
+  .superficies {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin: 2rem 0 3.5rem;
+  }
+  @media (max-width: 760px) { .superficies { grid-template-columns: 1fr; } }
+  .tarjeta {
+    background: var(--papel);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    padding: 1.6rem;
+    box-shadow: var(--sombra);
+  }
+  .tarjeta h3 { display: flex; align-items: center; gap: 0.55rem; }
+  .tarjeta .pastilla {
+    display: inline-block; font-size: 0.68rem; font-weight: 800;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 0.2rem 0.55rem; border-radius: 999px;
+    background: var(--azul-100); color: var(--azul-800);
+    margin-bottom: 0.6rem;
+  }
+  .tarjeta p { margin-bottom: 0; font-size: 0.94rem; }
+
+  section.bloque { padding: 2.75rem 0; border-top: 1px solid var(--borde); }
+  .grid-rasgos {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.1rem;
+    margin-top: 1.5rem;
+  }
+  @media (max-width: 900px) { .grid-rasgos { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid-rasgos { grid-template-columns: 1fr; } }
+  .rasgo {
+    padding: 1.25rem;
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    background: var(--papel);
+  }
+  .rasgo h3 { font-size: 1rem; margin-bottom: 0.35rem; }
+  .rasgo p { font-size: 0.9rem; margin: 0; }
+
+  .decisiones { margin-top: 1.25rem; }
+  .decisiones li { margin-bottom: 0.75rem; }
+  .decisiones strong { color: var(--azul-900); }
+
+  .requisitos {
+    background: var(--verde-100);
+    border: 1px solid rgb(52 112 61 / 25%);
+    border-radius: var(--radio);
+    padding: 1.5rem 1.75rem;
+    margin-top: 1.5rem;
+  }
+  .requisitos h3 { color: var(--verde-700); margin-bottom: 0.5rem; }
+  .requisitos ul { margin: 0; padding-left: 1.2rem; }
+  .requisitos li { margin-bottom: 0.35rem; }
+
+  pre {
+    background: var(--azul-950);
+    color: #dce8ed;
+    padding: 1.1rem 1.3rem;
+    border-radius: 12px;
+    overflow-x: auto;
+    font-size: 0.88rem;
+    margin-top: 1rem;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  footer {
+    border-top: 1px solid var(--borde);
+    padding: 2.5rem 0 3rem;
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    color: var(--tinta-suave);
+  }
+  footer a { color: var(--azul-900); font-weight: 600; text-decoration: none; }
+  footer a:hover { color: var(--rojo-700); }
+</style>
+</head>
+<body>
+
+<header class="barra contenedor">
+  <a class="marca" href="#inicio">
+    <span class="marca__icono">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#d18037" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>
+    </span>
+    <strong>OpenTest</strong>
+  </a>
+  <nav class="enlaces">
+    <a href="#como-funciona">Cómo funciona</a>
+    <a href="#caracteristicas">Funciones</a>
+    <a href="#decisiones">Por qué así</a>
+    <a href="https://github.com/Riskbreaker2077/open-test">GitHub</a>
+  </nav>
+</header>
+
+<main class="contenedor" id="inicio">
+
+  <section class="hero">
+    <p class="sobretitulo" style="justify-content:center">Evaluación en el aula</p>
+    <h1>Cada estudiante responde una prueba distinta, en su propio ritmo, sin internet.</h1>
+    <p class="lead">
+      OpenTest corre en el portátil del docente. Las tablets se conectan por la
+      intranet del colegio, cada estudiante recibe preguntas sorteadas de un banco
+      común con las opciones barajadas, y el resultado sale calificado al instante.
+      Mirar la pantalla del compañero no sirve de nada.
+    </p>
+    <div class="hero__botones">
+      <a class="boton boton--primario" href="https://github.com/Riskbreaker2077/open-test">Ver el código en GitHub</a>
+      <a class="boton boton--secundario" href="https://github.com/Riskbreaker2077/open-test/blob/main/GUIA-DOCENTE.md">Guía para docentes</a>
+    </div>
+  </section>
+
+  <p class="franja-estado">
+    <strong>Estado del proyecto:</strong> el flujo completo está construido y
+    validado en un aula real — importación, personalización, examen, calificación,
+    monitoreo y exportación de resultados. Sigue activo: la última incorporación
+    fue un formulario para escribir preguntas a mano, sin depender de un archivo
+    generado por IA.
+  </p>
+
+  <div class="superficies">
+    <div class="tarjeta">
+      <span class="pastilla">Estudiante</span>
+      <h3>Portal del estudiante</h3>
+      <p>Dirección estable, igual en todas las evaluaciones. El estudiante entra con
+      su código — identifica, no autentica — y espera a que el docente comience.</p>
+    </div>
+    <div class="tarjeta">
+      <span class="pastilla">Aula</span>
+      <h3>Pantalla de proyección</h3>
+      <p>El QR para escanear en vez de teclear una IP, el reloj global de la sesión
+      y los controles para comenzar, pausar o cerrar la evaluación.</p>
+    </div>
+    <div class="tarjeta">
+      <span class="pastilla">Docente</span>
+      <h3>Panel con contraseña</h3>
+      <p>Estudiantes, bancos de preguntas, convocatoria, monitoreo en vivo,
+      estadísticas por pregunta y descarga de resultados en Excel.</p>
+    </div>
+  </div>
+
+  <section class="bloque" id="por-que">
+    <p class="sobretitulo">Por qué existe</p>
+    <h2>Copiar en un examen tradicional es fácil porque toda el aula ve lo mismo.</h2>
+    <p style="max-width:44rem">
+      La respuesta habitual es vigilar más. OpenTest prueba otra: hacer que copiar
+      no dé información útil. La pregunta 7 de un estudiante no es la pregunta 7 de
+      su compañero, y sus opciones de respuesta no están en el mismo orden. El
+      sorteo es determinista a partir de una semilla por estudiante — medido sobre
+      200 estudiantes con un banco de 50 preguntas y 20 por prueba: 200 pruebas
+      únicas, unas 8 preguntas compartidas en promedio entre dos compañeros
+      cualesquiera, y la respuesta correcta repartida en partes iguales entre las
+      cuatro posiciones.
+    </p>
+  </section>
+
+  <section class="bloque" id="como-funciona">
+    <p class="sobretitulo">De la lista de estudiantes al resultado</p>
+    <h2>Cómo funciona, de punta a punta</h2>
+    <ol style="padding-left:1.2rem; color:var(--tinta-suave)">
+      <li>El docente carga la lista de estudiantes (CSV/JSON) y un banco de
+        preguntas — por ZIP con el estándar abierto <strong>preguntas-icfes</strong>,
+        o escribiéndolas una a una desde el panel.</li>
+      <li>Convoca una evaluación por curso, proyecta el QR y pulsa <strong>Comenzar</strong>:
+        arranca un reloj único para toda el aula.</li>
+      <li>Cada estudiante ve una pregunta a la vez, con guardado inmediato y tiempo
+        mínimo por pregunta; puede pausar y retomar sin perder su avance.</li>
+      <li>Al entregar (o al vencer el reloj), la nota se calcula y se persiste de
+        inmediato; el estudiante ve el resultado con el nivel de detalle que el
+        docente eligió.</li>
+      <li>El docente monitorea en vivo quién entró, quién avanza y quién entregó,
+        y descarga resultados y estadísticas por pregunta y competencia.</li>
+    </ol>
+  </section>
+
+  <section class="bloque" id="caracteristicas">
+    <p class="sobretitulo">Lo que ya trae</p>
+    <h2>Funciones</h2>
+    <div class="grid-rasgos">
+      <div class="rasgo">
+        <h3>Personalización real</h3>
+        <p>Sorteo balanceado por competencia y barajado de opciones, materializado
+        una sola vez por intento — se puede auditar meses después.</p>
+      </div>
+      <div class="rasgo">
+        <h3>Banco preguntas-icfes</h3>
+        <p>Metadata pedagógica, contenido en bloques (texto/imagen/tabla) y
+        justificación por cada opción, en un único ZIP.</p>
+      </div>
+      <div class="rasgo">
+        <h3>Ingreso manual de preguntas</h3>
+        <p>Para el docente que no genera el ZIP con una IA: un formulario simple,
+        pregunta por pregunta, directamente en el panel.</p>
+      </div>
+      <div class="rasgo">
+        <h3>Grupos de preguntas</h3>
+        <p>Lectura compartida, emparejamiento y completar espacios, resueltos en
+        una sola pantalla como los define el estándar.</p>
+      </div>
+      <div class="rasgo">
+        <h3>Estadísticas por pregunta</h3>
+        <p>Qué falla más el grupo, por sesión o acumulado por banco, con filtro de
+        curso.</p>
+      </div>
+      <div class="rasgo">
+        <h3>Exportación completa</h3>
+        <p>Un <code>.xlsx</code> con resumen, detalle y banco, y un ZIP reproducible
+        con las imágenes empaquetadas.</p>
+      </div>
+      <div class="rasgo">
+        <h3>Línea gráfica adaptable</h3>
+        <p>El sistema visual se ajusta a la identidad de cada colegio, en las cinco
+        pantallas, todo local.</p>
+      </div>
+      <div class="rasgo">
+        <h3>Recuperación sin red</h3>
+        <p>Si se olvida la contraseña del panel, se restablece desde la consola del
+        propio equipo — nunca desde la web.</p>
+      </div>
+      <div class="rasgo">
+        <h3>Instalador de Windows</h3>
+        <p>Asistente sin permisos de administrador, o la carpeta portable de
+        siempre — quien actualiza no pierde sus datos.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloque" id="decisiones">
+    <p class="sobretitulo">Lo que explica el resto</p>
+    <h2>Decisiones de diseño</h2>
+    <ul class="decisiones" style="padding-left:1.2rem">
+      <li><strong>Cero red en tiempo de ejecución.</strong> Ninguna petición sale de
+        la máquina durante la evaluación; un test automático lo verifica.</li>
+      <li><strong>Sin dependencias más allá de Express y SQLite.</strong> Ni
+        framework de frontend, ni paso de compilación, ni CDNs.</li>
+      <li><strong>La prueba de cada estudiante se materializa al empezar</strong> y
+        nunca se regenera: permite reanudar tras una caída y auditar después qué
+        vio exactamente quien reclama su nota.</li>
+      <li><strong>Los datos son del docente.</strong> Todo vive en un archivo
+        SQLite copiable a una USB, con salida en Excel y JSON abiertos.</li>
+      <li><strong>Spec Driven Development.</strong> Cada feature tiene su
+        especificación, plan técnico y checklist de aceptación antes de escribir
+        código — <a href="https://github.com/Riskbreaker2077/open-test/tree/main/spec">se puede leer todo el historial</a>.</li>
+    </ul>
+  </section>
+
+  <section class="bloque" id="empezar">
+    <p class="sobretitulo">Para empezar</p>
+    <h2>Correr OpenTest en local</h2>
+    <pre><code>git clone https://github.com/Riskbreaker2077/open-test.git
+cd open-test
+npm install
+npm start</code></pre>
+    <div class="requisitos">
+      <h3>Requisitos</h3>
+      <ul>
+        <li>Node 22 o superior.</li>
+        <li>Un portátil y una red wifi. Nada más: sin internet, sin cuentas, sin
+          servicios externos.</li>
+        <li>Para el día del examen en Windows: el ejecutable único o el
+          instalador (<code>npm run build:exe</code> / <code>npm run
+          build:installer</code>) — ambos documentados en
+          <a href="https://github.com/Riskbreaker2077/open-test/blob/main/GUIA-DOCENTE.md">GUIA-DOCENTE.md</a>.</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="contenedor">
+  <span>MIT © OpenTest — proyecto abierto en <a href="https://github.com/Riskbreaker2077/open-test">GitHub</a></span>
+  <span><a href="https://github.com/Riskbreaker2077/open-test/blob/main/GUIA-DOCENTE.md">Guía docente</a> · <a href="https://github.com/Riskbreaker2077/open-test/tree/main/spec">Especificaciones</a></span>
+</footer>
+
+</body>
+</html>

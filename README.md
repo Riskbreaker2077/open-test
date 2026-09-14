@@ -1,10 +1,16 @@
 # OpenTest
 
+[![Licencia MIT](https://img.shields.io/badge/licencia-MIT-b5762d)](LICENSE)
+[![Node ≥ 22](https://img.shields.io/badge/node-%E2%89%A522-34703d)](package.json)
+[![Sin dependencias de frontend](https://img.shields.io/badge/frontend-vanilla%20JS-1b455f)](spec/constitution/tech-stack.md)
+
 Evaluación en el aula con **pruebas personalizadas**, sobre un servidor local y sin internet.
 
 El docente arranca OpenTest en su portátil, las tablets se conectan por la intranet del colegio y **cada estudiante recibe una prueba distinta**: preguntas sorteadas al azar de un banco común y opciones de respuesta barajadas. Mirar la pantalla del compañero no sirve de nada.
 
-> **Estado: en construcción.** Funciona todo el lado del docente —contraseña, carga de estudiantes, bancos de preguntas, convocar y abrir evaluaciones—, el motor que personaliza la prueba de cada estudiante, y el portal del estudiante para entrar con su código y esperar el inicio. Falta la pantalla de proyección (con el botón para comenzar de verdad) y la presentación del examen en sí. Ver el [roadmap](spec/constitution/roadmap.md).
+**[Ver la página del proyecto →](https://riskbreaker2077.github.io/open-test/)** · **[Guía para docentes](GUIA-DOCENTE.md)** · **[Roadmap](spec/constitution/roadmap.md)**
+
+> **Estado: completo y validado en un aula real.** Todo el flujo está construido y probado de punta a punta: importación de estudiantes y preguntas (por ZIP o escritas a mano), motor de personalización, examen, calificación, panel de monitoreo, estadísticas y exportación de resultados. Sigue activo — la última incorporación fue un formulario para escribir preguntas una a una, sin depender de un archivo generado por IA. Ver el [roadmap](spec/constitution/roadmap.md).
 
 ## Por qué existe
 
@@ -20,7 +26,18 @@ Tres superficies separadas, y la separación se aplica en el servidor:
 | **Pantalla de proyección** | `/proyeccion/` | Solo el docente, con contraseña |
 | **Panel del docente** | `/docente/` | Solo el docente, con contraseña |
 
-El docente proyecta el QR, los estudiantes lo escanean y entran con su código. Al pulsar **Comenzar** arranca un reloj común para toda el aula. Al terminar, cada estudiante ve su resultado y el docente descarga los datos en CSV y JSON.
+El docente proyecta el QR, los estudiantes lo escanean y entran con su código. Al pulsar **Comenzar** arranca un reloj común para toda el aula. Al terminar, cada estudiante ve su resultado con el nivel de detalle que el docente eligió, y el docente descarga los datos en Excel y en un ZIP reproducible.
+
+## Qué trae
+
+- **Banco de preguntas** por el estándar abierto [`preguntas-icfes`](https://github.com/Riskbreaker2077/preguntas-icfes) (metadata pedagógica, bloques de texto/imagen/tabla, justificación por opción) **o escrito a mano**, pregunta por pregunta, desde el panel — sin depender de un ZIP generado con ayuda de una IA.
+- **Grupos de preguntas**: lectura compartida, emparejamiento y completar espacios, resueltos en una sola pantalla.
+- **Sorteo balanceado por competencia** y opciones barajadas, materializados una sola vez por intento.
+- **Panel del docente**: estudiantes (importados o manuales), monitoreo en vivo, estadísticas por pregunta y por competencia, cierre calificado.
+- **Exportación completa**: `.xlsx` con resumen/detalle/banco y un ZIP reproducible con las imágenes empaquetadas.
+- **Línea gráfica adaptable** a la identidad de cada colegio, en las cinco pantallas.
+- **Recuperación de contraseña sin red**, desde la consola del propio equipo.
+- **Distribución para Windows**: ejecutable único portable o instalador con asistente — ver [`GUIA-DOCENTE.md`](GUIA-DOCENTE.md).
 
 ## Requisitos
 
@@ -39,9 +56,18 @@ Al arrancar, la consola muestra la dirección que se dicta a las tablets. La pri
 Hay archivos de ejemplo importables tal cual en [`ejemplos/`](ejemplos/), para probar el flujo entero antes del día del examen.
 
 ```bash
-npm test    # suite completa
+npm test    # suite completa (446 tests)
 npm run lint
 ```
+
+Para el día del examen en Windows, sin instalar Node en el equipo del colegio:
+
+```bash
+npm run build:exe         # carpeta portable con OpenTest.exe
+npm run build:installer   # instalador con asistente, sin permisos de administrador
+```
+
+Ambos se documentan en [`GUIA-DOCENTE.md`](GUIA-DOCENTE.md).
 
 ## Desarrollo
 
@@ -60,7 +86,7 @@ spec/
 - **Cero red en tiempo de ejecución.** Ninguna petición sale de la máquina. Un test lo verifica.
 - **La prueba de cada estudiante se materializa en la base al empezar** y nunca se regenera: es lo que permite reanudar tras una caída y auditar meses después qué vio exactamente quien reclama su nota.
 - **El sorteo es determinista**, a partir de una semilla por estudiante. Medido sobre 200 estudiantes con un banco de 50 y 20 preguntas por prueba: 200 pruebas únicas, 8 preguntas compartidas de media entre dos compañeros, y la respuesta correcta repartida al 25 % entre las cuatro posiciones.
-- **Los datos son del docente.** Todo vive en un archivo SQLite que puede copiar a una USB, y sale en CSV y JSON abiertos.
+- **Los datos son del docente.** Todo vive en un archivo SQLite que puede copiar a una USB, y sale en Excel, ZIP y JSON abiertos.
 
 ## Licencia
 
