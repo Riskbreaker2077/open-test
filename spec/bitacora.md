@@ -453,3 +453,55 @@ en esta sesión); se verificó por revisión estática cuidadosa de que todos lo
 real (con `crearApp` + `fetch`, no mocks). `GUIA-DOCENTE.md` gana la sección
 "Escribir preguntas una a una, sin ZIP". La feature queda en "Hecho ✅" en
 `roadmap.md`.
+
+## 14/09/2026 — 029 · Instalador de Windows, GitHub Pages y README
+
+Mismo mensaje del usuario que pidió la 028 traía tres pedidos más: instalador
+de Windows, una página del proyecto en GitHub Pages y un README más cuidado.
+
+**029 (instalador).** La 010 dejó el instalador explícitamente fuera de
+alcance ("se distribuye el ejecutable tal cual") mientras el producto estaba
+en construcción; con el roadmap completo, se revirtió esa decisión y se
+documentó por qué en `spec/features/029-instalador-windows/`. Se escribió
+`scripts/installer/opentest.iss` (Inno Setup 6): empaqueta `dist/
+OpenTest-Windows` (la salida de `build:exe`, sin tocarla), instala sin pedir
+administrador (`%localappdata%`) y excluye `data\` del paquete a propósito
+para que reinstalar sobre una copia con evaluaciones cargadas no las borre —
+el desinstalador de Inno tampoco la toca porque nunca la instaló.
+`scripts/build-installer.js` sigue el mismo patrón que `build-exe.js`: se
+niega a correr fuera de Windows y explica qué falta si `ISCC` no está en el
+PATH. **Limitación honesta:** esta sesión fue en un Linux sin Windows ni Inno
+Setup instalados, así que el `.iss` se escribió y se revisó con cuidado
+contra la documentación de Inno pero **nunca se compiló de verdad**. Queda
+marcado como pendiente tanto en su `spec.md` como en el roadmap, para la
+próxima sesión con equipo Windows real — el mismo tipo de pendiente que ya
+tuvieron 012, 018 y 026 antes de su validación física.
+
+**Sitio de GitHub Pages.** `docs/index.html`: una página de presentación
+estática, sin paso de build ni dependencias externas (CSS inline, ícono SVG
+embebido), con la misma paleta e identidad tipográfica que `public/shared/
+base.css` — qué es OpenTest, cómo funciona de punta a punta, las funciones
+actuales y las decisiones de diseño. Se decidió **no** usar `public/assets/
+logo-institucional.png` como marca del sitio: ese archivo es el escudo real
+de un colegio (Santa Teresa de Jesús) usado como ejemplo de la línea gráfica
+adaptable (014) dentro de la app, y ponerlo como identidad pública del
+proyecto en GitHub habría sugerido que OpenTest pertenece a ese colegio en
+particular. Se optó por una marca tipográfica genérica en los mismos colores
+institucionales. El repo tenía el scope `repo` disponible en `gh auth
+status`, así que se activó Pages directamente por API
+(`POST /repos/.../pages` con `source: main:/docs`), se esperó el build
+(~20 segundos) y se verificó `HTTP 200` en `https://riskbreaker2077.github.io/
+open-test/` antes de darlo por hecho. Con confirmación del usuario, también
+se fijó esa URL como "Website" del repo (`PATCH /repos/.../ homepage`).
+
+**README.md.** Ya no decía "en construcción" — quedó así desde antes de que
+existieran la mitad de las features del roadmap. Se reescribió: enlaza la
+página nueva, la guía docente y el roadmap arriba de todo, resume las
+funciones que trae hoy el producto (incluidas 028 y 029) en vez de listar lo
+que había hace meses, y agrega instrucciones para `build:exe`/`build:installer`.
+
+**Lo que no se pudo hacer esta sesión:** ninguna prueba visual en navegador
+real (la extensión Claude in Chrome no se conectó), y el instalador no se
+compiló. Todo lo demás — 028, la página, el README, la activación de Pages —
+se verificó de verdad antes de reportarlo como terminado: 446/446 tests, lint
+de 93 archivos, y la URL de Pages respondiendo 200 en vivo.
