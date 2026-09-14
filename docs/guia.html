@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Guía para docentes — OpenTest</title>
+<meta name="description" content="Guía completa de OpenTest para docentes: instalar, preparar estudiantes y preguntas, proyectar la evaluación, monitorear, descargar resultados y resolver los problemas frecuentes.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b263b'/%3E%3Cpath d='M18 33l9 9 19-21' stroke='%23d18037' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/estilos.css">
+<style>
+  .cabecera-guia { padding: 2.75rem 0 2.25rem; border-bottom: 1px solid var(--borde); background: var(--crema); }
+  .cabecera-guia p.lead { max-width: 40rem; margin-bottom: 0; font-size: 1.02rem; }
+  .volver { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; font-size: 0.88rem; margin-bottom: 1rem; text-decoration: none; }
+
+  .guia-layout {
+    display: grid;
+    grid-template-columns: 14.5rem minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    padding: 2.75rem 0 5rem;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .guia-layout { grid-template-columns: 1fr; } }
+
+  .toc { position: sticky; top: 5rem; }
+  .toc__titulo { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tinta-suave); margin-bottom: 0.75rem; }
+  .toc ol { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--borde); }
+  .toc li a {
+    display: block; padding: 0.4rem 0 0.4rem 0.9rem; margin-left: -2px; border-left: 2px solid transparent;
+    color: var(--tinta-suave); text-decoration: none; font-size: 0.9rem;
+  }
+  .toc li a:hover { color: var(--rojo-700); }
+  .toc li a.activo { color: var(--rojo-700); border-left-color: var(--rojo-600); font-weight: 700; }
+  @media (max-width: 900px) {
+    .toc { position: static; }
+    .toc ol { display: flex; overflow-x: auto; border-left: none; gap: 0.4rem; padding-bottom: 0.5rem; }
+    .toc li a { border-left: none; border-bottom: 2px solid transparent; white-space: nowrap; padding: 0.4rem 0.7rem; background: var(--papel); border-radius: 999px; border: 1px solid var(--borde); }
+    .toc li a.activo { border-color: var(--rojo-600); background: var(--rojo-100); }
+  }
+
+  /* Sin esto, un <pre> con una línea larga (el JSON de ejemplo) estira la
+     columna de contenido entera en vez de scrollear dentro de su caja —
+     el minmax(0, 1fr) de la grilla no basta porque este div tiene
+     overflow visible, así que su mínimo automático sigue siendo el
+     min-content del hijo más ancho. */
+  .contenido-guia { min-width: 0; }
+  .contenido-guia section { scroll-margin-top: 5.5rem; margin-bottom: 3.25rem; }
+  .contenido-guia section:last-child { margin-bottom: 0; }
+  .contenido-guia h2 { display: flex; align-items: baseline; gap: 0.6rem; }
+  .contenido-guia h2 .n { color: var(--dorado-600); font-size: 0.62em; }
+  .contenido-guia h3 { margin-top: 1.75rem; }
+  .contenido-guia > section > p:first-of-type { font-size: 1.02rem; }
+
+  .opciones-instalar { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; margin: 1.25rem 0; }
+  @media (max-width: 700px) { .opciones-instalar { grid-template-columns: 1fr; } }
+  .opcion {
+    border: 1px solid var(--borde); border-radius: var(--radio-chico); padding: 1.25rem 1.4rem;
+    background: var(--papel);
+  }
+  .opcion__etiqueta {
+    display: inline-block; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--azul-800); background: var(--azul-100);
+    padding: 0.2rem 0.55rem; border-radius: 999px; margin-bottom: 0.6rem;
+  }
+  .opcion ol { margin: 0; padding-left: 1.1rem; font-size: 0.93rem; }
+  .opcion ol li { margin-bottom: 0.4rem; }
+
+  .acordeon { border-top: 1px solid var(--borde); }
+  .acordeon details { border-bottom: 1px solid var(--borde); }
+  .acordeon summary {
+    cursor: pointer; padding: 1rem 0.2rem; font-weight: 700; color: var(--azul-950);
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    list-style: none;
+  }
+  .acordeon summary::-webkit-details-marker { display: none; }
+  .acordeon summary::after {
+    content: "+"; font-family: Georgia, serif; font-size: 1.3rem; color: var(--dorado-600);
+    flex: 0 0 auto;
+  }
+  .acordeon details[open] summary::after { content: "–"; }
+  .acordeon .cuerpo { padding: 0 0.2rem 1.15rem; color: var(--tinta-suave); font-size: 0.95rem; }
+  .acordeon .cuerpo p:last-child { margin-bottom: 0; }
+  .acordeon .cuerpo ol, .acordeon .cuerpo ul { padding-left: 1.1rem; }
+
+  .campos-paquete { margin: 1rem 0; }
+  .campos-paquete li { margin-bottom: 0.6rem; }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="contenedor nav__fila">
+    <a class="marca" href="index.html">
+      <span class="marca__insignia">OT</span>
+      <strong>OpenTest</strong>
+    </a>
+    <nav class="enlaces">
+      <a class="oculto-movil" href="index.html#como-funciona">Cómo funciona</a>
+      <a class="oculto-movil" href="index.html#funciones">Funciones</a>
+      <a class="activo" href="guia.html">Guía docente</a>
+      <a class="nav__git" href="https://github.com/Riskbreaker2077/open-test">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2 .37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        GitHub
+      </a>
+    </nav>
+  </div>
+</header>
+
+<div class="cabecera-guia">
+  <div class="contenedor">
+    <a class="volver" href="index.html">← Volver al inicio</a>
+    <p class="eyebrow">Del portátil apagado al primer estudiante respondiendo</p>
+    <h1>Guía para docentes</h1>
+    <p class="lead">
+      OpenTest funciona dentro del colegio: el portátil del docente hace de servidor
+      y las tablets se conectan por la misma red wifi. Durante la evaluación no
+      necesita internet.
+    </p>
+  </div>
+</div>
+
+<div class="contenedor guia-layout">
+  <nav class="toc" aria-label="Contenido de la guía">
+    <p class="toc__titulo">Contenido</p>
+    <ol>
+      <li><a href="#preparar-opentest">1. Preparar OpenTest</a></li>
+      <li><a href="#preparar-archivos">2. Preparar los archivos</a></li>
+      <li><a href="#preparar-evaluacion">3. Preparar una evaluación</a></li>
+      <li><a href="#iniciar-proyectar">4. Iniciar y proyectar</a></li>
+      <li><a href="#durante">5. Durante la evaluación</a></li>
+      <li><a href="#descargar">6. Descargar resultados</a></li>
+      <li><a href="#estadisticas">7. Ver qué falló más</a></li>
+      <li><a href="#problemas">Problemas frecuentes</a></li>
+      <li><a href="#prueba-de-humo">Prueba de humo</a></li>
+      <li><a href="#cerrar">Cerrar OpenTest</a></li>
+    </ol>
+  </nav>
+
+  <div class="contenido-guia">
+
+    <section id="preparar-opentest">
+      <h2><span class="n">01</span> Preparar OpenTest</h2>
+      <p>Hay dos formas de instalarlo; cualquiera de las dos sirve.</p>
+
+      <div class="opciones-instalar">
+        <div class="opcion">
+          <span class="opcion__etiqueta">Opción A · recomendada</span>
+          <h3 style="margin-top:0">Instalador</h3>
+          <ol>
+            <li>Haga doble clic en <code>OpenTest-Setup-&lt;versión&gt;.exe</code> y siga el asistente. No pide contraseña de administrador.</li>
+            <li>Al terminar, quedan accesos directos a OpenTest en el menú Inicio (y en el escritorio si marcó esa opción), y un desinstalador normal de Windows en "Agregar o quitar programas".</li>
+            <li>Abra OpenTest desde el acceso directo.</li>
+          </ol>
+        </div>
+        <div class="opcion">
+          <span class="opcion__etiqueta">Opción B · portable</span>
+          <h3 style="margin-top:0">Copiar la carpeta a mano</h3>
+          <ol>
+            <li>Copie la carpeta <code>OpenTest-Windows</code> completa al portátil. No separe <code>OpenTest.exe</code> de las carpetas que lo acompañan.</li>
+            <li>Haga doble clic en <code>OpenTest.exe</code>.</li>
+          </ol>
+          <p style="margin-top:0.9rem;margin-bottom:0;font-size:0.88rem">Sin instalador ni desinstalador: no deja rastro en el sistema.</p>
+        </div>
+      </div>
+
+      <h3>Con cualquiera de las dos</h3>
+      <ol class="lista-limpia">
+        <li>La primera vez, Windows puede mostrar SmartScreen. Pulse <strong>Más información</strong> y luego <strong>Ejecutar de todas formas</strong>.</li>
+        <li>El navegador se abrirá en el panel. Cree una contraseña que pueda recordar y guárdela en un lugar seguro.</li>
+        <li>Si Windows pregunta por el cortafuegos, permita el acceso en <strong>redes privadas</strong>.</li>
+      </ol>
+
+      <div class="aviso aviso--info" style="margin-top:1.25rem">
+        <p>Para actualizar a una versión nueva con el instalador, simplemente vuelva a instalar encima: sus estudiantes, bancos y resultados (la carpeta <code>data</code>) no se tocan.</p>
+      </div>
+
+      <p style="margin-top:1.25rem">
+        La carpeta <code>data</code> queda junto al ejecutable. Allí están la base de
+        datos y las imágenes. Para hacer una copia de seguridad, cierre OpenTest y
+        copie la carpeta <code>data</code> completa a una memoria USB.
+      </p>
+    </section>
+
+    <section id="preparar-archivos">
+      <h2><span class="n">02</span> Preparar los archivos</h2>
+      <p>En la carpeta <code>ejemplos</code> hay archivos que puede abrir, copiar y adaptar:</p>
+      <ul class="lista-limpia">
+        <li><code>estudiantes-ejemplo.csv</code></li>
+        <li><code>banco-ejemplo.json</code></li>
+        <li><code>participacion-ciudadana-20-preguntas.zip</code> — banco completo con cinco imágenes.</li>
+        <li><code>banco-grupos-ingles.zip</code> — banco de 10 preguntas en inglés con un ejemplo de cada tipo de grupo: una lectura compartida, un emparejamiento y un ejercicio de completar espacios. Úselo para ver cómo se ven los tres tipos antes de armar el suyo.</li>
+      </ul>
+
+      <h3>Plantilla mínima de estudiantes</h3>
+      <pre class="bloque-codigo"><code>codigo,nombres,apellidos,curso
+10001,Ana,Martínez,10A
+10002,Luis,Rodríguez,10A</code></pre>
+      <p>La primera fila contiene los nombres obligatorios de las columnas. No los cambie. Guarde el archivo como <strong>CSV UTF-8</strong>.</p>
+
+      <p>
+        Las preguntas se cargan siempre en un ZIP con <code>paquete.json</code> en la
+        raíz y las imágenes dentro de <code>imagenes/</code>. En <strong>Bancos de
+        preguntas</strong>, use <strong>Sube preguntas e imágenes en un ZIP</strong>,
+        revise la vista previa y confirme. Cada pregunta de <code>paquete.json</code>
+        necesita, además del enunciado y sus opciones:
+      </p>
+      <ul class="lista-limpia campos-paquete">
+        <li><strong>Competencia, componente, afirmación, evidencia y estándar asociado</strong> — de dónde sale la pregunta en su tabla de especificaciones.</li>
+        <li><strong>Qué evalúa</strong> — una frase que explica qué mide esa pregunta en concreto.</li>
+        <li>Una <strong>justificación por cada opción</strong> (en matching, una justificación por descripción), no solo de la correcta: por qué esa opción es correcta o, si no lo es, cuál es el error específico de esa opción.</li>
+        <li>El contexto, el enunciado y cada opción pueden combinar texto, una imagen (solo el nombre del archivo, por ejemplo <code>cabildo-abierto.png</code>) o una tabla.</li>
+      </ul>
+
+      <h3>Plantilla mínima</h3>
+      <pre class="bloque-codigo"><code>{
+  "estandar": "preguntas-icfes",
+  "version_estandar": "1.0.0",
+  "nombre": "Ciencias · Periodo 2",
+  "preguntas": [
+    {
+      "id": "p-01",
+      "competencia": "…", "componente": "…", "afirmacion": "…",
+      "evidencia": "…", "estandar_asociado": "…", "que_evalua": "…",
+      "contexto": [],
+      "enunciado": [{ "tipo": "texto", "texto": "¿Cuánto es 2 + 2?" }],
+      "opciones": [
+        { "id": "A", "contenido": [{ "tipo": "texto", "texto": "3" }], "es_correcta": false, "justificacion": "Incorrecta: falta una unidad." },
+        { "id": "B", "contenido": [{ "tipo": "texto", "texto": "4" }], "es_correcta": true, "justificacion": "Correcta: 2 + 2 = 4." },
+        { "id": "C", "contenido": [{ "tipo": "texto", "texto": "5" }], "es_correcta": false, "justificacion": "Incorrecta: sobra una unidad." },
+        { "id": "D", "contenido": [{ "tipo": "texto", "texto": "6" }], "es_correcta": false, "justificacion": "Incorrecta: es el doble de la respuesta." }
+      ]
+    }
+  ]
+}</code></pre>
+      <p>
+        Este formato sigue el estándar abierto
+        <a href="https://github.com/Riskbreaker2077/preguntas-icfes"><code>preguntas-icfes</code></a>,
+        pensado para preguntas tipo ICFES y compartido con otras plataformas.
+      </p>
+
+      <h3>Tipos de pregunta admitidos</h3>
+      <p>
+        Además de la pregunta clásica (enunciado + opciones), el paquete puede traer
+        <strong>grupos</strong> en la lista <code>grupos</code> del
+        <code>paquete.json</code>. Hay tres tipos, y en el banco de ejemplo
+        <code>banco-grupos-ingles.zip</code> hay uno de cada uno:
+      </p>
+      <ul class="lista-limpia">
+        <li><strong>Lectura compartida</strong> (<code>contexto_compartido</code>): varias preguntas sobre un mismo texto o tabla. En la tablet el texto se muestra una sola vez arriba y cada pregunta aparece en su propia pantalla, sin repetir el párrafo.</li>
+        <li><strong>Emparejamiento</strong> (<code>banco_opciones</code>): una caja de palabras y varias descripciones que el estudiante relaciona. Todas las descripciones y la caja se ven <strong>en la misma pantalla</strong>; cada respuesta acertada vale un punto.</li>
+        <li><strong>Completar espacios</strong> (<code>texto_con_blancos</code>): un pasaje con espacios numerados y opciones para llenar cada uno. También se responde en una sola pantalla.</li>
+      </ul>
+      <p>
+        Las preguntas de un grupo se declaran en <code>preguntas</code> con
+        <code>grupo_id</code> (y, para emparejamiento y completar, <code>tipo_item</code>).
+        Si varias preguntas del grupo no traen los seis campos de metadata, pueden
+        heredarlos del campo <code>metadata_pedagogica</code> del grupo.
+      </p>
+
+      <div class="aviso aviso--oro">
+        <p><strong>Aviso importante:</strong> si el contenido de una pregunta o grupo incluye el marcador <code>{{numero:...}}</code> (numeración dinámica del estándar), OpenTest lo <strong>excluye</strong> al importar — todavía no sabe sustituirlo, y mostrarlo en la tablet sería mostrar contenido roto. Al confirmar la carga verá una lista clara de lo que se quedó fuera y por qué; el resto del banco se importa normalmente. Si necesita esas preguntas, quite el marcador del paquete y vuelva a cargarlo.</p>
+      </div>
+
+      <h3>Escribir preguntas una a una, sin ZIP</h3>
+      <p>
+        Si no quiere (o no puede) preparar un ZIP, en <strong>Bancos de preguntas</strong>
+        pulse <strong>"+ Nuevo banco vacío"</strong>, póngale un nombre, y en su detalle
+        use <strong>"+ Agregar pregunta"</strong> cuantas veces necesite. El formulario
+        pide lo básico: un contexto opcional, una imagen opcional, el enunciado y las
+        <strong>4 opciones</strong> de respuesta, marcando cuál es la correcta. La
+        justificación por opción es opcional aquí (a diferencia del ZIP, que la exige).
+      </p>
+      <p>
+        Este camino no pide competencia, componente ni el resto de la metadata
+        pedagógica del estándar, ni admite los tres tipos de grupo (lectura compartida,
+        emparejamiento, completar espacios) — para eso sigue haciendo falta el ZIP.
+        Cada pregunta escrita a mano se sortea, se presenta y se califica exactamente
+        igual que una importada.
+      </p>
+      <p>
+        Cada pregunta suelta del detalle tiene botones <strong>Editar</strong> y
+        <strong>Eliminar</strong>, también para las que llegaron por ZIP sin grupo. Una
+        vez que una pregunta ya se usó en una evaluación, deja de poder editarse o
+        eliminarse: sus respuestas tienen que seguir siendo auditables.
+      </p>
+    </section>
+
+    <section id="preparar-evaluacion">
+      <h2><span class="n">03</span> Preparar una evaluación</h2>
+      <ol class="lista-limpia">
+        <li>Entre a <strong>Estudiantes</strong>, seleccione el archivo y revise la vista previa antes de confirmar.</li>
+        <li>Entre a <strong>Bancos de preguntas</strong>, cargue el banco y revise las preguntas de muestra.</li>
+        <li>Entre a <strong>Evaluaciones</strong> y pulse <strong>Crear evaluación</strong> después de elegir banco, cursos, cantidad de preguntas, duración y retroalimentación.</li>
+        <li>Mientras esté en borrador puede corregir la configuración. Pulse <strong>Abrir</strong> solo cuando esté lista.</li>
+      </ol>
+    </section>
+
+    <section id="iniciar-proyectar">
+      <h2><span class="n">04</span> Iniciar y proyectar</h2>
+      <ol class="lista-limpia">
+        <li>En <strong>Evaluaciones</strong>, abra <strong>Proyectar</strong>. Esa pantalla contiene el código QR, la dirección estable del portal y el reloj del aula.</li>
+        <li>Proyecte esa pestaña. Las tablets pueden escanear el QR o escribir exactamente la dirección mostrada.</li>
+        <li>Cada estudiante escribe su código y espera viendo su nombre.</li>
+        <li>Cuando todos estén listos, pulse <strong>Comenzar</strong> en la proyección. También puede pausar y reanudar desde allí.</li>
+      </ol>
+    </section>
+
+    <section id="durante">
+      <h2><span class="n">05</span> Durante la evaluación</h2>
+      <p>
+        Abra <strong>Monitorear evaluación</strong> en otra pestaña. La tabla se
+        actualiza sola y muestra quién no ha entrado, quién presenta, su avance y
+        quién entregó.
+      </p>
+      <p>
+        Si una tablet se bloqueó o un estudiante se retiró, use <strong>Forzar
+        entrega</strong> junto a su nombre y confirme. Para terminar el examen de todo
+        el grupo, pulse <strong>Cerrar evaluación</strong>; el aviso indica cuántos
+        siguen presentando antes de confirmar.
+      </p>
+    </section>
+
+    <section id="descargar">
+      <h2><span class="n">06</span> Descargar resultados</h2>
+      <p>Después de cerrar, entre a <strong>Descargar resultados</strong>. Puede elegir todos los cursos o uno solo:</p>
+      <ul class="lista-limpia">
+        <li><strong>Excel (.xlsx):</strong> un solo archivo con tres hojas — resumen por estudiante, detalle por pregunta con las opciones que vio cada quien, y el banco visto por la clase — con cabecera fija y columnas ajustadas. Ábralo directamente, sin dar formato a mano.</li>
+        <li><strong>Reproducción (.zip):</strong> el JSON completo de la evaluación (formato 3) con las imágenes empaquetadas, para reproducir la prueba en otra plataforma.</li>
+      </ul>
+      <div class="aviso aviso--oro">
+        <p>Excel puede convertir códigos como <code>00123</code> en <code>123</code>. Al importar la planilla a otro sistema, marque la columna <code>codigo</code> como <strong>Texto</strong>.</p>
+      </div>
+    </section>
+
+    <section id="estadisticas">
+      <h2><span class="n">07</span> Ver qué falló más el grupo</h2>
+      <p>
+        En <strong>Estadísticas</strong>, elija el banco de preguntas y luego una
+        evaluación cerrada concreta o <strong>todas las sesiones cerradas</strong> que
+        hayan usado ese banco, para acumular varios grupos o periodos. Dos tablas, de
+        lo más fallado a lo menos fallado: por pregunta y por competencia. Sirve para
+        decidir qué repasar en clase o qué pregunta del banco conviene revisar.
+      </p>
+    </section>
+
+    <section id="problemas">
+      <h2>Problemas frecuentes</h2>
+      <div class="acordeon">
+        <details>
+          <summary>Las tablets no abren la dirección</summary>
+          <div class="cuerpo">
+            <ul>
+              <li>Confirme que portátil y tablets están en la misma red wifi.</li>
+              <li>Permita OpenTest en el cortafuegos de Windows para redes privadas.</li>
+              <li>Algunas redes activan <strong>aislamiento de clientes</strong>, una opción del router que impide que dos equipos se vean. Pida al responsable de la red que la desactive para esa wifi.</li>
+              <li>Si desarrolla desde WSL2, su red interna puede ser invisible al wifi. Configure <code>networkingMode=mirrored</code> en <code>.wslconfig</code> o un <code>netsh portproxy</code>. Esto no afecta al ejecutable normal de Windows.</li>
+            </ul>
+          </div>
+        </details>
+        <details>
+          <summary>El puerto habitual está ocupado</summary>
+          <div class="cuerpo">
+            <p>OpenTest prueba automáticamente el siguiente puerto y muestra la dirección correcta. Use siempre la que aparece en pantalla ese día.</p>
+          </div>
+        </details>
+        <details>
+          <summary>Las tildes aparecen dañadas</summary>
+          <div class="cuerpo">
+            <p>Vuelva a guardar el archivo de importación como <strong>CSV UTF-8</strong>. Los archivos exportados por OpenTest ya incluyen la marca que necesita Excel en Windows.</p>
+          </div>
+        </details>
+        <details>
+          <summary>Se perdieron ceros al inicio del código</summary>
+          <div class="cuerpo">
+            <p>Excel lo trató como número. Configure la columna como <strong>Texto</strong> antes de guardar o importar.</p>
+          </div>
+        </details>
+        <details id="olvide-contrasena">
+          <summary>Olvidé la contraseña</summary>
+          <div class="cuerpo">
+            <p>
+              La contraseña no se puede leer: solo se puede <strong>cambiar por una
+              nueva</strong> desde el mismo equipo. El procedimiento exige estar frente
+              al portátil (quien pueda abrir una ventana de comandos en su equipo puede
+              hacerlo, así que guárdelo con el mismo cuidado con el que cuida el archivo
+              de resultados) y <strong>no borra ningún dato</strong>: estudiantes,
+              bancos y resultados quedan intactos.
+            </p>
+            <ol>
+              <li>Cierre OpenTest si está abierto (la ventana del servidor).</li>
+              <li>Abra una ventana de comandos en la carpeta del programa: mantenga <code>Mayús</code>, haga clic derecho sobre un espacio en blanco de la carpeta y elija <strong>Abrir ventana de PowerShell aquí</strong>.</li>
+              <li>Escriba <code>.\OpenTest.exe --recuperar-contrasena</code> y pulse Enter. (También sirve crear un acceso directo a <code>OpenTest.exe</code> y añadir <code> --recuperar-contrasena</code> al final del campo <em>Destino</em>.)</li>
+              <li>La ventana pedirá la contraseña nueva dos veces. Lo que escriba aparece como asteriscos.</li>
+              <li>Al confirmar "Contraseña restablecida", cierre la ventana y abra OpenTest con normalidad. Entre con la contraseña nueva.</li>
+            </ol>
+            <p>Si aún no había creado ninguna contraseña (pantalla de primer uso), no necesita este procedimiento: abra OpenTest con normalidad y el propio programa le pedirá crearla.</p>
+          </div>
+        </details>
+        <details>
+          <summary>SmartScreen o el antivirus bloquean OpenTest</summary>
+          <div class="cuerpo">
+            <p>En SmartScreen pulse <strong>Más información → Ejecutar de todas formas</strong>. Si el antivirus institucional lo bloquea, pida al responsable del equipo que autorice <code>OpenTest.exe</code>; no desactive permanentemente la protección.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="prueba-de-humo">
+      <h2>Prueba de humo antes del día del examen</h2>
+      <p>Reserve diez minutos y use los dos archivos de <code>ejemplos</code>:</p>
+      <ol class="lista-limpia">
+        <li>Con OpenTest cerrado, encienda el portátil y abra <code>OpenTest.exe</code>.</li>
+        <li>Importe los estudiantes y el banco de ejemplo.</li>
+        <li>Cree una evaluación de 20 preguntas para 10A y ábrala.</li>
+        <li>Desde una tablet en la misma wifi, escanee el QR, escriba <code>2024001</code> y compruebe el nombre.</li>
+        <li>Pulse <strong>Comenzar</strong>, responda una pregunta y confirme en <strong>Monitorear</strong> que el estudiante aparece presentando.</li>
+        <li>Fuerce la entrega o cierre la sesión y descargue el resumen CSV.</li>
+      </ol>
+      <div class="aviso aviso--verde">
+        <p><strong>Objetivo:</strong> completar del paso 1 al primer estudiante respondiendo en menos de 10 minutos. Repita esta prueba antes de cada entrega del equipo y después de cualquier cambio importante.</p>
+      </div>
+    </section>
+
+    <section id="cerrar">
+      <h2>Cerrar OpenTest</h2>
+      <p>
+        Cierre la ventana de OpenTest. El servidor deja de aceptar conexiones y cierra
+        la base de datos limpiamente. Espere a que la ventana desaparezca antes de
+        copiar la carpeta <code>data</code>.
+      </p>
+    </section>
+
+  </div>
+</div>
+
+<footer class="pie">
+  <div class="contenedor pie__fila">
+    <span>MIT © OpenTest — proyecto abierto en <a href="https://github.com/Riskbreaker2077/open-test">GitHub</a></span>
+    <span><a href="index.html">Inicio</a> · <a href="https://github.com/Riskbreaker2077/open-test/blob/main/GUIA-DOCENTE.md">Ver como texto plano en GitHub</a></span>
+  </div>
+</footer>
+
+<script src="assets/sitio.js"></script>
+</body>
+</html>

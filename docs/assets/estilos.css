@@ -1,0 +1,226 @@
+/* OpenTest — sitio público (GitHub Pages). Hoja compartida entre index.html
+   y guia.html. Misma paleta institucional que public/shared/base.css, pero
+   con su propio sistema de componentes: esto es un sitio editorial, no el
+   panel del docente. */
+
+:root {
+  --azul-950: #0b263b;
+  --azul-900: #12324a;
+  --azul-800: #1b455f;
+  --azul-700: #285773;
+  --azul-100: #dce8ed;
+  --rojo-700: #9f2728;
+  --rojo-600: #b83a32;
+  --rojo-100: #f5dfda;
+  --dorado-700: #8f5a22;
+  --dorado-600: #b5762d;
+  --dorado-500: #d18037;
+  --dorado-100: #f4e5cf;
+  --verde-700: #34703d;
+  --verde-100: #dfebdf;
+  --tinta: #1c2a33;
+  --tinta-suave: #57707d;
+  --papel: #ffffff;
+  --papel-calido: #fbf9f3;
+  --crema: #f3ecd9;
+  --borde: #e3ddc9;
+  --borde-oscuro: rgb(255 255 255 / 14%);
+  --radio: 20px;
+  --radio-chico: 12px;
+  --ancho: 72rem;
+  --ancho-lectura: 42rem;
+  --sombra: 0 18px 45px rgb(15 32 46 / 10%);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--papel-calido); scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  color: var(--tinta);
+  background: var(--papel-calido);
+  font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: var(--rojo-700); }
+a:hover { color: var(--rojo-600); }
+::selection { color: #fff; background: var(--azul-800); }
+:focus-visible { outline: 3px solid var(--dorado-500); outline-offset: 3px; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+
+h1, h2, h3, h4 {
+  margin: 0 0 0.55em;
+  color: var(--azul-950);
+  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  line-height: 1.12;
+  letter-spacing: -0.012em;
+}
+h1 { font-size: clamp(2.3rem, 5.6vw, 3.7rem); letter-spacing: -0.025em; }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); }
+h3 { font-size: 1.28rem; }
+h4 { font-size: 1.05rem; font-family: inherit; text-transform: none; }
+p { margin: 0 0 1.05rem; }
+strong { color: var(--azul-950); }
+
+code {
+  background: var(--azul-100);
+  color: var(--azul-950);
+  padding: 0.14em 0.42em;
+  border-radius: 5px;
+  font-size: 0.88em;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+.contenedor { width: min(100% - 2.5rem, var(--ancho)); margin: 0 auto; }
+.lectura { max-width: var(--ancho-lectura); }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 0.65rem;
+  color: var(--rojo-700); font-size: 0.72rem; font-weight: 800;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  margin-bottom: 0.85rem;
+}
+.eyebrow::before { width: 2rem; height: 2px; background: var(--dorado-500); content: ""; flex: 0 0 auto; }
+.eyebrow--claro { color: var(--dorado-500); }
+.eyebrow--claro::before { background: var(--dorado-500); }
+
+/* --- Botones -------------------------------------------------------- */
+
+.boton {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.97rem;
+  text-decoration: none;
+  border: 1.5px solid transparent;
+  white-space: nowrap;
+}
+.boton svg { width: 1em; height: 1em; }
+.boton--primario { background: var(--rojo-600); color: #fff; }
+.boton--primario:hover { background: var(--rojo-700); color: #fff; }
+.boton--claro { background: var(--dorado-500); color: var(--azul-950); }
+.boton--claro:hover { background: var(--dorado-600); color: var(--azul-950); }
+.boton--fantasma { background: transparent; color: var(--crema); border-color: var(--borde-oscuro); }
+.boton--fantasma:hover { border-color: var(--crema); color: var(--crema); }
+.boton--contorno { background: var(--papel); color: var(--azul-950); border-color: var(--borde); }
+.boton--contorno:hover { border-color: var(--azul-800); }
+
+/* --- Navegación ------------------------------------------------------ */
+
+header.nav {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--papel-calido);
+  border-bottom: 1px solid var(--borde);
+}
+.nav__fila { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.95rem 0; }
+.marca { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+.marca__insignia {
+  width: 2.1rem; height: 2.1rem; border-radius: 8px;
+  background: var(--azul-950);
+  display: grid; place-items: center; flex: 0 0 auto;
+  font-family: Georgia, serif; color: var(--dorado-500); font-weight: 700; font-size: 0.95rem;
+}
+.marca strong { color: var(--azul-950); font-size: 1.1rem; letter-spacing: -0.01em; }
+nav.enlaces { display: flex; align-items: center; gap: 1.6rem; font-weight: 600; font-size: 0.92rem; }
+nav.enlaces a { color: var(--azul-900); text-decoration: none; }
+nav.enlaces a:hover { color: var(--rojo-700); }
+nav.enlaces a.activo { color: var(--rojo-700); }
+.nav__git { display: flex; align-items: center; gap: 0.4rem; }
+@media (max-width: 720px) { nav.enlaces .oculto-movil { display: none; } }
+
+/* --- Franjas oscuras --------------------------------------------------- */
+
+.franja-oscura {
+  background:
+    radial-gradient(circle at 85% -10%, rgb(209 128 55 / 22%), transparent 32rem),
+    linear-gradient(180deg, var(--azul-950), var(--azul-900));
+  color: var(--crema);
+}
+.franja-oscura h1, .franja-oscura h2, .franja-oscura h3 { color: #fff; }
+.franja-oscura p { color: rgb(243 236 217 / 78%); }
+.franja-oscura .eyebrow { color: var(--dorado-500); }
+
+/* --- Secciones genéricas ------------------------------------------------ */
+
+section.bloque { padding: clamp(3rem, 7vw, 5rem) 0; }
+section.bloque + section.bloque { border-top: 1px solid var(--borde); }
+.bloque--raya { border-top: 1px solid var(--borde); }
+
+/* --- Avisos / callouts -------------------------------------------------- */
+
+.aviso {
+  border-radius: var(--radio-chico);
+  padding: 1rem 1.3rem;
+  border: 1px solid;
+  font-size: 0.95rem;
+}
+.aviso p:last-child { margin-bottom: 0; }
+.aviso--info { background: var(--azul-100); border-color: rgb(27 69 95 / 22%); color: var(--azul-900); }
+.aviso--info strong { color: var(--azul-950); }
+.aviso--oro { background: var(--dorado-100); border-color: rgb(213 128 55 / 32%); color: var(--dorado-700); }
+.aviso--oro strong { color: var(--dorado-700); }
+.aviso--verde { background: var(--verde-100); border-color: rgb(52 112 61 / 28%); color: var(--verde-700); }
+.aviso--verde strong { color: var(--verde-700); }
+
+/* --- Bloques de código --------------------------------------------------- */
+
+.terminal {
+  background: var(--azul-950);
+  color: #dce8ed;
+  border-radius: var(--radio-chico);
+  overflow: hidden;
+  box-shadow: var(--sombra);
+}
+.terminal__barra { display: flex; gap: 0.4rem; padding: 0.7rem 0.9rem; background: rgb(255 255 255 / 6%); }
+.terminal__punto { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: rgb(255 255 255 / 22%); }
+.terminal pre { margin: 0; padding: 1.1rem 1.3rem 1.3rem; overflow-x: auto; font-size: 0.88rem; }
+.terminal code { background: none; color: inherit; padding: 0; font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }
+
+pre.bloque-codigo {
+  background: var(--azul-950);
+  color: #dce8ed;
+  padding: 1.1rem 1.3rem;
+  border-radius: var(--radio-chico);
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
+pre.bloque-codigo code { background: none; color: inherit; padding: 0; }
+
+/* --- Utilidades de lista -------------------------------------------------- */
+
+ul.lista-limpia, ol.lista-limpia { margin: 0; padding-left: 1.15rem; }
+ul.lista-limpia li, ol.lista-limpia li { margin-bottom: 0.55rem; }
+
+table.tabla-guia {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  margin: 1rem 0 1.4rem;
+}
+table.tabla-guia th, table.tabla-guia td {
+  border: 1px solid var(--borde);
+  padding: 0.55rem 0.8rem;
+  text-align: left;
+}
+table.tabla-guia th { background: var(--crema); color: var(--azul-950); }
+
+/* --- Pie de página --------------------------------------------------- */
+
+footer.pie {
+  border-top: 1px solid var(--borde);
+  padding: 2.5rem 0 3rem;
+  font-size: 0.88rem;
+  color: var(--tinta-suave);
+}
+.pie__fila {
+  display: flex; flex-wrap: wrap; gap: 1rem;
+  align-items: center; justify-content: space-between;
+}
+footer.pie a { color: var(--azul-900); font-weight: 600; text-decoration: none; }
+footer.pie a:hover { color: var(--rojo-700); }
