@@ -1,5 +1,5 @@
 import { api } from './panel.js';
-import { renderizarGrupo, renderizarPregunta } from '/shared/pregunta.js';
+import { LETRAS, renderizarGrupo, renderizarPregunta } from '/shared/pregunta.js';
 
 const imagenes = document.getElementById('imagenes');
 const estadoImagenes = document.getElementById('estado-imagenes');
@@ -19,6 +19,21 @@ const detalle = document.getElementById('detalle');
 const detalleTitulo = document.getElementById('detalle-titulo');
 const detallePreguntas = document.getElementById('detalle-preguntas');
 const cerrarDetalle = document.getElementById('cerrar-detalle');
+const nuevoBanco = document.getElementById('nuevo-banco');
+const errorNuevoBanco = document.getElementById('error-nuevo-banco');
+const agregarPregunta = document.getElementById('agregar-pregunta');
+
+const editorPregunta = document.getElementById('editor-pregunta');
+const editorPreguntaTitulo = document.getElementById('editor-pregunta-titulo');
+const editorContexto = document.getElementById('editor-contexto');
+const editorImagen = document.getElementById('editor-imagen');
+const editorImagenEstado = document.getElementById('editor-imagen-estado');
+const editorEnunciado = document.getElementById('editor-enunciado');
+const editorOpcionesContenedor = document.getElementById('editor-opciones');
+const formularioPregunta = document.getElementById('formulario-pregunta');
+const editorPreguntaErrores = document.getElementById('editor-pregunta-errores');
+const editorPreguntaListaErrores = document.getElementById('editor-pregunta-lista-errores');
+const editorPreguntaCancelar = document.getElementById('editor-pregunta-cancelar');
 
 let paquetePendiente = null;
 
@@ -145,6 +160,234 @@ cerrarDetalle.addEventListener('click', () => {
   detalle.hidden = true;
 });
 
+// --- Nuevo banco vacío (028) -------------------------------------------
+
+nuevoBanco.addEventListener('click', async () => {
+  errorNuevoBanco.hidden = true;
+  const nombreBanco = window.prompt('Nombre del banco:');
+  if (nombreBanco === null) return; // canceló
+
+  const respuesta = await api('/api/docente/bancos', {
+    method: 'POST',
+    body: JSON.stringify({ nombre: nombreBanco }),
+  });
+
+  if (!respuesta.ok) {
+    errorNuevoBanco.textContent = respuesta.errores?.join(' ') ?? respuesta.mensaje;
+    errorNuevoBanco.hidden = false;
+    return;
+  }
+
+  await recargar();
+  await verBanco(respuesta.banco.id);
+});
+
+// --- Modal de pregunta manual: crear/editar (028) -----------------------
+
+const NUM_OPCIONES = 4;
+let bancoActualId = null;
+let preguntaEnEdicion = null; // null = crear; id = editar
+let disparadorEditorPregunta = null;
+let imagenAdjunta = null; // nombre de archivo ya subido, o null
+
+const filasOpcion = Array.from({ length: NUM_OPCIONES }, (_, i) => {
+  const letra = LETRAS[i];
+
+  const contenedor = document.createElement('div');
+  contenedor.className = 'editor-opcion';
+
+  const cabecera = document.createElement('div');
+  cabecera.className = 'editor-opcion__cabecera';
+  const radio = document.createElement('input');
+  radio.type = 'radio';
+  radio.name = 'editor-opcion-correcta';
+  radio.id = `editor-opcion-correcta-${i}`;
+  radio.value = String(i);
+  const etiquetaRadio = document.createElement('label');
+  etiquetaRadio.setAttribute('for', radio.id);
+  etiquetaRadio.textContent = `Opción ${letra} — correcta`;
+  cabecera.append(radio, etiquetaRadio);
+
+  const campoTexto = document.createElement('label');
+  campoTexto.className = 'campo';
+  const spanTexto = document.createElement('span');
+  spanTexto.textContent = `Texto de la opción ${letra}`;
+  const texto = document.createElement('textarea');
+  texto.maxLength = 2000;
+  campoTexto.append(spanTexto, texto);
+
+  const campoJustificacion = document.createElement('label');
+  campoJustificacion.className = 'campo';
+  const spanJustificacion = document.createElement('span');
+  spanJustificacion.textContent = 'Justificación (opcional)';
+  const justificacion = document.createElement('textarea');
+  justificacion.maxLength = 2000;
+  campoJustificacion.append(spanJustificacion, justificacion);
+
+  contenedor.append(cabecera, campoTexto, campoJustificacion);
+  editorOpcionesContenedor.append(contenedor);
+
+  return { radio, texto, justificacion };
+});
+
+function limpiarEditorPregunta() {
+  editorPreguntaErrores.hidden = true;
+  editorPreguntaListaErrores.replaceChildren();
+  editorContexto.value = '';
+  editorEnunciado.value = '';
+  editorImagen.value = '';
+  editorImagenEstado.textContent = '';
+  imagenAdjunta = null;
+  for (const fila of filasOpcion) {
+    fila.radio.checked = false;
+    fila.texto.value = '';
+    fila.justificacion.value = '';
+  }
+}
+
+/** `pregunta` viene con `contexto`/`enunciado` ya como array de bloques (forma de la API). */
+function abrirEditorPregunta(pregunta, desde) {
+  limpiarEditorPregunta();
+  disparadorEditorPregunta = desde ?? null;
+  preguntaEnEdicion = pregunta?.id ?? null;
+
+  if (pregunta) {
+    editorPreguntaTitulo.textContent = 'Editar pregunta';
+    editorContexto.value = (pregunta.contexto ?? []).filter((b) => b.tipo === 'texto').map((b) => b.texto).join('\n');
+    const bloqueImagen = (pregunta.contexto ?? []).find((b) => b.tipo === 'imagen');
+    if (bloqueImagen) {
+      imagenAdjunta = bloqueImagen.archivo;
+      editorImagenEstado.textContent = `Imagen adjunta: ${bloqueImagen.archivo} (elige otra para reemplazarla).`;
+    }
+    editorEnunciado.value = (pregunta.enunciado ?? []).filter((b) => b.tipo === 'texto').map((b) => b.texto).join('\n');
+    pregunta.opciones.forEach((opcion, i) => {
+      if (!filasOpcion[i]) return;
+      filasOpcion[i].texto.value = (opcion.contenido ?? []).filter((b) => b.tipo === 'texto').map((b) => b.texto).join('\n');
+      filasOpcion[i].justificacion.value = opcion.justificacion ?? '';
+      filasOpcion[i].radio.checked = opcion.es_correcta === 1;
+    });
+  } else {
+    editorPreguntaTitulo.textContent = 'Nueva pregunta';
+  }
+
+  editorPregunta.showModal();
+  editorEnunciado.focus();
+}
+
+function cerrarEditorPregunta() {
+  if (editorPregunta.open) editorPregunta.close();
+  disparadorEditorPregunta = null;
+}
+
+function mostrarErroresEditorPregunta(lista) {
+  editorPreguntaListaErrores.replaceChildren(
+    ...lista.map((mensaje) => {
+      const li = document.createElement('li');
+      li.textContent = mensaje;
+      return li;
+    }),
+  );
+  editorPreguntaErrores.hidden = false;
+}
+
+editorImagen.addEventListener('change', async () => {
+  const fichero = editorImagen.files[0];
+  if (!fichero) return;
+
+  editorImagenEstado.textContent = `Subiendo ${fichero.name}…`;
+  const res = await fetch(`/api/docente/imagenes?nombre=${encodeURIComponent(fichero.name)}`, {
+    method: 'POST',
+    headers: { 'content-type': fichero.type || 'application/octet-stream' },
+    body: fichero,
+  });
+  const cuerpo = await res.json();
+
+  if (!cuerpo.ok) {
+    editorImagenEstado.textContent = `${fichero.name}: ${cuerpo.mensaje}`;
+    return;
+  }
+  imagenAdjunta = cuerpo.imagen.nombre;
+  editorImagenEstado.textContent = `Imagen adjunta: ${cuerpo.imagen.nombre}.`;
+});
+
+editorPreguntaCancelar.addEventListener('click', cerrarEditorPregunta);
+
+editorPregunta.addEventListener('close', () => {
+  if (disparadorEditorPregunta && typeof disparadorEditorPregunta.focus === 'function') {
+    disparadorEditorPregunta.focus();
+  }
+});
+
+formularioPregunta.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+
+  const datos = {
+    contexto: editorContexto.value,
+    archivoImagen: imagenAdjunta,
+    enunciado: editorEnunciado.value,
+    opciones: filasOpcion.map((fila) => ({
+      texto: fila.texto.value,
+      esCorrecta: fila.radio.checked,
+      justificacion: fila.justificacion.value,
+    })),
+  };
+
+  const boton = document.getElementById('editor-pregunta-guardar');
+  boton.disabled = true;
+  try {
+    const respuesta = await api(
+      preguntaEnEdicion
+        ? `/api/docente/preguntas/${preguntaEnEdicion}`
+        : `/api/docente/bancos/${bancoActualId}/preguntas`,
+      { method: preguntaEnEdicion ? 'PUT' : 'POST', body: JSON.stringify(datos) },
+    );
+
+    if (!respuesta.ok) {
+      if (respuesta.errores) mostrarErroresEditorPregunta(respuesta.errores);
+      else window.alert(respuesta.mensaje ?? 'No se pudo guardar la pregunta.');
+      return;
+    }
+
+    cerrarEditorPregunta();
+    await verBanco(bancoActualId);
+    await recargar();
+  } finally {
+    boton.disabled = false;
+  }
+});
+
+agregarPregunta.addEventListener('click', () => abrirEditorPregunta(null, agregarPregunta));
+
+function accionesDePregunta(pregunta) {
+  const contenedor = document.createElement('div');
+  contenedor.className = 'acciones-fila';
+
+  const editar = document.createElement('button');
+  editar.className = 'boton boton--secundario boton--pequeno';
+  editar.type = 'button';
+  editar.textContent = 'Editar';
+  editar.addEventListener('click', () => abrirEditorPregunta(pregunta, editar));
+
+  const eliminar = document.createElement('button');
+  eliminar.className = 'boton boton--secundario boton--pequeno';
+  eliminar.type = 'button';
+  eliminar.textContent = 'Eliminar';
+  eliminar.addEventListener('click', async () => {
+    if (!window.confirm('¿Eliminar esta pregunta del banco?')) return;
+
+    const respuesta = await api(`/api/docente/preguntas/${pregunta.id}`, { method: 'DELETE' });
+    if (!respuesta.ok) {
+      window.alert(respuesta.mensaje);
+      return;
+    }
+    await verBanco(bancoActualId);
+    await recargar();
+  });
+
+  contenedor.append(editar, eliminar);
+  return contenedor;
+}
+
 const ETIQUETA_TIPO_GRUPO = {
   contexto_compartido: 'Contexto compartido',
   banco_opciones: 'Emparejamiento (banco de opciones)',
@@ -182,6 +425,7 @@ function seccionDeGrupo(grupo) {
 
 async function verBanco(id) {
   const { banco } = await api(`/api/docente/bancos/${id}`);
+  bancoActualId = id;
 
   const totalMiembros = (banco.grupos ?? []).reduce((suma, g) => suma + g.preguntas.length, 0);
   const total = banco.preguntas.length + totalMiembros;
@@ -190,11 +434,17 @@ async function verBanco(id) {
     ? `${banco.nombre} — ${total} preguntas en ${(banco.grupos ?? []).length} grupo(s)`
     : `${banco.nombre} — ${total} preguntas`;
 
-  const piezas = banco.preguntas.map((pregunta) =>
-    renderizarPregunta(pregunta, {
-      correcta: pregunta.opciones.findIndex((o) => o.es_correcta === 1),
-      mostrarJustificacion: true,
-    }));
+  const piezas = banco.preguntas.map((pregunta) => {
+    const envoltorio = document.createElement('div');
+    envoltorio.append(
+      renderizarPregunta(pregunta, {
+        correcta: pregunta.opciones.findIndex((o) => o.es_correcta === 1),
+        mostrarJustificacion: true,
+      }),
+      accionesDePregunta(pregunta),
+    );
+    return envoltorio;
+  });
   for (const grupo of banco.grupos ?? []) piezas.push(seccionDeGrupo(grupo));
   detallePreguntas.replaceChildren(...piezas);
   detalle.hidden = false;

@@ -177,13 +177,142 @@ test('el detalle del banco muestra cuál es la correcta y su justificación (es 
   assert.match(correctas[0].justificacion, /Correcta/);
 });
 
+// --- Ingreso manual de preguntas (028) --------------------------------------
+
+const opcionesManual = (indiceCorrecta = 0) => ['A', 'B', 'C', 'D'].map((letra, i) => ({
+  texto: `Opción ${letra}`,
+  esCorrecta: i === indiceCorrecta,
+  justificacion: '',
+}));
+
+const preguntaManual = (extra = {}) => ({
+  contexto: '',
+  enunciado: '¿Cuánto es 2 + 2?',
+  opciones: opcionesManual(),
+  ...extra,
+});
+
+test('crea un banco vacío y le agrega una pregunta a mano', async () => {
+  const nuevoBanco = await (await llamar('/api/docente/bancos', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ nombre: 'Matemáticas' }),
+  })).json();
+
+  assert.equal(nuevoBanco.ok, true);
+  assert.equal(nuevoBanco.banco.preguntas.length, 0);
+
+  const bancoId = nuevoBanco.banco.id;
+  const alta = await (await llamar(`/api/docente/bancos/${bancoId}/preguntas`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(preguntaManual()),
+  })).json();
+
+  assert.equal(alta.ok, true);
+  assert.equal(alta.pregunta.opciones.length, 4);
+
+  const { banco } = await (await llamar(`/api/docente/bancos/${bancoId}`)).json();
+  assert.equal(banco.preguntas.length, 1);
+  assert.deepEqual(banco.preguntas[0].enunciado, [{ tipo: 'texto', texto: '¿Cuánto es 2 + 2?' }]);
+});
+
+test('agregar una pregunta manual sin exactamente una correcta no escribe nada', async () => {
+  const { banco } = await (await llamar('/api/docente/bancos', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ nombre: 'Matemáticas' }),
+  })).json();
+
+  const opciones = opcionesManual();
+  opciones.forEach((o) => { o.esCorrecta = false; }); // ninguna correcta
+
+  const res = await llamar(`/api/docente/bancos/${banco.id}/preguntas`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(preguntaManual({ opciones })),
+  });
+
+  assert.equal(res.status, 400);
+  const cuerpo = await res.json();
+  assert.match(cuerpo.errores.join(' '), /exactamente una/);
+
+  const { banco: recargado } = await (await llamar(`/api/docente/bancos/${banco.id}`)).json();
+  assert.equal(recargado.preguntas.length, 0);
+});
+
+test('edita y luego elimina una pregunta manual', async () => {
+  const { banco } = await (await llamar('/api/docente/bancos', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ nombre: 'Matemáticas' }),
+  })).json();
+  const { pregunta } = await (await llamar(`/api/docente/bancos/${banco.id}/preguntas`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(preguntaManual()),
+  })).json();
+
+  const editada = await (await llamar(`/api/docente/preguntas/${pregunta.id}`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(preguntaManual({ enunciado: '¿Cuánto es 3 + 3?' })),
+  })).json();
+  assert.equal(editada.ok, true);
+  assert.deepEqual(editada.pregunta.enunciado, [{ tipo: 'texto', texto: '¿Cuánto es 3 + 3?' }]);
+
+  const eliminada = await (await llamar(`/api/docente/preguntas/${pregunta.id}`, { method: 'DELETE' })).json();
+  assert.equal(eliminada.ok, true);
+
+  const { banco: recargado } = await (await llamar(`/api/docente/bancos/${banco.id}`)).json();
+  assert.equal(recargado.preguntas.length, 0);
+});
+
+test('una pregunta manual ya usada en una evaluación no se puede editar ni eliminar', async () => {
+  const { banco } = await (await llamar('/api/docente/bancos', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ nombre: 'Matemáticas' }),
+  })).json();
+  const { pregunta } = await (await llamar(`/api/docente/bancos/${banco.id}/preguntas`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(preguntaManual()),
+  })).json();
+
+  db.prepare("INSERT INTO estudiantes (codigo, nombres, apellidos, curso) VALUES ('e1', 'Ana', 'Ruiz', '10A')").run();
+  const sesionId = db.prepare(
+    "INSERT INTO sesiones (nombre, banco_id, cursos, creado_en) VALUES ('Prueba', ?, '10A', '2026-01-01')",
+  ).run(banco.id).lastInsertRowid;
+  const intentoId = db.prepare(
+    "INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en) VALUES (?, 'e1', 's', 't', '2026-01-01')",
+  ).run(sesionId).lastInsertRowid;
+  db.prepare(
+    "INSERT INTO intento_preguntas (intento_id, orden, pregunta_id, orden_opciones) VALUES (?, 1, ?, '1,2,3,4')",
+  ).run(intentoId, pregunta.id);
+
+  const resEditar = await llamar(`/api/docente/preguntas/${pregunta.id}`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(preguntaManual()),
+  });
+  assert.equal(resEditar.status, 409);
+
+  const resEliminar = await llamar(`/api/docente/preguntas/${pregunta.id}`, { method: 'DELETE' });
+  assert.equal(resEliminar.status, 409);
+});
+
 test('nada de todo esto es alcanzable sin contraseña', async () => {
   const rutas = [
     ['/api/docente/bancos/paquete/validar', 'POST'],
     ['/api/docente/bancos/paquete/confirmar', 'POST'],
     ['/api/docente/bancos', 'GET'],
+    ['/api/docente/bancos', 'POST'],
     ['/api/docente/bancos/1', 'GET'],
     ['/api/docente/bancos/1', 'DELETE'],
+    ['/api/docente/bancos/1/preguntas', 'POST'],
+    ['/api/docente/preguntas/1', 'PUT'],
+    ['/api/docente/preguntas/1', 'DELETE'],
     ['/api/docente/bancos/1/sesiones-cerradas', 'GET'],
     ['/api/docente/bancos/1/estadisticas', 'GET'],
     ['/api/docente/imagenes', 'GET'],

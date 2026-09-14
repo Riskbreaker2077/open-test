@@ -2,8 +2,12 @@ import express, { Router } from 'express';
 import { validarEstudiantes } from '../importers/estudiantes.js';
 import { MAX_BYTES_PAQUETE, validarPaquete } from '../importers/paquete-zip.js';
 import {
+  actualizarPreguntaManual,
+  agregarPreguntaManual,
   borrarBanco,
   contarBancos,
+  crearBancoVacio,
+  eliminarPregunta,
   guardarBanco,
   listarBancos,
   obtenerBanco,
@@ -190,6 +194,17 @@ export function rutasDocente(db) {
     });
   });
 
+  // Ingreso manual (028): un banco vacío que el docente llena pregunta a
+  // pregunta, sin pasar por el ZIP del estándar.
+  router.post('/bancos', (req, res) => {
+    try {
+      res.json({ ok: true, banco: crearBancoVacio(db, req.body?.nombre) });
+    } catch (err) {
+      if (err.errores) return res.status(err.estado ?? 400).json({ ok: false, errores: err.errores });
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
   router.get('/bancos', (req, res) => {
     res.json({ ok: true, bancos: listarBancos(db) });
   });
@@ -219,6 +234,32 @@ export function rutasDocente(db) {
       const sesionId = req.query.sesion && req.query.sesion !== 'todas' ? Number(req.query.sesion) : null;
       const estadisticas = estadisticasDeBanco(db, Number(req.params.id), { sesionId, curso: req.query.curso });
       res.json({ ok: true, estadisticas });
+    } catch (err) {
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
+  router.post('/bancos/:id/preguntas', (req, res) => {
+    try {
+      res.json({ ok: true, pregunta: agregarPreguntaManual(db, Number(req.params.id), req.body ?? {}) });
+    } catch (err) {
+      if (err.errores) return res.status(err.estado ?? 400).json({ ok: false, errores: err.errores });
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
+  router.put('/preguntas/:id', (req, res) => {
+    try {
+      res.json({ ok: true, pregunta: actualizarPreguntaManual(db, Number(req.params.id), req.body ?? {}) });
+    } catch (err) {
+      if (err.errores) return res.status(err.estado ?? 400).json({ ok: false, errores: err.errores });
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
+  router.delete('/preguntas/:id', (req, res) => {
+    try {
+      res.json({ ok: true, pregunta: eliminarPregunta(db, Number(req.params.id)) });
     } catch (err) {
       res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
     }

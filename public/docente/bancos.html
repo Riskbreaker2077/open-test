@@ -5,6 +5,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>OpenTest — Bancos de preguntas</title>
   <link rel="stylesheet" href="/shared/base.css">
+  <style>
+    .encabezado-seccion {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .encabezado-seccion h2 { margin: 0; }
+    .editor-pregunta {
+      width: min(38rem, 94vw);
+      max-height: 92vh;
+      overflow: auto;
+      padding: clamp(1.25rem, 3vw, 1.85rem);
+      border: 1px solid var(--borde);
+      border-radius: var(--radio);
+      background: var(--papel);
+      box-shadow: var(--sombra);
+      color: var(--tinta);
+    }
+    .editor-pregunta::backdrop { background: rgb(11 38 59 / 35%); }
+    .editor-pregunta h2 { margin-top: 0; }
+    .editor-pregunta textarea { resize: vertical; min-height: 3.5rem; }
+    .editor-opcion {
+      border: 1px solid var(--borde);
+      border-radius: var(--radio);
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .editor-opcion__cabecera {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    .editor-acciones {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 1.25rem;
+    }
+    .acciones-fila {
+      display: flex;
+      gap: 0.4rem;
+      justify-content: flex-end;
+      margin: 0.5rem 0 1.5rem;
+    }
+  </style>
 </head>
 <body class="superficie-docente">
   <header class="barra">
@@ -67,17 +117,68 @@
     </section>
 
     <section class="tarjeta">
-      <h2>Bancos cargados</h2>
+      <div class="encabezado-seccion">
+        <h2>Bancos cargados</h2>
+        <button class="boton" id="nuevo-banco" type="button">+ Nuevo banco vacío</button>
+      </div>
+      <p class="apunte">
+        Un banco vacío es para el docente que prefiere escribir sus preguntas una a una
+        en vez de preparar un ZIP. Ábrelo y usa "+ Agregar pregunta" en su detalle.
+      </p>
+      <div id="error-nuevo-banco" hidden class="aviso"></div>
       <p id="vacio" hidden class="apunte">Todavía no has cargado ningún banco.</p>
       <table class="tabla" id="listado"></table>
     </section>
 
     <section class="tarjeta" id="detalle" hidden>
-      <h2 id="detalle-titulo"></h2>
-      <button class="boton boton--secundario boton--pequeno" id="cerrar-detalle">Cerrar</button>
+      <div class="encabezado-seccion">
+        <h2 id="detalle-titulo"></h2>
+        <div>
+          <button class="boton" id="agregar-pregunta" type="button">+ Agregar pregunta</button>
+          <button class="boton boton--secundario boton--pequeno" id="cerrar-detalle">Cerrar</button>
+        </div>
+      </div>
       <div id="detalle-preguntas"></div>
     </section>
   </main>
+
+  <dialog id="editor-pregunta" class="editor-pregunta">
+    <form id="formulario-pregunta" method="dialog">
+      <h2 id="editor-pregunta-titulo">Nueva pregunta</h2>
+      <p class="apunte">
+        Forma simple: sin competencia, componente ni otros campos del estándar preguntas-icfes
+        (eso solo lo trae un ZIP). Elige la opción correcta con el punto de la izquierda.
+      </p>
+
+      <label class="campo">
+        <span>Contexto (opcional)</span>
+        <textarea id="editor-contexto" maxlength="4000"></textarea>
+      </label>
+
+      <label class="campo">
+        <span>Imagen (opcional)</span>
+        <input type="file" id="editor-imagen" accept=".png,.jpg,.jpeg,.webp">
+      </label>
+      <p class="apunte" id="editor-imagen-estado"></p>
+
+      <label class="campo">
+        <span>Enunciado</span>
+        <textarea id="editor-enunciado" maxlength="4000" required></textarea>
+      </label>
+
+      <div id="editor-opciones"></div>
+
+      <div id="editor-pregunta-errores" hidden>
+        <p class="aviso">Corrige estos puntos antes de guardar:</p>
+        <ul class="lista-errores" id="editor-pregunta-lista-errores"></ul>
+      </div>
+
+      <div class="editor-acciones">
+        <button class="boton" type="submit" id="editor-pregunta-guardar">Guardar</button>
+        <button class="boton boton--secundario" type="button" id="editor-pregunta-cancelar">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
 
   <script type="module" src="/docente/bancos.js"></script>
 </body>

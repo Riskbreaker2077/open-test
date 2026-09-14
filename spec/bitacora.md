@@ -412,3 +412,44 @@ diferidos por hardware real en ninguna feature del roadmap original; el
 encargo inicial queda completo. `roadmap.md` mueve la validación a "Hecho" y
 vacía `Siguiente`; `RESTART.md` refleja que no hay feature en curso. Lo que
 siga, si se decide continuar, sale de `roadmap.md → Backlog / ideas`.
+
+## 14/09/2026 — 028 · Ingreso manual de preguntas
+
+Con el roadmap original completo, el usuario pidió una feature nueva: un
+docente que no arma el ZIP del estándar preguntas-icfes (por ejemplo, porque
+no usa una IA como asistente) debía poder escribir sus preguntas directamente
+en el panel. Antes de tocar código se acotó el alcance con tres preguntas: (1)
+formulario **mínimo** — contexto opcional, imagen opcional, enunciado y 4
+opciones, sin competencia/componente/grado/prueba ni grupos de matching/cloze;
+(2) un banco para esto se crea **vacío desde el panel**, no solo agregando a
+uno ya importado; (3) las preguntas creadas a mano se pueden **editar y
+eliminar**, simétrico a la 020 con estudiantes.
+
+Se siguió el protocolo SDD completo: spec, plan y tasks en
+`spec/features/028-ingreso-manual-preguntas/` antes de escribir nada. La
+implementación reutiliza al máximo lo que ya existía: `server/services/
+bancos.js` gana `crearBancoVacio`, `validarPreguntaManual` (todos los errores
+a la vez, como `validarEstudiante`), `agregarPreguntaManual` y
+`actualizarPreguntaManual`/`eliminarPregunta` — estas dos últimas con dos
+guardas 409: una pregunta miembro de un grupo del ZIP no se toca desde aquí,
+y una pregunta que ya aparece en `intento_preguntas` (ya se usó en una
+evaluación) tampoco, mismo principio que `borrarBanco` (009) y `borrarSesion`
+(022) aunque no era un requisito explícito del usuario. Cuatro rutas nuevas
+en `docente.js` (`POST /bancos`, `POST /bancos/:id/preguntas`, `PUT
+/preguntas/:id`, `DELETE /preguntas/:id`), mismo estilo try/catch que
+estudiantes. El frontend añade a `bancos.html`/`bancos.js` un botón "+ Nuevo
+banco vacío", un botón "+ Agregar pregunta" en el detalle de cualquier banco
+(no solo los vacíos: técnicamente no distingue el origen) y un `<dialog>` con
+4 filas de opción fijas (radio + texto + justificación opcional), reutilizando
+la subida de imágenes ya existente y `renderizarPregunta` para pintar el
+resultado igual que una pregunta importada. Cada pregunta suelta del detalle
+gana botones Editar/Eliminar.
+
+La suite subió a 446/446 (20 tests nuevos de servicio, 6 de integración de
+rutas) y el lint se mantuvo en 92 archivos limpios. No hubo forma de probar
+visualmente en navegador (la extensión Claude in Chrome no estaba conectada
+en esta sesión); se verificó por revisión estática cuidadosa de que todos los
+`id` del HTML y el JS coinciden, además de la cobertura de integración HTTP
+real (con `crearApp` + `fetch`, no mocks). `GUIA-DOCENTE.md` gana la sección
+"Escribir preguntas una a una, sin ZIP". La feature queda en "Hecho ✅" en
+`roadmap.md`.

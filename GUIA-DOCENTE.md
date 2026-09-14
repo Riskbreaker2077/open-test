@@ -107,6 +107,26 @@ clara de lo que se quedó fuera y por qué; el resto del banco se importa
 normalmente. Si necesita esas preguntas, quite el marcador del paquete y
 vuelva a cargarlo.
 
+### Escribir preguntas una a una, sin ZIP
+
+Si no quiere (o no puede) preparar un ZIP, en **Bancos de preguntas** pulse
+**"+ Nuevo banco vacío"**, póngale un nombre, y en su detalle use
+**"+ Agregar pregunta"** cuantas veces necesite. El formulario pide lo básico:
+un contexto opcional, una imagen opcional, el enunciado y las **4 opciones**
+de respuesta, marcando cuál es la correcta. La justificación por opción es
+opcional aquí (a diferencia del ZIP, que la exige).
+
+Este camino no pide competencia, componente ni el resto de la metadata
+pedagógica del estándar, ni admite los tres tipos de grupo (lectura
+compartida, emparejamiento, completar espacios) — para eso sigue haciendo
+falta el ZIP. Cada pregunta escrita a mano se sortea, se presenta y se
+califica exactamente igual que una importada.
+
+Cada pregunta suelta del detalle tiene botones **Editar** y **Eliminar**,
+también para las que llegaron por ZIP sin grupo. Una vez que una pregunta ya
+se usó en una evaluación, deja de poder editarse o eliminarse: sus respuestas
+tienen que seguir siendo auditables.
+
 ## 3. Preparar una evaluación
 
 1. Entre a **Estudiantes**, seleccione el archivo y revise la vista previa antes de confirmar.

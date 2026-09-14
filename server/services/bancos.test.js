@@ -1,7 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { abrirBd, cerrarBd } from '../db.js';
-import { borrarBanco, guardarBanco, gruposDeBanco, listarBancos, obtenerBanco, preguntasDeBanco } from './bancos.js';
+import {
+  actualizarPreguntaManual,
+  agregarPreguntaManual,
+  borrarBanco,
+  crearBancoVacio,
+  eliminarPregunta,
+  guardarBanco,
+  gruposDeBanco,
+  listarBancos,
+  obtenerBanco,
+  preguntasDeBanco,
+  validarPreguntaManual,
+} from './bancos.js';
+import { crearSesion } from './sesiones.js';
 import {
   grupoBancoOpciones,
   grupoContextoCompartido,
@@ -288,5 +301,226 @@ test('persiste procedencia_justificacion y justificacion_verificada por opción'
     assert.equal(guardada.opciones[1].justificacion_verificada, 0);
     assert.equal(guardada.opciones[2].procedencia_justificacion, null);
     assert.equal(guardada.opciones[2].justificacion_verificada, null);
+  });
+});
+
+// --- Ingreso manual de preguntas (028) --------------------------------------
+
+function opcionesManual(indiceCorrecta = 0) {
+  return ['A', 'B', 'C', 'D'].map((letra, i) => ({
+    texto: `Opción ${letra}`,
+    esCorrecta: i === indiceCorrecta,
+    justificacion: i === indiceCorrecta ? 'Porque sí' : '',
+  }));
+}
+
+const preguntaManualValida = (extra = {}) => ({
+  contexto: '',
+  enunciado: '¿Cuánto es 2 + 2?',
+  opciones: opcionesManual(),
+  ...extra,
+});
+
+test('crearBancoVacio crea un banco sin preguntas', () => {
+  conBd((db) => {
+    const banco = crearBancoVacio(db, 'Matemáticas');
+    assert.equal(banco.nombre, 'Matemáticas');
+    assert.equal(banco.preguntas.length, 0);
+    assert.equal(listarBancos(db)[0].preguntas, 0);
+  });
+});
+
+test('crearBancoVacio rechaza un nombre vacío', () => {
+  conBd((db) => {
+    assert.throws(() => crearBancoVacio(db, '  '), (err) => {
+      assert.equal(err.estado, 400);
+      assert.deepEqual(err.errores, ['El nombre del banco es obligatorio.']);
+      return true;
+    });
+  });
+});
+
+test('validarPreguntaManual junta todos los errores a la vez', () => {
+  const { errores } = validarPreguntaManual({
+    enunciado: '',
+    opciones: [
+      { texto: '', esCorrecta: false },
+      { texto: 'B', esCorrecta: false },
+      { texto: 'C', esCorrecta: false },
+      { texto: 'D', esCorrecta: false },
+    ],
+  });
+
+  assert.equal(errores.length, 3);
+  assert.match(errores[0], /enunciado/);
+  assert.match(errores[1], /opción A/i);
+  assert.match(errores[2], /exactamente una/);
+});
+
+test('validarPreguntaManual exige exactamente 4 opciones', () => {
+  const { errores } = validarPreguntaManual(preguntaManualValida({ opciones: opcionesManual().slice(0, 2) }));
+  assert.match(errores[0], /exactamente 4 opciones/);
+});
+
+test('validarPreguntaManual rechaza dos opciones correctas', () => {
+  const opciones = opcionesManual();
+  opciones[1].esCorrecta = true; // ahora hay dos correctas
+  const { errores } = validarPreguntaManual(preguntaManualValida({ opciones }));
+  assert.deepEqual(errores, ['Marca exactamente una opción como correcta.']);
+});
+
+test('agregarPreguntaManual guarda una pregunta suelta con sus 4 opciones', () => {
+  conBd((db) => {
+    const { id: bancoId } = crearBancoVacio(db, 'Sociales');
+    const pregunta = agregarPreguntaManual(db, bancoId, preguntaManualValida({ contexto: 'Un texto de apoyo' }));
+
+    assert.deepEqual(pregunta.contexto, [{ tipo: 'texto', texto: 'Un texto de apoyo' }]);
+    assert.deepEqual(pregunta.enunciado, [{ tipo: 'texto', texto: '¿Cuánto es 2 + 2?' }]);
+    assert.equal(pregunta.opciones.length, 4);
+    assert.equal(pregunta.opciones.filter((o) => o.es_correcta === 1).length, 1);
+    assert.equal(pregunta.grupo_id, null);
+
+    const [guardada] = preguntasDeBanco(db, bancoId);
+    assert.equal(guardada.id, pregunta.id);
+  });
+});
+
+test('agregarPreguntaManual sin contexto ni imagen guarda contexto vacío', () => {
+  conBd((db) => {
+    const { id: bancoId } = crearBancoVacio(db, 'Sociales');
+    const pregunta = agregarPreguntaManual(db, bancoId, preguntaManualValida());
+    assert.deepEqual(pregunta.contexto, []);
+  });
+});
+
+test('agregarPreguntaManual con imagen agrega un bloque de imagen al contexto', () => {
+  conBd((db) => {
+    const { id: bancoId } = crearBancoVacio(db, 'Sociales');
+    const pregunta = agregarPreguntaManual(
+      db,
+      bancoId,
+      preguntaManualValida({ contexto: 'Mira el mapa', archivoImagen: 'mapa.png' }),
+    );
+    assert.deepEqual(pregunta.contexto, [
+      { tipo: 'texto', texto: 'Mira el mapa' },
+      { tipo: 'imagen', archivo: 'mapa.png' },
+    ]);
+  });
+});
+
+test('agregarPreguntaManual no escribe nada si hay errores de validación', () => {
+  conBd((db) => {
+    const { id: bancoId } = crearBancoVacio(db, 'Sociales');
+    assert.throws(
+      () => agregarPreguntaManual(db, bancoId, preguntaManualValida({ enunciado: '' })),
+      (err) => {
+        assert.equal(err.estado, 400);
+        assert.ok(err.errores.length > 0);
+        return true;
+      },
+    );
+    assert.equal(preguntasDeBanco(db, bancoId).length, 0);
+  });
+});
+
+test('agregarPreguntaManual devuelve 404 si el banco no existe', () => {
+  conBd((db) => {
+    assert.throws(() => agregarPreguntaManual(db, 999, preguntaManualValida()), (err) => {
+      assert.equal(err.estado, 404);
+      return true;
+    });
+  });
+});
+
+test('actualizarPreguntaManual reemplaza contexto, enunciado y opciones', () => {
+  conBd((db) => {
+    const { id: bancoId } = crearBancoVacio(db, 'Sociales');
+    const original = agregarPreguntaManual(db, bancoId, preguntaManualValida());
+
+    const editada = actualizarPreguntaManual(
+      db,
+      original.id,
+      preguntaManualValida({ enunciado: '¿Cuánto es 3 + 3?', opciones: opcionesManual(2) }),
+    );
+
+    assert.deepEqual(editada.enunciado, [{ tipo: 'texto', texto: '¿Cuánto es 3 + 3?' }]);
+    assert.equal(editada.opciones.length, 4);
+    assert.equal(editada.opciones[2].es_correcta, 1);
+    assert.equal(editada.opciones.filter((o) => o.es_correcta === 1).length, 1);
+  });
+});
+
+test('actualizarPreguntaManual devuelve 404 si la pregunta no existe', () => {
+  conBd((db) => {
+    assert.throws(() => actualizarPreguntaManual(db, 999, preguntaManualValida()), (err) => {
+      assert.equal(err.estado, 404);
+      return true;
+    });
+  });
+});
+
+test('actualizarPreguntaManual rechaza una pregunta miembro de un grupo', () => {
+  conBd((db) => {
+    const grupo = grupoContextoCompartido({ id: 'g1' });
+    const miembro = preguntaMiembroContextoCompartido('g1', { id: 'm1' });
+    guardarBanco(db, 'Con grupo', [miembro], [grupo]);
+    const [preguntaGuardada] = preguntasDeBanco(db, 1);
+
+    assert.throws(() => actualizarPreguntaManual(db, preguntaGuardada.id, preguntaManualValida()), (err) => {
+      assert.equal(err.estado, 409);
+      assert.match(err.message, /grupo/);
+      return true;
+    });
+  });
+});
+
+function usarEnUnaEvaluacion(db, bancoId, preguntaId) {
+  db.prepare("INSERT INTO estudiantes (codigo, nombres, apellidos, curso) VALUES ('e1', 'Ana', 'Ruiz', '10A')").run();
+  const sesion = crearSesion(db, { nombre: 'Prueba', banco_id: bancoId, cursos: ['10A'], n_preguntas: 1 });
+  const intentoId = db.prepare(
+    "INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en) VALUES (?, 'e1', 's', 't', '2026-01-01')",
+  ).run(sesion.id).lastInsertRowid;
+  db.prepare(
+    "INSERT INTO intento_preguntas (intento_id, orden, pregunta_id, orden_opciones) VALUES (?, 1, ?, '1,2,3,4')",
+  ).run(intentoId, preguntaId);
+}
+
+test('actualizarPreguntaManual rechaza una pregunta ya usada en una evaluación', () => {
+  conBd((db) => {
+    const { id: bancoId } = crearBancoVacio(db, 'Sociales');
+    const pregunta = agregarPreguntaManual(db, bancoId, preguntaManualValida());
+    usarEnUnaEvaluacion(db, bancoId, pregunta.id);
+
+    assert.throws(() => actualizarPreguntaManual(db, pregunta.id, preguntaManualValida()), (err) => {
+      assert.equal(err.estado, 409);
+      assert.match(err.message, /auditables/);
+      return true;
+    });
+  });
+});
+
+test('eliminarPregunta borra la pregunta y sus opciones', () => {
+  conBd((db) => {
+    const { id: bancoId } = crearBancoVacio(db, 'Sociales');
+    const pregunta = agregarPreguntaManual(db, bancoId, preguntaManualValida());
+
+    eliminarPregunta(db, pregunta.id);
+
+    assert.equal(preguntasDeBanco(db, bancoId).length, 0);
+    assert.equal(db.prepare('SELECT count(*) AS t FROM opciones WHERE pregunta_id = ?').get(pregunta.id).t, 0);
+  });
+});
+
+test('eliminarPregunta rechaza una pregunta ya usada en una evaluación', () => {
+  conBd((db) => {
+    const { id: bancoId } = crearBancoVacio(db, 'Sociales');
+    const pregunta = agregarPreguntaManual(db, bancoId, preguntaManualValida());
+    usarEnUnaEvaluacion(db, bancoId, pregunta.id);
+
+    assert.throws(() => eliminarPregunta(db, pregunta.id), (err) => {
+      assert.equal(err.estado, 409);
+      return true;
+    });
+    assert.equal(preguntasDeBanco(db, bancoId).length, 1);
   });
 });

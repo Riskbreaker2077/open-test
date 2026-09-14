@@ -14,15 +14,17 @@
 
 **La validación final en el equipo destino se completó el 14/09/2026.** El usuario cubrió en una sesión física todo el checklist pendiente: QR y legibilidad en proyector, corte real de red, usabilidad táctil/orientación, línea gráfica en dispositivos reales, legibilidad de la pantalla de resultado, apertura del `.xlsx` de la 018 en Excel/LibreOffice, clic-a-clic en la pantalla de estadísticas de la 019, los botones de la 021 y la 022, el recorrido de los tres tipos de grupo de la 026 con `ejemplos/banco-grupos-ingles.zip`, y el diálogo `--recuperar-contrasena` de la 027 — todo sin novedades. No quedan criterios diferidos por hardware real en ninguna feature.
 
+**La 028 está implementada (14/09/2026).** En Bancos de preguntas, "+ Nuevo banco vacío" crea un banco sin preguntas y "+ Agregar pregunta" en su detalle abre un formulario con la forma simple original de la 003 (contexto opcional, imagen opcional, enunciado, 4 opciones marcando cuál es correcta, justificación opcional por opción) — sin la metadata pedagógica ni los grupos del estándar preguntas-icfes, que siguen siendo exclusivos del ZIP (015/016/026). Cada pregunta suelta gana botones Editar/Eliminar; una pregunta ya usada en una evaluación no se puede tocar (409, mismo principio que `borrarBanco`/`borrarSesion`). Complementaria a la carga por ZIP, igual que la 020 lo es de la 002. 446 tests en verde, lint de 92 archivos limpio.
+
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · **Validación final** | — | — (roadmap del encargo original completo; ver `roadmap.md → Backlog / ideas`) |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · **028** | — | — (roadmap del encargo original completo; ver `roadmap.md → Backlog / ideas`) |
 
 ### Para retomar, en este orden
 
 1. Lee `RESTART.md`: contiene el estado operativo de la última sesión.
 2. Lee `spec/constitution/roadmap.md`: el encargo original está completo; lo que sigue sale de `Backlog / ideas` si se decide continuar.
-3. `npm install && npm test` — deben pasar los 426.
+3. `npm install && npm test` — deben pasar los 446.
 4. `npm start` y entra a `http://localhost:3000/` para ver el portal del estudiante, y a `/docente/` para el panel.
 
 ## Protocolo de restart entre sesiones
