@@ -2,31 +2,26 @@
 
 ## Última actualización y rama activa
 
-- 09/09/2026 — `main`, **limpio y pusheado** hasta `edec510` (026) + commit de la 027 pendiente al cerrar la sesión (ver Estado).
+- 14/09/2026 — `main`, **limpio y pusheado** hasta `6a9da6d` (027). Roadmap completo.
 
 ## Feature/tarea en curso
 
-- **027 · Recuperación de la contraseña del docente — IMPLEMENTADA.** `OpenTest.exe --recuperar-contrasena` (y `npm start -- --recuperar-contrasena`) abre un diálogo de consola en español: pide la contraseña nueva dos veces, con asterisco por carácter en TTY real y lectura sin eco en tuberías; valida la longitud con la misma regla de la 011; reutiliza `establecerContrasena` (sal nueva, transacción sobre `config`). No toca datos ni la interfaz web. Maneja base inexistente (no la crea), base bloqueada (`SQLITE_BUSY` → "cierra OpenTest", código 1) y cancelación (`Ctrl+C`/EOF → código 1, sin escribir). 426 tests en verde (412 + 14 nuevos en `server/recuperacion.test.js`), lint limpio (92 archivos). Verificado end-to-end que el modo no arranca el servidor y que un flujo feliz restablece la contraseña. Pendiente solo la verificación física (máscara en terminal Windows real).
+- Ninguna. La **validación final en equipo destino** (`roadmap.md → Siguiente`, ver historial) se completó el 14/09/2026: todo el checklist verificado sin novedades — QR/proyector, corte de red, táctil, línea gráfica, apertura del `.xlsx`, pantalla de estadísticas (019), botones de la 021/022, los tres tipos de grupo de la 026 con `ejemplos/banco-grupos-ingles.zip`, y el diálogo `--recuperar-contrasena` de la 027 (máscara de escritura y contraseña nueva aceptada al reabrir). El roadmap del encargo original queda sin pendientes; lo que sigue, si se decide continuar, sale de `roadmap.md → Backlog / ideas`.
 
 ## Qué se hizo en esta sesión
 
-1. **Cierre de la 026**: commiteada y pusheada en `edec510` (la nota anterior de que 020 + postject estaban sin commitear era incorrecta: ya estaban en `a64331d` y `8a061d7`).
-2. **027 implementada de punta a punta** (spec SDD en `spec/features/027-recuperar-contrasena/`):
-   - `server/recuperacion.js`: `esModoRecuperacion` (filtra argv por guión inicial — necesario porque el SEA pone el parámetro en `argv[1]` y `npm start` en `argv[2]`), `restablecerContrasena` (función pura testeable) y `recuperarContrasena` (flujo con `entrada`/`salida`/`rutaBd`/`abrir` inyectables).
-   - `server/index.js`: detección del modo antes de abrir la base y calcular puertos; sin el parámetro el arranque es idéntico.
-   - `GUIA-DOCENTE.md → Olvidé la contraseña`: reescrita con el procedimiento paso a paso (PowerShell y acceso directo).
-   - Criterio pendiente de la 011 marcado y apuntando a la 027.
-   - Bugs encontrados y corregidos en el camino: lector no-TTY que perdía el resto de un trozo tras el primer `\n` y el evento `end` (creado `crearLector` con búfer compartido); alias de guión simple mal construido; `argv.slice(2)` que rompía el caso SEA.
+1. Se confirmó con el usuario que la sesión de validación física cubrió el checklist completo de `Siguiente` sin problemas.
+2. Se movió esa validación a "Hecho" en `spec/constitution/roadmap.md`, se vació la sección `Siguiente` y se actualizó este restart.
 
 ## Estado
 
-- Git: 026 pusheada; **la 027 queda sin commitear al momento de escribir esto** (commitear y pushear al cerrar la sesión).
-- Servidor: no probado en un navegador real; el diálogo de recuperación no probado en una terminal Windows real (sin TTY aquí).
+- Git: limpio, sin cambios de código (solo documentación de esta sesión).
+- Producto: validado físicamente en el equipo destino; no quedan criterios diferidos por hardware real en ninguna feature.
 
 ## Siguiente tarea
 
-1. **Validación física en equipo destino** (todo lo de `roadmap.md → Siguiente`, incluido el diálogo de la 027 con máscara visible).
+- Ninguna obligatoria. Decidir con el usuario si se aborda algo de `roadmap.md → Backlog / ideas` (preguntas adicionales por rapidez, monitoreo en vivo enriquecido, copia de seguridad con un clic, migrar bancos anteriores a la 016) o si el proyecto pasa a modo mantenimiento.
 
 ## Bloqueos / decisiones pendientes
 
-- Sin bloqueos técnicos. Es la última feature del roadmap: queda la sesión de validación física.
+- Ninguno.

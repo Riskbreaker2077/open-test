@@ -395,3 +395,20 @@ La suite quedó en 426/426 (412 + 14 nuevos) y el lint en 92 archivos limpios.
 paso a paso y el criterio pendiente de la 011 quedó marcado apuntando a la 027.
 Pendiente solo la verificación física del diálogo en una terminal Windows real
 (máscara por carácter y `Ctrl+C`), en cola con la sesión de validación final.
+
+## 14/09/2026 — Validación final en equipo destino
+
+El usuario realizó la sesión física única en el equipo destino que quedaba
+como último punto del roadmap: QR y legibilidad en proyector, corte de red,
+usabilidad táctil, línea gráfica, apertura del `.xlsx` en Excel/LibreOffice,
+pantalla de estadísticas (019), botones de la 021/022, el recorrido completo
+de los tres tipos de grupo de la 026 con `ejemplos/banco-grupos-ingles.zip`
+(lectura compartida, matching, cloze y el aviso de exclusión
+`{{numero:...}}`), y el diálogo `OpenTest.exe --recuperar-contrasena` de la
+027 (máscara de escritura y contraseña nueva aceptada al reabrir).
+
+Confirmó que todo el checklist funcionó sin novedades. No quedan criterios
+diferidos por hardware real en ninguna feature del roadmap original; el
+encargo inicial queda completo. `roadmap.md` mueve la validación a "Hecho" y
+vacía `Siguiente`; `RESTART.md` refleja que no hay feature en curso. Lo que
+siga, si se decide continuar, sale de `roadmap.md → Backlog / ideas`.

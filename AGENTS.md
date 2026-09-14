@@ -4,7 +4,7 @@
 
 ---
 
-## Dónde estamos (última actualización: 09/09/2026)
+## Dónde estamos (última actualización: 14/09/2026)
 
 **Las veintisiete features están implementadas y 426 tests están en verde.** El flujo completo existe desde la importación hasta la descarga de resultados; la 014 aplica la línea gráfica institucional, la 015 permite cargar preguntas e imágenes en un solo ZIP, la 016 hace que ese banco siga el estándar externo y abierto **preguntas-icfes** (github.com/riskbreaker2077/preguntas-icfes): metadata pedagógica por pregunta, contenido en bloques (texto/imagen/tabla) y justificación por cada opción; la 017 hace que el sorteo de cada prueba reparta las preguntas entre las competencias del banco en proporción a su tamaño, en vez de puramente al azar; la 018 agrega una cuarta descarga al panel de resultados, un `.xlsx` de dos hojas (Resumen/Detalle) con cabecera en negrita/congelada y columnas ajustadas, generado con un escritor de ZIP y de SpreadsheetML propios (sin dependencias nuevas); la 019 agrega una pantalla de estadísticas por pregunta y por competencia (`/docente/estadisticas.html`), con alcance por una sesión cerrada concreta o acumulado por banco entre todas sus sesiones cerradas; la 020 agrega creación y edición manual de estudiantes desde la pantalla del docente (modal `<dialog>` con la misma validación del importador, sin pasar por CSV/JSON); la 021 quita el botón "Terminar la prueba" del examen del estudiante y endurece el servidor para rechazar entregas con preguntas pendientes (los motivos del sistema —`tiempo`, `forzada_docente`— siguen cerrando aunque haya pendientes); la 022 permite al docente borrar una evaluación cerrada **después** de haber descargado sus resultados al menos una vez, vía una nueva columna `sesiones.descargado_en` (migración v4) que se escribe desde el handler de exportación y se exige en `borrarSesion`; y la 023 hace que `urlsDeIntranet` agregue candidatas por `os.hostname()` (`http://<equipo>:3000` y `http://<equipo>.local:3000`), para que el QR use el nombre del portátil y deje de quedar mintiendo cuando el equipo cambia de subred; y... (line truncated to 2000 chars)
 
@@ -12,19 +12,18 @@
 
 **La 027 está implementada (09/09/2026).** Restablece la contraseña del panel del docente desde la consola del propio equipo: `OpenTest.exe --recuperar-contrasena` (o `npm start -- --recuperar-contrasena` en desarrollo) abre un diálogo en español que pide la contraseña nueva dos veces con escritura oculta (asterisco por carácter en TTY real; lectura sin eco en tuberías), reutiliza el hashing `scrypt`+sal nueva de la 011 sin duplicar lógica, y **no toca ningún dato** ni la interfaz web (la 011 exigió que la recuperación no viviera en la interfaz). Maneja base inexistente (no la crea), base bloqueada (`SQLITE_BUSY` → "cierra OpenTest") y cancelación (`Ctrl+C`/EOF) sin escribir nada. El nuevo módulo es `server/recuperacion.js`, enganchado en `server/index.js` antes de abrir la base; el SEA lo recibe gratis. Documentado en `GUIA-DOCENTE.md → Olvidé la contraseña`. Queda la verificación física (máscara en terminal Windows real).
 
-**Las verificaciones físicas se harán juntas al final en el equipo destino.** Quedan pendientes QR y legibilidad en proyector, corte real de red, usabilidad táctil/orientación, línea gráfica en dispositivos reales, legibilidad de la pantalla de resultado, la apertura real del `.xlsx` de la 018 en Excel/LibreOffice sin diálogo de reparación, y ahora también un clic-a-clic real en la pantalla de estadísticas de la 019 (verificada por HTTP con un servidor desechable, no en un navegador real). Las nuevas features 021 (botón del examen) y 022 (botón "Borrar" del panel de evaluaciones) también requieren verificación visual en el equipo destino.
+**La validación final en el equipo destino se completó el 14/09/2026.** El usuario cubrió en una sesión física todo el checklist pendiente: QR y legibilidad en proyector, corte real de red, usabilidad táctil/orientación, línea gráfica en dispositivos reales, legibilidad de la pantalla de resultado, apertura del `.xlsx` de la 018 en Excel/LibreOffice, clic-a-clic en la pantalla de estadísticas de la 019, los botones de la 021 y la 022, el recorrido de los tres tipos de grupo de la 026 con `ejemplos/banco-grupos-ingles.zip`, y el diálogo `--recuperar-contrasena` de la 027 — todo sin novedades. No quedan criterios diferidos por hardware real en ninguna feature.
 
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · **027** | — | **Validación final en equipo destino** |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · **Validación final** | — | — (roadmap del encargo original completo; ver `roadmap.md → Backlog / ideas`) |
 
 ### Para retomar, en este orden
 
 1. Lee `RESTART.md`: contiene el estado operativo de la última sesión.
-2. Lee `spec/constitution/roadmap.md`: dice qué está hecho y qué toca ahora.
-3. Revisa las casillas manuales pendientes en 012, 013, 006, 007, 009 y 010; para lo visual, lee también la 014.
-4. `npm install && npm test` — deben pasar los 426.
-5. `npm start` y entra a `http://localhost:3000/` para ver el portal del estudiante, y a `/docente/` para el panel.
+2. Lee `spec/constitution/roadmap.md`: el encargo original está completo; lo que sigue sale de `Backlog / ideas` si se decide continuar.
+3. `npm install && npm test` — deben pasar los 426.
+4. `npm start` y entra a `http://localhost:3000/` para ver el portal del estudiante, y a `/docente/` para el panel.
 
 ## Protocolo de restart entre sesiones
 
