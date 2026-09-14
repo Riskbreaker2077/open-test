@@ -4,11 +4,28 @@ OpenTest funciona dentro del colegio: el portátil del docente hace de servidor 
 
 ## 1. Preparar OpenTest
 
+Hay dos formas de instalarlo; cualquiera de las dos sirve.
+
+**Opción A — instalador (recomendada si tiene el `.exe` del instalador):**
+
+1. Haga doble clic en `OpenTest-Setup-<versión>.exe` y siga el asistente. No pide contraseña de administrador.
+2. Al terminar, quedan accesos directos a OpenTest en el menú Inicio (y en el escritorio si marcó esa opción), y un desinstalador normal de Windows en "Agregar o quitar programas".
+3. Abra OpenTest desde el acceso directo.
+
+**Opción B — copiar la carpeta a mano (portable, sin dejar rastro en el sistema):**
+
 1. Copie la carpeta `OpenTest-Windows` completa al portátil. No separe `OpenTest.exe` de las carpetas que lo acompañan.
 2. Haga doble clic en `OpenTest.exe`.
+
+Con cualquiera de las dos:
+
 3. La primera vez, Windows puede mostrar SmartScreen. Pulse **Más información** y luego **Ejecutar de todas formas**.
 4. El navegador se abrirá en el panel. Cree una contraseña que pueda recordar y guárdela en un lugar seguro.
 5. Si Windows pregunta por el cortafuegos, permita el acceso en **redes privadas**.
+
+Para actualizar a una versión nueva con el instalador, simplemente vuelva a
+instalar encima: sus estudiantes, bancos y resultados (la carpeta `data`) no
+se tocan.
 
 La carpeta `data` queda junto al ejecutable. Allí están la base de datos y las imágenes. Para hacer una copia de seguridad, cierre OpenTest y copie la carpeta `data` completa a una memoria USB.
 

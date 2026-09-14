@@ -36,7 +36,7 @@ La implementación automatizable queda cerrada con 9 de 13 criterios verificados
 
 ## Fuera de alcance
 
-- Instalador con asistente (`.msi`) o firma de código: se distribuye el ejecutable tal cual.
+- ~~Instalador con asistente~~: existía como límite mientras el producto estaba en construcción; la feature [029](../029-instalador-windows/spec.md) lo agrega como alternativa a la copia manual (que sigue funcionando igual). La firma de código sigue fuera de alcance (ver 029).
 - Versiones para macOS y Linux: se documenta cómo generarlas, pero la soportada es Windows.
 - Actualizaciones automáticas: implicaría red, prohibida por la constitución.
 - Vídeos o capturas animadas; la guía es texto con capturas fijas.
