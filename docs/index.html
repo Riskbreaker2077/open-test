@@ -22,6 +22,8 @@
   .hero h1 { margin-bottom: 0.7em; }
   .hero p.lead { font-size: clamp(1.05rem, 2vw, 1.2rem); max-width: 34rem; }
   .hero__botones { display: flex; gap: 0.9rem; flex-wrap: wrap; margin-top: 1.75rem; }
+  .hero__descarga { margin-top: 0.9rem; font-size: 0.85rem; color: rgb(243 236 217 / 70%); }
+  .hero__descarga a { color: var(--dorado-500); }
   .hero__diagrama { width: 100%; height: auto; }
   .hero__diagrama-leyenda {
     text-align: center; font-size: 0.82rem; color: rgb(243 236 217 / 62%);
@@ -143,6 +145,7 @@
       <a class="oculto-movil" href="#como-funciona">Cómo funciona</a>
       <a class="oculto-movil" href="#funciones">Funciones</a>
       <a href="guia.html">Guía docente</a>
+      <a class="oculto-movil" href="https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe">Descargar</a>
       <a class="nav__git" href="https://github.com/Riskbreaker2077/open-test">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2 .37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
         GitHub
@@ -165,9 +168,13 @@
           Mirar la pantalla del compañero no sirve de nada.
         </p>
         <div class="hero__botones">
-          <a class="boton boton--claro" href="guia.html">Ver la guía para docentes</a>
-          <a class="boton boton--fantasma" href="https://github.com/Riskbreaker2077/open-test">Código en GitHub</a>
+          <a class="boton boton--claro" href="https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            Descargar para Windows
+          </a>
+          <a class="boton boton--fantasma" href="guia.html">Ver la guía para docentes</a>
         </div>
+        <p class="hero__descarga">Instalador para Windows 10/11 de 64 bits, sin permisos de administrador · <a href="https://github.com/Riskbreaker2077/open-test/releases">Todas las versiones</a></p>
       </div>
       <div>
         <svg class="hero__diagrama" viewBox="0 0 600 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Un estudiante, la proyección del aula y el panel del docente, conectados por la misma red local">
@@ -208,7 +215,7 @@
 
   <section class="franja-oscura franja-stats">
     <div class="contenedor stats">
-      <div class="stat"><strong>29</strong><span>features en el roadmap</span></div>
+      <div class="stat"><strong>30</strong><span>features en el roadmap</span></div>
       <div class="stat"><strong>446</strong><span>pruebas automáticas</span></div>
       <div class="stat"><strong>3</strong><span>superficies separadas</span></div>
       <div class="stat"><strong>0</strong><span>peticiones a internet</span></div>
@@ -393,7 +400,7 @@ npm start</code></pre>
         <ul>
           <li>Node 22 o superior.</li>
           <li>Un portátil y una red wifi. Nada más: sin internet, sin cuentas, sin servicios externos.</li>
-          <li>Para el día del examen en Windows: el ejecutable único o el instalador (<code>npm run build:exe</code> / <code>npm run build:installer</code>), documentados en la <a href="guia.html">guía</a>.</li>
+          <li>Para el día del examen en Windows no hace falta Node: <a href="https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe">descargue el instalador</a>. Para compilarlo usted mismo: <code>npm run build:exe</code> y <code>npm run build:installer</code>, documentados en la <a href="guia.html">guía</a>.</li>
         </ul>
       </div>
     </div>

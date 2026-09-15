@@ -1,0 +1,143 @@
+# 030 · Compila, prueba y publica el instalador de Windows.
+#
+# - workflow_dispatch: compila y prueba; deja OpenTest-Setup.exe como artefacto.
+# - tag vX.Y.Z:        además publica la release y guarda una copia en
+#                      instalador/OpenTest-Setup.exe dentro de main.
+#
+# Ver spec/features/030-descarga-instalador/.
+name: Instalador de Windows
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  instalador:
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Versión (package.json debe coincidir con el tag)
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$version") {
+            throw "El tag $env:GITHUB_REF_NAME no coincide con package.json ($version)."
+          }
+          "VERSION=$version" >> $env:GITHUB_ENV
+
+      - run: npm ci
+
+      - run: npm run build:exe
+
+      - name: Inno Setup en el PATH
+        run: |
+          $dir = 'C:\Program Files (x86)\Inno Setup 6'
+          if (-not (Test-Path "$dir\ISCC.exe")) { choco install innosetup -y --no-progress }
+          $dir >> $env:GITHUB_PATH
+
+      - run: npm run build:installer
+
+      - name: 'Prueba de humo: instalar, abrir, reinstalar, desinstalar'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup   = (Resolve-Path 'dist\instalador\OpenTest-Setup.exe').Path
+          $destino = Join-Path $env:RUNNER_TEMP 'OpenTest prueba'
+          $bd      = Join-Path $destino 'data\opentest.db'
+
+          function Instalar([string]$registro) {
+            $p = Start-Process $setup -Wait -PassThru -ArgumentList @(
+              '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART',
+              "/DIR=`"$destino`"", "/LOG=`"$env:RUNNER_TEMP\$registro`"")
+            if ($p.ExitCode -ne 0) { throw "El instalador terminó con código $($p.ExitCode)." }
+          }
+
+          Write-Host '1. Instalación limpia'
+          Instalar 'instalar.log'
+          if (-not (Test-Path "$destino\OpenTest.exe")) { throw 'No se instaló OpenTest.exe.' }
+          if (Test-Path "$destino\data") { throw 'El paquete no debe traer la carpeta data.' }
+
+          Write-Host '2. Arrancar OpenTest.exe'
+          $env:PORT = '3456'
+          $app = Start-Process "$destino\OpenTest.exe" -WorkingDirectory $destino -PassThru `
+            -RedirectStandardOutput "$env:RUNNER_TEMP\opentest.out.log" `
+            -RedirectStandardError  "$env:RUNNER_TEMP\opentest.err.log"
+          $ok = $false
+          for ($i = 0; $i -lt 60 -and -not $ok; $i++) {
+            Start-Sleep -Seconds 1
+            try { $ok = (Invoke-WebRequest 'http://localhost:3456/' -UseBasicParsing -TimeoutSec 5).StatusCode -eq 200 } catch {}
+          }
+          Stop-Process -Id $app.Id -Force -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 2
+          if (-not $ok) {
+            Get-Content "$env:RUNNER_TEMP\opentest.out.log", "$env:RUNNER_TEMP\opentest.err.log" -ErrorAction SilentlyContinue
+            throw 'OpenTest.exe no respondió HTTP 200.'
+          }
+          if (-not (Test-Path $bd)) { throw 'OpenTest.exe no creó data\opentest.db.' }
+          $hash = (Get-FileHash $bd).Hash
+
+          Write-Host '3. Reinstalar encima de una copia con datos'
+          Instalar 'reinstalar.log'
+          if ((Get-FileHash $bd).Hash -ne $hash) { throw 'Reinstalar modificó data\opentest.db.' }
+
+          Write-Host '4. Desinstalar'
+          Start-Process "$destino\unins000.exe" -Wait -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'
+          for ($i = 0; $i -lt 60 -and (Test-Path "$destino\OpenTest.exe"); $i++) { Start-Sleep -Seconds 1 }
+          if (Test-Path "$destino\OpenTest.exe") { throw 'El desinstalador no quitó OpenTest.exe.' }
+          if (-not (Test-Path $bd)) { throw 'Desinstalar borró data\opentest.db.' }
+
+          $mb = [math]::Round((Get-Item $setup).Length / 1MB, 1)
+          Write-Host "Todo en orden. OpenTest-Setup.exe $env:VERSION pesa $mb MB."
+          if ($mb -gt 95) { throw 'El instalador supera 95 MB: GitHub no aceptaría commitearlo (límite 100 MB).' }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: OpenTest-Setup-${{ env.VERSION }}
+          path: |
+            dist/instalador/OpenTest-Setup.exe
+            ${{ runner.temp }}/*.log
+          if-no-files-found: ignore
+
+      - name: Publicar la release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $notas = @"
+          ## Descargar
+
+          **[OpenTest-Setup.exe](https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:GITHUB_REF_NAME/OpenTest-Setup.exe)** — Windows 10/11 de 64 bits.
+
+          1. Descargue el instalador y ábralo. No pide permisos de administrador.
+          2. Si aparece SmartScreen: **Más información** → **Ejecutar de todas formas**.
+          3. Para actualizar, instale encima: la carpeta ``data`` (estudiantes, bancos y resultados) no se toca.
+
+          Guía completa: https://riskbreaker2077.github.io/open-test/guia.html
+          "@
+          gh release create $env:GITHUB_REF_NAME 'dist\instalador\OpenTest-Setup.exe' `
+            --title "OpenTest $env:VERSION" --notes $notas --verify-tag
+
+      - name: Guardar el instalador en el repositorio
+        if: github.ref_type == 'tag'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main
+          git checkout -B main origin/main
+          New-Item -ItemType Directory -Force instalador | Out-Null
+          Copy-Item 'dist\instalador\OpenTest-Setup.exe' 'instalador\OpenTest-Setup.exe' -Force
+          git add instalador/OpenTest-Setup.exe
+          git commit -m "instalador: OpenTest-Setup.exe $env:VERSION"
+          git push origin main

@@ -1,0 +1,2 @@
+# Binarios: nunca convertir finales de línea.
+*.exe binary

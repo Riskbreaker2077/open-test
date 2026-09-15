@@ -6,11 +6,12 @@ OpenTest funciona dentro del colegio: el portátil del docente hace de servidor 
 
 Hay dos formas de instalarlo; cualquiera de las dos sirve.
 
-**Opción A — instalador (recomendada si tiene el `.exe` del instalador):**
+**Opción A — instalador (recomendada):**
 
-1. Haga doble clic en `OpenTest-Setup-<versión>.exe` y siga el asistente. No pide contraseña de administrador.
-2. Al terminar, quedan accesos directos a OpenTest en el menú Inicio (y en el escritorio si marcó esa opción), y un desinstalador normal de Windows en "Agregar o quitar programas".
-3. Abra OpenTest desde el acceso directo.
+1. Descargue [`OpenTest-Setup.exe`](https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe) (o cópielo desde una memoria USB si el portátil no tiene internet).
+2. Haga doble clic en `OpenTest-Setup.exe` y siga el asistente. No pide contraseña de administrador.
+3. Al terminar, quedan accesos directos a OpenTest en el menú Inicio (y en el escritorio si marcó esa opción), y un desinstalador normal de Windows en "Agregar o quitar programas".
+4. Abra OpenTest desde el acceso directo.
 
 **Opción B — copiar la carpeta a mano (portable, sin dejar rastro en el sistema):**
 

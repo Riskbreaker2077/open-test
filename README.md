@@ -8,7 +8,7 @@ Evaluación en el aula con **pruebas personalizadas**, sobre un servidor local y
 
 El docente arranca OpenTest en su portátil, las tablets se conectan por la intranet del colegio y **cada estudiante recibe una prueba distinta**: preguntas sorteadas al azar de un banco común y opciones de respuesta barajadas. Mirar la pantalla del compañero no sirve de nada.
 
-**[Ver la página del proyecto →](https://riskbreaker2077.github.io/open-test/)** · **[Guía para docentes](https://riskbreaker2077.github.io/open-test/guia.html)** · **[Roadmap](spec/constitution/roadmap.md)**
+**[Descargar para Windows](https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe)** · **[Ver la página del proyecto →](https://riskbreaker2077.github.io/open-test/)** · **[Guía para docentes](https://riskbreaker2077.github.io/open-test/guia.html)** · **[Roadmap](spec/constitution/roadmap.md)**
 
 > **Estado: completo y validado en un aula real.** Todo el flujo está construido y probado de punta a punta: importación de estudiantes y preguntas (por ZIP o escritas a mano), motor de personalización, examen, calificación, panel de monitoreo, estadísticas y exportación de resultados. Sigue activo — la última incorporación fue un formulario para escribir preguntas una a una, sin depender de un archivo generado por IA. Ver el [roadmap](spec/constitution/roadmap.md).
 
@@ -37,7 +37,7 @@ El docente proyecta el QR, los estudiantes lo escanean y entran con su código. 
 - **Exportación completa**: `.xlsx` con resumen/detalle/banco y un ZIP reproducible con las imágenes empaquetadas.
 - **Línea gráfica adaptable** a la identidad de cada colegio, en las cinco pantallas.
 - **Recuperación de contraseña sin red**, desde la consola del propio equipo.
-- **Distribución para Windows**: ejecutable único portable o instalador con asistente — ver la [guía](https://riskbreaker2077.github.io/open-test/guia.html) o [`GUIA-DOCENTE.md`](GUIA-DOCENTE.md).
+- **Distribución para Windows**: [instalador descargable](https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe) con asistente, o ejecutable único portable — ver la [guía](https://riskbreaker2077.github.io/open-test/guia.html) o [`GUIA-DOCENTE.md`](GUIA-DOCENTE.md).
 
 ## Requisitos
 
@@ -60,7 +60,9 @@ npm test    # suite completa (446 tests)
 npm run lint
 ```
 
-Para el día del examen en Windows, sin instalar Node en el equipo del colegio:
+Para el día del examen en Windows no hace falta Node ni compilar nada: descargue **[`OpenTest-Setup.exe`](https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe)** desde la [última versión](https://github.com/Riskbreaker2077/open-test/releases). También está en [`instalador/`](instalador/).
+
+Para compilarlo usted mismo, desde Windows:
 
 ```bash
 npm run build:exe         # carpeta portable con OpenTest.exe

@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
@@ -16,8 +16,9 @@ if (!existsSync(build)) {
 }
 
 const script = join(raiz, 'scripts', 'installer', 'opentest.iss');
+const { version } = JSON.parse(readFileSync(join(raiz, 'package.json'), 'utf8'));
 try {
-  execFileSync('ISCC', [script], { stdio: 'inherit' });
+  execFileSync('ISCC', [`/DMyAppVersion=${version}`, script], { stdio: 'inherit' });
 } catch (err) {
   if (err.code === 'ENOENT') {
     console.error(
@@ -28,4 +29,4 @@ try {
   }
   throw err;
 }
-console.log('Instalador de OpenTest listo en: dist/instalador/');
+console.log(`Instalador de OpenTest ${version} listo en: dist/instalador/OpenTest-Setup.exe`);
