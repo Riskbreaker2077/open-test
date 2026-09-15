@@ -121,7 +121,7 @@ Sigue el estándar externo **preguntas-icfes v1**
 - `cursos` TEXT — lista de cursos convocados, separada por comas.
 - `n_preguntas` INTEGER — cuántas se sortean del banco para cada estudiante (por defecto 20).
 - `duracion_minutos` INTEGER — temporizador global del examen.
-- `segundos_minimos_pregunta` INTEGER — tiempo mínimo en pantalla antes de poder avanzar (por defecto 10; `0` desactiva el mecanismo).
+- `segundos_minimos_pregunta` INTEGER — tiempo mínimo en pantalla antes de poder avanzar (por defecto 60 en el formulario y en `POR_DEFECTO`; la columna conserva `DEFAULT 10` porque el servicio siempre escribe el valor explícito; `0` desactiva el mecanismo).
 - `nivel_feedback` TEXT — `solo_puntaje` | `aciertos` | `completo`. Por defecto `aciertos`.
 - `preguntas_extra_por_rapidez` INTEGER — **por defecto 0 (desactivado)**. Mecanismo alternativo previsto pero no activo; ver backlog del roadmap.
 - `estado` TEXT — `borrador` | `abierta` | `en_curso` | `pausada` | `cerrada`.

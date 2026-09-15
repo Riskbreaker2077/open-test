@@ -16,7 +16,7 @@ body {
 .proyeccion {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
-  grid-template-columns: minmax(15rem, 34vw) 1fr;
+  grid-template-columns: minmax(14rem, 27vw) minmax(0, 1fr) minmax(16rem, 30vw);
   gap: clamp(1rem, 2.5vmin, 2.5rem);
   width: 100vw;
   height: 100vh;
@@ -35,8 +35,8 @@ body {
 }
 
 .qr {
-  width: min(30vw, 48vh);
-  height: min(30vw, 48vh);
+  width: min(24vw, 46vh);
+  height: min(24vw, 46vh);
   object-fit: contain;
   padding: 0.6rem;
   border-radius: 1rem;
@@ -91,10 +91,84 @@ body {
   margin: 0;
   font-variant-numeric: tabular-nums;
   font-weight: 900;
-  font-size: clamp(6rem, 19vmin, 17rem);
+  font-size: clamp(4rem, min(19vmin, 9vw), 17rem);
   line-height: 0.95;
   color: #fff;
   text-shadow: 0 0.05em 0.3em rgb(0 0 0 / 18%);
+}
+
+.asistencia {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.6rem, 1.5vmin, 1.25rem);
+  min-width: 0;
+  min-height: 0;
+}
+
+.lista {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+  padding: clamp(0.6rem, 1.5vmin, 1.25rem);
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: clamp(0.75rem, 1.8vmin, 1.5rem);
+  background: rgb(255 255 255 / 7%);
+}
+
+.lista-titulo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5em;
+  margin: 0 0 0.4em;
+  font-weight: 700;
+  font-size: clamp(1rem, 2.2vmin, 1.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--dorado-100);
+}
+
+.lista-titulo strong {
+  font-size: 1.3em;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+
+.nombres {
+  display: grid;
+  flex: 1 1 0;
+  grid-template-columns: repeat(auto-fill, minmax(13em, 1fr));
+  /* Sin esto, overflow: hidden en cada nombre deja que las filas se aplasten. */
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 0.15em 1em;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+  line-height: 1.25;
+}
+
+.nombres li {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.nombres .curso {
+  color: rgb(255 255 255 / 60%);
+}
+
+.nombres .entregado {
+  color: var(--dorado-100);
+}
+
+.nombres .vacia {
+  grid-column: 1 / -1;
+  font-style: italic;
+  color: rgb(255 255 255 / 70%);
 }
 
 .pie {
@@ -167,10 +241,21 @@ body {
 
 @media (max-aspect-ratio: 4 / 3) {
   .proyeccion {
-    grid-template-columns: minmax(14rem, 38vw) 1fr;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(12rem, 36vw) 1fr;
+  }
+
+  .qr {
+    width: min(26vw, 32vh);
+    height: min(26vw, 32vh);
   }
 
   .reloj {
-    font-size: clamp(5rem, 16vmin, 11rem);
+    font-size: clamp(4rem, 14vmin, 11rem);
+  }
+
+  .asistencia {
+    grid-column: 1 / -1;
+    flex-direction: row;
   }
 }

@@ -23,7 +23,6 @@ import {
   pausarSesion,
   POR_DEFECTO,
   reanudarSesion,
-  tiempoRestante,
   actualizarSesion,
   actualizarNivelFeedback,
 } from '../services/sesiones.js';
@@ -373,19 +372,26 @@ export function rutasDocente(db) {
 
   router.get('/proyeccion/:sesionId', (req, res) => {
     responder(res, () => {
-      let sesion = obtenerSesion(db, Number(req.params.sesionId));
-      const segundosRestantes = tiempoRestante(db, sesion);
-      sesion = obtenerSesion(db, sesion.id);
+      const { sesion, estudiantes } = estadoDeSesion(db, Number(req.params.sesionId));
       const { dentro, entregados } = contarIntentos(db, sesion.id);
+      // Solo nombre y curso: el monitoreo trae puntajes y avance que no se proyectan.
+      const asistencia = { faltan: [], conectados: [] };
+      for (const estudiante of estudiantes) {
+        const persona = { nombre: estudiante.nombre, curso: estudiante.curso };
+        if (estudiante.estado === 'sin_entrar') asistencia.faltan.push(persona);
+        else asistencia.conectados.push({ ...persona, entregado: estudiante.estado === 'entregado' });
+      }
       return {
         proyeccion: {
           sesionId: sesion.id,
           nombre: sesion.nombre,
           estado: sesion.estado,
+          cursos: sesion.cursos,
           direccion: direccionPortal(req),
-          segundosRestantes,
+          segundosRestantes: sesion.segundosRestantes,
           dentro,
           entregados: entregados ?? 0,
+          asistencia,
         },
       };
     });

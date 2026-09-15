@@ -545,3 +545,16 @@ la release.
 historial de git. Se le explicó al usuario al preguntarle y lo eligió igual.
 El workflow falla antes de hacer push si el instalador pasa de 95 MB (el
 límite de GitHub es 100 MB).
+
+
+## 15/09/2026 — 031 · Asistencia en la pantalla de proyección
+
+El docente pidió ver en la pantalla del QR quién está conectado y quién falta. La regla original ("nada de nombres" en la proyección, en `mission.md` y en la 012) lo impedía, así que se le plantearon tres opciones: seguir con el monitoreo en una segunda pantalla, proyectar solo a los que faltan antes de comenzar, o la lista completa durante toda la prueba. Eligió la lista completa. Se corrigió `mission.md` antes que el código, como manda la jerarquía.
+
+**Forma mínima en la API.** La proyección reutiliza `estadoDeSesion` (008) pero copia campo a campo solo nombre, curso y entregado. Así, si el monitoreo gana datos nuevos, no se filtran al proyector. El código del estudiante queda fuera a propósito: es con lo que se entra, y proyectarlo permitiría entrar por otro.
+
+**Sin desplazamiento con cursos grandes.** Las listas usan una grilla `auto-fill` y una búsqueda binaria sobre el tamaño de letra hasta que caben. En la primera captura las filas se aplastaban: `overflow: hidden` en cada nombre anulaba su altura mínima. Se resolvió con `grid-auto-rows: max-content`.
+
+## 15/09/2026 — Tiempo mínimo por pregunta por defecto: 60 s
+
+El docente pidió que el tiempo mínimo por pregunta predeterminado sea de 1 minuto. Se corrigió primero el criterio de la 004 y `tech-stack.md`, y luego `POR_DEFECTO` y el valor inicial del formulario de evaluaciones. La columna `sesiones.segundos_minimos_pregunta` conserva `DEFAULT 10`: el servicio siempre escribe el valor explícito, y cambiar un `DEFAULT` en SQLite exige reconstruir la tabla con una migración que no aporta nada. Las evaluaciones ya creadas mantienen su valor.

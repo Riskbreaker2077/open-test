@@ -37,6 +37,7 @@ Y da al aula un reloj común. Sin él, cada estudiante tiene su propio contador 
 - [x] Al llegar a cero, la sesión se cierra y se entrega a todos automáticamente. _(prueba automatizada con `motivo_entrega = "tiempo"`.)_
 - [x] Los contadores se actualizan solos, sin recargar. _(sincronización cada 5 s.)_
 - [x] La pantalla **no muestra** ningún nombre de estudiante, puntaje, pregunta ni respuesta. _(prueba explícita sobre la respuesta de proyección.)_
+  > **Revisado por la 031 (15/09/2026).** Los nombres de quién falta y quién está conectado sí se proyectan; puntajes, preguntas y respuestas siguen sin mostrarse.
 - [x] La pantalla exige sesión de docente: abrirla desde una tablet sin contraseña no funciona. _(protección por prefijo y prueba HTTP.)_
 - [x] Funciona a pantalla completa sin barras de desplazamiento en una resolución de proyector típica (1024×768 y 1920×1080). _(ambas resoluciones verificadas en navegador: scroll igual al viewport.)_
 
@@ -44,6 +45,6 @@ Y da al aula un reloj común. Sin él, cada estudiante tiene su propio contador 
 
 ## Fuera de alcance
 
-- Ver quién ha entrado con nombre y apellido: eso es el panel de monitoreo (feature 008), que no se proyecta.
+- ~~Ver quién ha entrado con nombre y apellido~~ — lo agrega la [031](../031-asistencia-en-proyeccion/spec.md). El avance y las notas siguen siendo del panel de monitoreo (feature 008), que no se proyecta.
 - Personalizar colores, logo del colegio o mensajes.
 - Proyectar varias sesiones a la vez: se proyecta una, la que el docente elija.

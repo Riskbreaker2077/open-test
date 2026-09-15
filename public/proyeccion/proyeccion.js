@@ -11,6 +11,12 @@ const elementos = {
   entregados: document.getElementById('entregados'),
   controles: document.getElementById('controles'),
   error: document.getElementById('error'),
+  bloqueFaltan: document.getElementById('bloque-faltan'),
+  bloqueConectados: document.getElementById('bloque-conectados'),
+  faltan: document.getElementById('faltan'),
+  conectados: document.getElementById('conectados'),
+  nFaltan: document.getElementById('n-faltan'),
+  nConectados: document.getElementById('n-conectados'),
 };
 
 const ETIQUETAS = {
@@ -24,6 +30,11 @@ let ultimaSincronizacion = null;
 let sincronizando = false;
 let estadoControles = null;
 let proyeccionActual = null;
+let claveAsistencia = null;
+
+/** Límites de la letra de las listas, en píxeles. */
+const LETRA_MINIMA = 11;
+const LETRA_MAXIMA_VMIN = 3.2;
 
 function mostrarError(mensaje) {
   elementos.error.textContent = mensaje;
@@ -96,6 +107,68 @@ function pintarControles(proyeccion) {
   elementos.controles.replaceChildren(...controles);
 }
 
+function itemEstudiante(estudiante, conCurso) {
+  const item = document.createElement('li');
+  if (estudiante.entregado) item.className = 'entregado';
+  item.textContent = `${estudiante.entregado ? '✓ ' : ''}${estudiante.nombre}`;
+  if (conCurso) {
+    const curso = document.createElement('span');
+    curso.className = 'curso';
+    curso.textContent = ` · ${estudiante.curso}`;
+    item.append(curso);
+  }
+  return item;
+}
+
+function vacia(texto) {
+  const item = document.createElement('li');
+  item.className = 'vacia';
+  item.textContent = texto;
+  return item;
+}
+
+/** Busca la letra más grande con la que la lista cabe sin desbordar su caja. */
+function ajustarLetra(lista) {
+  const maxima = Math.max(LETRA_MINIMA, Math.min(window.innerWidth, window.innerHeight) * LETRA_MAXIMA_VMIN / 100);
+  let bajo = LETRA_MINIMA;
+  let alto = maxima;
+  lista.style.fontSize = `${alto}px`;
+  if (lista.scrollHeight <= lista.clientHeight) return;
+  for (let paso = 0; paso < 8; paso += 1) {
+    const medio = (bajo + alto) / 2;
+    lista.style.fontSize = `${medio}px`;
+    if (lista.scrollHeight <= lista.clientHeight) bajo = medio;
+    else alto = medio;
+  }
+  lista.style.fontSize = `${bajo}px`;
+}
+
+function ajustarListas() {
+  ajustarLetra(elementos.faltan);
+  ajustarLetra(elementos.conectados);
+}
+
+function pintarAsistencia(proyeccion) {
+  const { faltan, conectados } = proyeccion.asistencia;
+  const clave = JSON.stringify([proyeccion.cursos, faltan, conectados]);
+  if (clave === claveAsistencia) return;
+  claveAsistencia = clave;
+
+  const conCurso = proyeccion.cursos.length > 1;
+  elementos.nFaltan.textContent = faltan.length;
+  elementos.nConectados.textContent = conectados.length;
+  elementos.faltan.replaceChildren(...(faltan.length
+    ? faltan.map((estudiante) => itemEstudiante(estudiante, conCurso))
+    : [vacia('Ya entraron todos')]));
+  elementos.conectados.replaceChildren(...(conectados.length
+    ? conectados.map((estudiante) => itemEstudiante(estudiante, conCurso))
+    : [vacia('Todavía no ha entrado nadie')]));
+  // Cada lista ocupa espacio en proporción a cuántos nombres tiene.
+  elementos.bloqueFaltan.style.flexGrow = faltan.length + 3;
+  elementos.bloqueConectados.style.flexGrow = conectados.length + 3;
+  ajustarListas();
+}
+
 function pintar(proyeccion) {
   proyeccionActual = proyeccion;
   elementos.nombre.textContent = proyeccion.nombre;
@@ -104,6 +177,7 @@ function pintar(proyeccion) {
   elementos.dentro.textContent = proyeccion.dentro;
   elementos.entregados.textContent = proyeccion.entregados;
   elementos.reloj.textContent = formatear(proyeccion.segundosRestantes);
+  pintarAsistencia(proyeccion);
   if (!elementos.qr.src) {
     elementos.qr.src = `/api/docente/qr.svg?texto=${encodeURIComponent(proyeccion.direccion)}`;
     elementos.qr.hidden = false;
@@ -145,6 +219,13 @@ if (!Number.isInteger(sesionId) || sesionId <= 0) {
   await sincronizar();
   window.setInterval(interpolarReloj, 250);
   window.setInterval(sincronizar, 5000);
+  // La caja de las listas cambia al cargar el QR o las fuentes, no solo al redimensionar.
+  // Su tamaño no depende de la letra que se ajusta, así que no hay bucle.
+  const observador = new ResizeObserver(ajustarListas);
+  observador.observe(elementos.faltan);
+  observador.observe(elementos.conectados);
+  elementos.qr.addEventListener('load', ajustarListas);
+  document.fonts?.ready.then(ajustarListas);
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) sincronizar();
   });

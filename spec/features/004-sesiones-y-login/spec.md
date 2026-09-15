@@ -15,7 +15,7 @@ La sesión es lo que convierte un banco de preguntas y una lista de estudiantes 
 ## Criterios de aceptación
 
 - [x] El docente puede crear una sesión eligiendo banco, cursos, `n_preguntas`, `duracion_minutos` (plazo del **reloj global**), `segundos_minimos_pregunta` y `nivel_feedback`.
-- [x] Los valores por defecto son 20 preguntas, 60 minutos, 10 segundos mínimos y feedback `aciertos`.
+- [x] Los valores por defecto son 20 preguntas, 60 minutos, 60 segundos mínimos por pregunta y feedback `aciertos`. _(el mínimo subió de 10 a 60 s el 15/09/2026, por decisión del docente.)_
 - [x] No se puede abrir una sesión cuyo banco tenga menos preguntas que `n_preguntas`; se explica por qué.
 - [x] Pueden coexistir varias sesiones abiertas a la vez (10A en Ciencias mientras 10B está en Matemáticas).
 - [x] Los parámetros de una sesión abierta **no se pueden modificar**; la interfaz los muestra en solo lectura y la API los rechaza.

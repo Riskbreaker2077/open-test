@@ -6,7 +6,7 @@ export const ESTADOS_VISIBLES = ['abierta', 'en_curso', 'pausada'];
 export const POR_DEFECTO = {
   n_preguntas: 20,
   duracion_minutos: 60,
-  segundos_minimos_pregunta: 10,
+  segundos_minimos_pregunta: 60,
   nivel_feedback: 'aciertos',
 };
 

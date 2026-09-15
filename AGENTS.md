@@ -18,9 +18,11 @@
 
 **La 028 está implementada (14/09/2026).** En Bancos de preguntas, "+ Nuevo banco vacío" crea un banco sin preguntas y "+ Agregar pregunta" en su detalle abre un formulario con la forma simple original de la 003 (contexto opcional, imagen opcional, enunciado, 4 opciones marcando cuál es correcta, justificación opcional por opción) — sin la metadata pedagógica ni los grupos del estándar preguntas-icfes, que siguen siendo exclusivos del ZIP (015/016/026). Cada pregunta suelta gana botones Editar/Eliminar; una pregunta ya usada en una evaluación no se puede tocar (409, mismo principio que `borrarBanco`/`borrarSesion`). Complementaria a la carga por ZIP, igual que la 020 lo es de la 002. 446 tests en verde, lint de 92 archivos limpio.
 
+**La 031 está implementada (15/09/2026).** La pantalla de proyección muestra la asistencia: quién falta por entrar y quién está conectado, con nombre y apellido, marcando con ✓ a quien ya entregó. Es una revisión consciente de la regla "nada de nombres" de la 012, pedida por el docente; se corrigió `mission.md` primero. `GET /api/docente/proyeccion/:id` reutiliza `estadoDeSesion` y copia solo `nombre`, `curso` y `entregado` (sin códigos, puntajes ni avance). Las listas ajustan su tamaño de letra para caber sin desplazamiento en 1024×768 y 1920×1080.
+
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · **030** | — | — (roadmap del encargo original completo; ver `roadmap.md → Backlog / ideas`) |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · **031** | — | — (roadmap del encargo original completo; ver `roadmap.md → Backlog / ideas`) |
 
 ### Para retomar, en este orden
 

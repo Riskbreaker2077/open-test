@@ -55,7 +55,7 @@ test('crea la evaluación en borrador con los valores por defecto', async () => 
   assert.equal(sesion.estado, 'borrador');
   assert.equal(sesion.n_preguntas, 20);
   assert.equal(sesion.duracion_minutos, 60);
-  assert.equal(sesion.segundos_minimos_pregunta, 10);
+  assert.equal(sesion.segundos_minimos_pregunta, 60);
   assert.equal(sesion.nivel_feedback, 'aciertos');
 });
 
@@ -93,7 +93,7 @@ test('comienza, pausa y reanuda la evaluación desde la API', async () => {
   assert.equal((await post(`/api/docente/sesiones/${sesion.id}/reanudar`)).sesion.estado, 'en_curso');
 });
 
-test('la proyección devuelve solo datos públicos del aula y un QR local', async () => {
+test('la proyección devuelve la asistencia sin datos reservados y un QR local', async () => {
   const { sesion } = await post('/api/docente/sesiones', NUEVA);
   await post(`/api/docente/sesiones/${sesion.id}/abrir`);
   await fetch(`${base}/api/examen/entrar`, {
@@ -112,7 +112,19 @@ test('la proyección devuelve solo datos públicos del aula y un QR local', asyn
   assert.equal(cuerpo.proyeccion.dentro, 1);
   assert.equal(cuerpo.proyeccion.entregados, 0);
   assert.match(cuerpo.proyeccion.direccion, /^http:\/\//);
-  assert.doesNotMatch(texto, /Ana|Gómez|puntaje|pregunta|respuesta/i);
+  assert.deepEqual(cuerpo.proyeccion.asistencia, {
+    faltan: [],
+    conectados: [{ nombre: 'Ana Gómez', curso: '10A', entregado: false }],
+  });
+  assert.doesNotMatch(texto, /Luis|puntaje|aciertos|pregunta|respuesta|codigo|2024001/i);
+
+  const { sesion: dosCursos } = await post('/api/docente/sesiones', {
+    ...NUEVA, nombre: 'Final', cursos: ['10B', '10A'],
+  });
+  await post(`/api/docente/sesiones/${dosCursos.id}/abrir`);
+  const { proyeccion } = await (await llamar(`/api/docente/proyeccion/${dosCursos.id}`)).json();
+  assert.deepEqual(proyeccion.asistencia.faltan.map((e) => e.nombre), ['Ana Gómez', 'Luis Pérez']);
+  assert.deepEqual(proyeccion.asistencia.conectados, []);
 
   const qr = await llamar(`/api/docente/qr.svg?texto=${encodeURIComponent(cuerpo.proyeccion.direccion)}`);
   assert.equal(qr.status, 200);
