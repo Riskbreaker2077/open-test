@@ -24,9 +24,11 @@
 
 **La 033, la 034 y la 035 están implementadas (15/09/2026).** La 033 son ajustes de usabilidad pedidos tras usar la 1.1.1: **Volver** y **Finalizar** (antes "Cerrar") en la proyección, nombres cortos (primer nombre + primer apellido) en el tablero con más de 30 convocados (`LIMITE_NOMBRE_COMPLETO` en `server/routes/docente.js`), borrar evaluaciones sin descarga previa (revisa la 022) y **Volver al inicio** en la pantalla de resultados, que llama a `/api/examen/salir` antes de ir a `/`. La 034 abre OpenTest sin consola: accesos directos a `wscript.exe OpenTest.vbs`, botón **Apagar OpenTest** en el panel (`POST /api/docente/apagar` → `app.locals.apagar`), `yaEstaAbierto` vía `/api/salud` para no duplicar servidores y `CloseApplications=force` en el instalador. La 035 adopta el logo (cubo con check): `isotipo-opentest.png` y `logo-opentest.png` en `public/assets` y `docs/assets`, `scripts/installer/opentest.ico`. Los derivados se generaron una vez fuera del repo; el escudo institucional queda sin uso en `assets/`.
 
+**La 036 está implementada (15/09/2026).** El rojo del tablero llegaba tarde (hasta ~25 s). Ahora la tablet late cada 2 s solo con la página visible (`POST /api/examen/latido`, sin consultar la base), avisa con `sendBeacon` a `/api/examen/ausente` al ocultarse o cerrarse, `UMBRAL_MS` baja a 6 s y la proyección sincroniza cada 2 s. Costo aceptado: un corte de wifi de 6 s o más da un rojo falso breve.
+
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · **035** | — | — (roadmap del encargo original completo; ver `roadmap.md → Backlog / ideas`) |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · 035 · **036** | — | — (roadmap del encargo original completo; ver `roadmap.md → Backlog / ideas`) |
 
 ### Para retomar, en este orden
 

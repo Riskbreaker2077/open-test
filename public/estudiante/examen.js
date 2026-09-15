@@ -345,8 +345,27 @@ window.setInterval(() => {
   actualizarBloqueo();
 }, 250);
 window.setInterval(actualizarEstado, 5000);
+
+// Presencia para la proyección (036): la tablet late cada 2 s mientras la prueba
+// está a la vista, y avisa en cuanto deja de estarlo.
+function latir() {
+  if (document.hidden) return;
+  fetch('/api/examen/latido', { method: 'POST' }).catch(() => {});
+}
+
+function avisarAusencia() {
+  navigator.sendBeacon?.('/api/examen/ausente');
+}
+
+window.setInterval(latir, 2000);
+window.addEventListener('pagehide', avisarAusencia);
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) actualizarEstado();
+  if (document.hidden) {
+    avisarAusencia();
+  } else {
+    latir();
+    actualizarEstado();
+  }
 });
 
 await actualizarEstado();

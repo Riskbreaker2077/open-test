@@ -2,7 +2,7 @@
 
 ## Última actualización y rama activa
 
-- 15/09/2026 — `main`. Publicada la **1.1.1** (sin "Pausar y salir"). Encima, sin publicar todavía: **033** (usabilidad), **034** (sin ventana de consola) y **035** (logo), que salen juntas como **1.2.0**.
+- 15/09/2026 — `main`. Publicada la **1.2.0** (033–035). Encima, la **036** (presencia casi inmediata), que sale como **1.2.1**.
 
 ## Feature/tarea en curso
 
@@ -14,6 +14,7 @@
 2. 032: se quitó "Pausar y salir" del examen (pausaba a todo el grupo). Publicada en 1.1.1.
 3. 033: Volver/Finalizar en la proyección, nombres cortos con más de 30 convocados, borrar sin descarga previa, Volver al inicio desde resultados.
 4. 034: accesos directos sin consola (`OpenTest.vbs`), botón Apagar OpenTest, detección de instancia abierta, cierre al actualizar.
+6. 036: el docente probó cortar la red de una tablet y el rojo tardó demasiado. Latido cada 2 s, aviso con `sendBeacon` al ocultar la página, umbral de 6 s y proyección cada 2 s.
 5. 035: logo en app, sitio, README e instalador. Los derivados (PNG transparentes e `.ico`) se generaron con un script con `pngjs` fuera del repo, a partir del PNG que entregó el docente.
 
 ## Estado

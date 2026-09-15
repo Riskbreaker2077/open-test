@@ -106,6 +106,19 @@ export function rutasExamen(db) {
     }
   });
 
+  // Latido de la tablet cada 2 s (036): solo renueva la presencia, sin tocar la base.
+  router.post('/latido', conIntento(db), (req, res) => {
+    res.json({ ok: true });
+  });
+
+  // La tablet avisa que deja la prueba: cerró la pestaña, cambió de aplicación
+  // o bloqueó la pantalla (036). Llega por sendBeacon, que no espera respuesta.
+  router.post('/ausente', (req, res) => {
+    const intento = intentoPorToken(db, req.cookies?.[NOMBRE_COOKIE_ESTUDIANTE]);
+    if (intento) marcarSalida(intento.id);
+    res.status(204).end();
+  });
+
   router.post('/salir', (req, res) => {
     const intento = intentoPorToken(db, req.cookies?.[NOMBRE_COOKIE_ESTUDIANTE]);
     if (intento) marcarSalida(intento.id);

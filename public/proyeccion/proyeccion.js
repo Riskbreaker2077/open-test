@@ -241,7 +241,8 @@ if (!Number.isInteger(sesionId) || sesionId <= 0) {
 } else {
   await sincronizar();
   window.setInterval(interpolarReloj, 250);
-  window.setInterval(sincronizar, 5000);
+  // Cada 2 s: el tablero de asistencia debe reflejar pronto quién salió (036).
+  window.setInterval(sincronizar, 2000);
   // La caja de las listas cambia al cargar el QR o las fuentes, no solo al redimensionar.
   // Su tamaño no depende de la letra que se ajusta, así que no hay bucle.
   new ResizeObserver(ajustarTablero).observe(elementos.tablero);

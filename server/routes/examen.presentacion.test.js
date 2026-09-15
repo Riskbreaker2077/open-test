@@ -5,6 +5,7 @@ import { abrirBd, cerrarBd } from '../db.js';
 import { _reiniciar } from '../sesion.js';
 import { _reiniciarLimitador } from './auth.js';
 import { NOMBRE_COOKIE_ESTUDIANTE } from './examen.js';
+import { estaConectado, _reiniciar as _reiniciarPresencia } from '../presencia.js';
 import { guardarBanco } from '../services/bancos.js';
 import { preguntasDeEjemplo } from '../fixtures-preguntas.js';
 
@@ -156,6 +157,27 @@ test('el estudiante no puede pausar la evaluación: POST /api/examen/pausar ya n
   assert.equal(respuesta.status, 404);
   assert.equal(db.prepare('SELECT estado FROM sesiones WHERE id = ?').get(sesionId).estado, 'en_curso');
   assert.equal((await examen('/api/examen/estado')).status, 200, 'la tablet sigue dentro del examen');
+});
+
+test('el latido marca la tablet como conectada y el aviso de ausencia la desconecta al instante', async () => {
+  _reiniciarPresencia();
+  const intentoId = db.prepare('SELECT id FROM intentos').get().id;
+
+  const latido = await examen('/api/examen/latido', { method: 'POST' });
+  assert.equal(latido.status, 200);
+  assert.equal(estaConectado(intentoId), true);
+
+  const ausente = await fetch(`${base}/api/examen/ausente`, { method: 'POST', headers: { cookie: cookieEstudiante } });
+  assert.equal(ausente.status, 204);
+  assert.equal(estaConectado(intentoId), false);
+
+  await examen('/api/examen/latido', { method: 'POST' });
+  assert.equal(estaConectado(intentoId), true, 'al volver a latir, vuelve a verde');
+});
+
+test('el latido sin cookie del estudiante devuelve 401 y el aviso de ausencia no falla', async () => {
+  assert.equal((await fetch(`${base}/api/examen/latido`, { method: 'POST' })).status, 401);
+  assert.equal((await fetch(`${base}/api/examen/ausente`, { method: 'POST' })).status, 204);
 });
 
 test('ninguna ruta del examen revela respuestas correctas ni la semilla', async () => {
