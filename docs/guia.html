@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light">
 <title>Guía para docentes — OpenTest</title>
 <meta name="description" content="Guía completa de OpenTest para docentes: instalar, preparar estudiantes y preguntas, proyectar la evaluación, monitorear, descargar resultados y resolver los problemas frecuentes.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b263b'/%3E%3Cpath d='M18 33l9 9 19-21' stroke='%23d18037' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="assets/isotipo-opentest.png">
 <link rel="stylesheet" href="assets/estilos.css">
 <style>
   .cabecera-guia { padding: 2.75rem 0 2.25rem; border-bottom: 1px solid var(--borde); background: var(--crema); }
@@ -93,7 +93,7 @@
 <header class="nav">
   <div class="contenedor nav__fila">
     <a class="marca" href="index.html">
-      <span class="marca__insignia">OT</span>
+      <img class="marca__insignia marca__insignia--logo" src="assets/isotipo-opentest.png" alt="" width="36" height="36">
       <strong>OpenTest</strong>
     </a>
     <nav class="enlaces">
@@ -386,7 +386,7 @@
               bancos y resultados quedan intactos.
             </p>
             <ol>
-              <li>Cierre OpenTest si está abierto (la ventana del servidor).</li>
+              <li>Apague OpenTest si está abierto (botón <strong>Apagar OpenTest</strong> en el panel del docente).</li>
               <li>Abra una ventana de comandos en la carpeta del programa: mantenga <code>Mayús</code>, haga clic derecho sobre un espacio en blanco de la carpeta y elija <strong>Abrir ventana de PowerShell aquí</strong>.</li>
               <li>Escriba <code>.\OpenTest.exe --recuperar-contrasena</code> y pulse Enter. (También sirve crear un acceso directo a <code>OpenTest.exe</code> y añadir <code> --recuperar-contrasena</code> al final del campo <em>Destino</em>.)</li>
               <li>La ventana pedirá la contraseña nueva dos veces. Lo que escriba aparece como asteriscos.</li>
@@ -423,9 +423,15 @@
     <section id="cerrar">
       <h2>Cerrar OpenTest</h2>
       <p>
-        Cierre la ventana de OpenTest. El servidor deja de aceptar conexiones y cierra
-        la base de datos limpiamente. Espere a que la ventana desaparezca antes de
-        copiar la carpeta <code>data</code>.
+        OpenTest funciona sin ventana: no verá una consola abierta mientras lo usa.
+        Para apagarlo, pulse <strong>Apagar OpenTest</strong> en la parte superior del
+        panel del docente y confirme. El servidor deja de aceptar conexiones y cierra
+        la base de datos limpiamente; la página le avisará cuando esté apagado. Espere
+        ese aviso antes de copiar la carpeta <code>data</code>.
+      </p>
+      <p>
+        Si abre OpenTest cuando ya está abierto, no se abre otro: solo se abre el
+        navegador en el panel.
       </p>
     </section>
 

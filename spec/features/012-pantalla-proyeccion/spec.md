@@ -12,7 +12,7 @@ Es lo que el docente pone en el proyector y ve toda la clase. Muestra, en tamañ
 - el **reloj**: cuánto falta para que termine,
 - **cuántos han entrado y cuántos han entregado**.
 
-Lleva tres controles y nada más: **Comenzar**, **Pausar** y **Cerrar**. Comenzar arranca el reloj global de la sesión y habilita las respuestas; Pausar lo detiene para todos; Cerrar termina el examen y entrega a quien siga presentando.
+Lleva tres controles y nada más: **Comenzar**, **Pausar** y **Cerrar**. _(La 033 renombra Cerrar a **Finalizar** y agrega **Volver**, que sale al panel sin tocar la prueba.)_ Comenzar arranca el reloj global de la sesión y habilita las respuestas; Pausar lo detiene para todos; Cerrar termina el examen y entrega a quien siga presentando.
 
 No muestra nombres, ni notas, ni preguntas, ni respuestas. Nada que no pueda ver la clase entera.
 

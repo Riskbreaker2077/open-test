@@ -4,6 +4,7 @@ const contenido = document.getElementById('contenido');
 const espera = document.getElementById('espera');
 const mensaje = document.getElementById('mensaje');
 const volver = document.getElementById('volver');
+const volverInicio = document.getElementById('volver-inicio');
 const titulo = document.getElementById('titulo');
 const puntaje = document.getElementById('puntaje');
 const porcentaje = document.getElementById('porcentaje');
@@ -76,5 +77,20 @@ async function cargar() {
     volver.hidden = false;
   }
 }
+
+async function volverAlInicio() {
+  // Sin cerrar la sesión, el portal devolvería aquí a quien ya entregó.
+  volver.disabled = true;
+  volverInicio.disabled = true;
+  try {
+    await fetch('/api/examen/salir', { method: 'POST' });
+  } catch {
+    // Sin conexión igual intentamos volver; el portal decide qué mostrar.
+  }
+  window.location.replace('/');
+}
+
+volver.addEventListener('click', volverAlInicio);
+volverInicio.addEventListener('click', volverAlInicio);
 
 await cargar();

@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/assets/logo-opentest.png" alt="OpenTest" width="320"></p>
+
 # OpenTest
 
 [![Licencia MIT](https://img.shields.io/badge/licencia-MIT-b5762d)](LICENSE)

@@ -10,6 +10,21 @@ function puertoLibre(puerto, host = '0.0.0.0') {
   });
 }
 
+/**
+ * Si en ese puerto ya responde un OpenTest. Sin ventana de consola, abrirlo
+ * dos veces no debe levantar un segundo servidor (034).
+ */
+export async function yaEstaAbierto(puerto, host = '127.0.0.1') {
+  try {
+    const respuesta = await fetch(`http://${host}:${puerto}/api/salud`, { signal: AbortSignal.timeout(1500) });
+    if (!respuesta.ok) return false;
+    const cuerpo = await respuesta.json();
+    return cuerpo?.ok === true && typeof cuerpo.version === 'string';
+  } catch {
+    return false;
+  }
+}
+
 export async function siguientePuertoLibre(inicial, maximo = inicial + 20) {
   for (let puerto = inicial; puerto <= maximo; puerto += 1) {
     if (await puertoLibre(puerto)) return puerto;

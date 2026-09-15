@@ -59,6 +59,11 @@ import {
 /** Filas de muestra que ve el docente antes de confirmar. */
 const MUESTRA = 10;
 
+/** Por encima de este número de convocados, la proyección usa nombres cortos para que quepan. */
+const LIMITE_NOMBRE_COMPLETO = 30;
+
+const primeraPalabra = (texto) => String(texto ?? '').trim().split(/\s+/)[0];
+
 export function rutasDocente(db) {
   const router = Router();
 
@@ -376,8 +381,11 @@ export function rutasDocente(db) {
       const { sesion, estudiantes: convocados } = estadoDeSesion(db, Number(req.params.sesionId));
       const { dentro, entregados } = contarIntentos(db, sesion.id);
       // Solo nombre, curso y estado: el monitoreo trae puntajes y avance que no se proyectan.
+      const nombresCortos = convocados.length > LIMITE_NOMBRE_COMPLETO;
       const estudiantes = convocados.map((estudiante) => ({
-        nombre: estudiante.nombre,
+        nombre: nombresCortos
+          ? `${primeraPalabra(estudiante.nombres)} ${primeraPalabra(estudiante.apellidos)}`
+          : estudiante.nombre,
         curso: estudiante.curso,
         estado: estudiante.estado === 'presentando'
           ? (estaConectado(estudiante.intentoId) ? 'conectado' : 'desconectado')
@@ -393,10 +401,22 @@ export function rutasDocente(db) {
           segundosRestantes: sesion.segundosRestantes,
           dentro,
           entregados: entregados ?? 0,
+          nombresCortos,
           estudiantes,
         },
       };
     });
+  });
+
+  // Sin ventana de consola, este es el interruptor del servidor (034). Apaga
+  // después de responder, para que el panel sepa que funcionó.
+  router.post('/apagar', (req, res) => {
+    const apagar = req.app.locals.apagar;
+    if (typeof apagar !== 'function') {
+      return res.status(501).json({ ok: false, mensaje: 'Este servidor no se puede apagar desde el panel.' });
+    }
+    res.on('finish', () => apagar());
+    res.json({ ok: true });
   });
 
   router.get('/qr.svg', (req, res) => {

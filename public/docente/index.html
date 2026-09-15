@@ -3,16 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="/assets/isotipo-opentest.png">
   <title>OpenTest — Panel del docente</title>
   <link rel="stylesheet" href="/shared/base.css">
 </head>
 <body class="superficie-docente docente-inicio">
   <header class="barra">
     <a class="marca marca--compacta" href="/docente/">
-      <span class="marca__logo"><img src="/assets/logo-institucional.png" alt=""></span>
+      <span class="marca__logo"><img src="/assets/isotipo-opentest.png" alt=""></span>
       <span class="marca__texto"><strong>OpenTest</strong><small>Panel del docente</small></span>
     </a>
-    <button class="boton boton--secundario boton--pequeno" id="salir">Cerrar sesión</button>
+    <span class="barra__acciones">
+      <button class="boton boton--secundario boton--pequeno" id="apagar" type="button">Apagar OpenTest</button>
+      <button class="boton boton--secundario boton--pequeno" id="salir">Cerrar sesión</button>
+    </span>
   </header>
 
   <main class="contenedor">

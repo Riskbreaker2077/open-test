@@ -13,7 +13,7 @@ La pantalla de proyección (feature 012) muestra un **tablero de asistencia**: u
 | **Rojo** | Entró, pero salió: tocó "Salir", o su tablet dejó de comunicarse con el servidor (se cerró, perdió el wifi, cambió de aplicación). |
 | **Verde con ✓** | Ya entregó. Se queda en verde aunque después cierre la tablet. |
 
-Si un estudiante en rojo vuelve a entrar, su cuadro vuelve a verde. El tablero se actualiza solo cada 5 s, durante toda la evaluación.
+Si un estudiante en rojo vuelve a entrar, su cuadro vuelve a verde. _(Con más de 30 convocados, la 033 muestra primer nombre y primer apellido.)_ El tablero se actualiza solo cada 5 s, durante toda la evaluación.
 
 Sigue sin mostrar notas, puntajes, preguntas, respuestas, avance ni códigos de estudiante.
 

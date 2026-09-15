@@ -210,6 +210,31 @@ body {
   background: #c62828;
 }
 
+.tablero--compacto {
+  /* El JS mide el nombre corto más largo: así ninguno se corta. */
+  grid-template-columns: repeat(auto-fill, minmax(var(--ancho-cuadro, 7.5em), 1fr));
+  gap: 0.3em;
+}
+
+.tablero--compacto .cuadro {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.35em;
+  min-height: 0;
+  padding: 0.25em 0.45em;
+}
+
+.tablero--compacto .cuadro-nombre {
+  display: block;
+  min-width: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tablero--compacto .cuadro-curso {
+  flex: none;
+}
+
 .tablero .vacia {
   grid-column: 1 / -1;
   font-style: italic;
@@ -254,7 +279,8 @@ body {
   font-size: clamp(1rem, 2.2vmin, 1.7rem);
 }
 
-.control--cerrar {
+.control--finalizar,
+.control--secundario {
   color: #fff;
   background: transparent;
   border-color: rgb(255 255 255 / 45%);

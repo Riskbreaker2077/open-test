@@ -203,7 +203,7 @@ Excel lo trató como número. Configure la columna como **Texto** antes de guard
 
 La contraseña no se puede leer: solo se puede **cambiar por una nueva** desde el mismo equipo. El procedimiento exige estar frente al portátil (quien pueda abrir una ventana de comandos en su equipo puede hacerlo, así que guárdelo con el mismo cuidado con el que cuida el archivo de resultados) y **no borra ningún dato**: estudiantes, bancos y resultados quedan intactos.
 
-1. Cierre OpenTest si está abierto (la ventana del servidor).
+1. Apague OpenTest si está abierto (botón **Apagar OpenTest** en el panel del docente).
 2. Abra una ventana de comandos en la carpeta del programa: mantenga `Mayús`, haga clic derecho sobre un espacio en blanco de la carpeta y elija **Abrir ventana de PowerShell aquí**.
 3. Escriba `.\OpenTest.exe --recuperar-contrasena` y pulse Enter. (También sirve crear un acceso directo a `OpenTest.exe` y añadir ` --recuperar-contrasena` al final del campo *Destino*.)
 4. La ventana pedirá la contraseña nueva dos veces. Lo que escriba aparece como asteriscos.
@@ -230,4 +230,6 @@ Objetivo: completar del paso 1 al primer estudiante respondiendo en menos de 10 
 
 ## Cerrar OpenTest
 
-Cierre la ventana de OpenTest. El servidor deja de aceptar conexiones y cierra la base de datos limpiamente. Espere a que la ventana desaparezca antes de copiar la carpeta `data`.
+OpenTest funciona sin ventana: no verá una consola abierta mientras lo usa. Para apagarlo, pulse **Apagar OpenTest** en la parte superior del panel del docente y confirme. El servidor deja de aceptar conexiones y cierra la base de datos limpiamente; la página le avisará cuando esté apagado. Espere ese aviso antes de copiar la carpeta `data`.
+
+Si abre OpenTest cuando ya está abierto, no se abre otro: solo se abre el navegador en el panel.

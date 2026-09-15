@@ -3,7 +3,7 @@ import { crearApp } from './app.js';
 import { abrirBd, cerrarBd, RUTA_BD_POR_DEFECTO } from './db.js';
 import { esModoRecuperacion, recuperarContrasena } from './recuperacion.js';
 import { hostnameEsAmigable, urlsDeIntranet } from './red.js';
-import { abrirNavegador, siguientePuertoLibre } from './arranque.js';
+import { abrirNavegador, siguientePuertoLibre, yaEstaAbierto } from './arranque.js';
 
 // Modo de recuperación: restablece la contraseña del panel desde la consola
 // del propio equipo y no arranca el servidor. Exige acceso físico, que es
@@ -18,10 +18,20 @@ if (esModoRecuperacion(process.argv)) {
 }
 
 const solicitado = Number(process.env.PORT) || 3000;
+
+// Si ya hay un OpenTest abierto (quizá sin ventana visible), basta con abrir el navegador.
+if (await yaEstaAbierto(solicitado)) {
+  console.log(`\n  OpenTest ya estaba abierto en el puerto ${solicitado}. Abriendo el navegador.\n`);
+  abrirNavegador(`http://localhost:${solicitado}/docente/`);
+  process.exit(0);
+}
+
 const puerto = await siguientePuertoLibre(solicitado);
 
 const db = abrirBd();
 const app = crearApp(db);
+// El panel apaga el servidor con este botón: sin ventana, no hay otra forma (034).
+app.locals.apagar = apagar;
 
 const servidor = app.listen(puerto, '0.0.0.0', () => {
   if (puerto !== solicitado) {
@@ -80,7 +90,7 @@ function imprimirArranque(puerto) {
   console.log(`  Base de datos:      ${RUTA_BD_POR_DEFECTO}`);
   console.log('\n  Si las tablets no cargan la página, revisa que estén en el mismo');
   console.log('  wifi y que el cortafuegos de Windows no bloquee el puerto.');
-  console.log('\n  Para detener OpenTest, cierra esta ventana o pulsa Ctrl+C.\n');
+  console.log('\n  Para detener OpenTest, usa "Apagar OpenTest" en el panel, cierra esta ventana o pulsa Ctrl+C.\n');
 }
 
 let apagando = false;
@@ -91,6 +101,8 @@ function apagar() {
     cerrarBd(db);
     process.exit(0);
   });
+  // Las tablets sondean con conexiones vivas: sin esto, close() esperaría indefinidamente.
+  servidor.closeAllConnections();
 }
 
 process.on('SIGINT', apagar);

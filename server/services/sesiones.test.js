@@ -303,7 +303,7 @@ test('puedeEntrar explica por qué no en cada caso', () => {
   cerrarBd(db);
 });
 
-test('una sesión con intentos no se borra hasta que se descarguen los resultados', () => {
+test('una sesión con intentos se borra aunque no se hayan descargado los resultados', () => {
   const db = preparar();
   const borrador = crearSesion(db, base);
   assert.doesNotThrow(() => borrarSesion(db, borrador.id));
@@ -312,22 +312,6 @@ test('una sesión con intentos no se borra hasta que se descarguen los resultado
   db.prepare(
     "INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en) VALUES (?, '2024001', 's', 't', '2026-01-01')",
   ).run(sesion.id);
-
-  assert.throws(
-    () => borrarSesion(db, sesion.id),
-    /Antes de borrar la evaluación, descarga sus resultados/,
-  );
-  cerrarBd(db);
-});
-
-test('una sesión con intentos pero con resultados descargados sí se borra', () => {
-  const db = preparar();
-  const sesion = crearSesion(db, base);
-  db.prepare(
-    "INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en) VALUES (?, '2024001', 's', 't', '2026-01-01')",
-  ).run(sesion.id);
-  db.prepare("UPDATE sesiones SET descargado_en = '2026-08-26T10:00:00Z' WHERE id = ?")
-    .run(sesion.id);
 
   assert.doesNotThrow(() => borrarSesion(db, sesion.id));
   assert.equal(db.prepare('SELECT count(*) AS t FROM sesiones WHERE id = ?').get(sesion.id).t, 0);
@@ -340,8 +324,6 @@ test('borrar una sesión con intentos descarga cascada a intentos, intento_pregu
   const intento = db.prepare(
     "INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en) VALUES (?, '2024001', 's', 't', '2026-01-01')",
   ).run(sesion.id).lastInsertRowid;
-  db.prepare("UPDATE sesiones SET descargado_en = '2026-08-26T10:00:00Z' WHERE id = ?")
-    .run(sesion.id);
   const ip = db.prepare(
     "INSERT INTO intento_preguntas (intento_id, orden, pregunta_id, orden_opciones) VALUES (?, 1, 1, '1,2,3,4')",
   ).run(intento).lastInsertRowid;
@@ -358,7 +340,7 @@ test('borrar una sesión con intentos descarga cascada a intentos, intento_pregu
   cerrarBd(db);
 });
 
-test('una sesión cerrada con cero intentos se borra sin pedir descarga previa', () => {
+test('una sesión cerrada con cero intentos se borra', () => {
   const db = preparar();
   const sesion = crearSesion(db, base);
   abrirSesion(db, sesion.id);

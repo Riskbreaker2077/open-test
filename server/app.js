@@ -73,6 +73,7 @@ function paginaDeError(estado, mensaje) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>OpenTest — ${estado}</title>
+  <link rel="icon" type="image/png" href="/assets/isotipo-opentest.png">
   <link rel="stylesheet" href="/shared/base.css">
 </head>
 <body>

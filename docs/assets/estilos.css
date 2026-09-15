@@ -231,3 +231,6 @@ nav.enlaces a.boton--primario,
 nav.enlaces a.boton--primario:hover { color: #fff; }
 nav.enlaces a { white-space: nowrap; }
 @media (max-width: 720px) { nav.enlaces { gap: 1rem; } }
+
+/* Logo de OpenTest (035): el cubo sobre blanco, porque la barra es oscura. */
+.marca__insignia--logo { display: block; padding: 0.2rem; object-fit: contain; background: #fff; }

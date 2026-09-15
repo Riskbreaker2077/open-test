@@ -116,6 +116,7 @@ test('la proyección devuelve la asistencia sin datos reservados y un QR local',
   assert.equal(cuerpo.proyeccion.dentro, 1);
   assert.equal(cuerpo.proyeccion.entregados, 0);
   assert.match(cuerpo.proyeccion.direccion, /^http:\/\//);
+  assert.equal(cuerpo.proyeccion.nombresCortos, false);
   assert.deepEqual(cuerpo.proyeccion.estudiantes, [{ nombre: 'Ana Gómez', curso: '10A', estado: 'conectado' }]);
   assert.doesNotMatch(texto, /Luis|puntaje|aciertos|pregunta|respuesta|codigo|2024001/i);
 
@@ -139,6 +140,43 @@ test('la proyección devuelve la asistencia sin datos reservados y un QR local',
   assert.equal(qr.status, 200);
   assert.match(qr.headers.get('content-type'), /image\/svg\+xml/);
   assert.match(await qr.text(), /^<svg/);
+});
+
+test('con más de 30 convocados la proyección usa primer nombre y primer apellido', async () => {
+  const filas = ['codigo,nombres,apellidos,curso', '3000,María Fernanda,Rodríguez Castañeda,11A'];
+  for (let i = 1; i <= 30; i += 1) filas.push(`${3000 + i},Estudiante${i} Segundo,Apellido${i} Otro,11A`);
+  await post('/api/docente/estudiantes/confirmar', { contenido: `${filas.join('\n')}\n` });
+  const { sesion } = await post('/api/docente/sesiones', { ...NUEVA, cursos: ['11A'] });
+  await post(`/api/docente/sesiones/${sesion.id}/abrir`);
+
+  const { proyeccion } = await (await llamar(`/api/docente/proyeccion/${sesion.id}`)).json();
+  assert.equal(proyeccion.estudiantes.length, 31);
+  assert.equal(proyeccion.nombresCortos, true);
+  assert.ok(proyeccion.estudiantes.some((e) => e.nombre === 'María Rodríguez'));
+  assert.ok(proyeccion.estudiantes.every((e) => e.nombre.split(' ').length === 2));
+});
+
+test('apagar desde el panel responde y después llama al apagado del servidor', async () => {
+  const sinApagado = await llamar('/api/docente/apagar', { method: 'POST' });
+  assert.equal(sinApagado.status, 501);
+
+  const app = crearApp(db);
+  let apagado = false;
+  app.locals.apagar = () => { apagado = true; };
+  const otro = app.listen(0);
+  await new Promise((listo) => otro.once('listening', listo));
+  try {
+    const respuesta = await fetch(`http://127.0.0.1:${otro.address().port}/api/docente/apagar`, {
+      method: 'POST',
+      headers: { cookie },
+    });
+    assert.equal(respuesta.status, 200);
+    assert.equal((await respuesta.json()).ok, true);
+    await new Promise((listo) => setTimeout(listo, 20));
+    assert.equal(apagado, true);
+  } finally {
+    await new Promise((listo) => otro.close(listo));
+  }
 });
 
 test('los parámetros no se pueden cambiar una vez abierta', async () => {
@@ -282,7 +320,7 @@ test('descargar escribe descargado_en la primera vez y la deja igual las siguien
   assert.equal(segundaMarca, primeraMarca, 'descargas siguientes no mueven la marca');
 });
 
-test('DELETE rechaza una evaluación con intentos pero sin descarga, y acepta tras descargar', async () => {
+test('DELETE borra una evaluación con intentos sin exigir descarga previa', async () => {
   const { sesion } = await post('/api/docente/sesiones', NUEVA);
   await post(`/api/docente/sesiones/${sesion.id}/abrir`);
   await fetch(`${base}/api/examen/entrar`, {
@@ -291,20 +329,12 @@ test('DELETE rechaza una evaluación con intentos pero sin descarga, y acepta tr
     body: JSON.stringify({ codigo: '2024001', sesionId: sesion.id }),
   });
   await post(`/api/docente/sesiones/${sesion.id}/cerrar`);
+  assert.equal(db.prepare('SELECT descargado_en FROM sesiones WHERE id = ?').get(sesion.id).descargado_en, null);
 
-  const antes = await llamar(`/api/docente/sesiones/${sesion.id}`, { method: 'DELETE' });
-  assert.equal(antes.status, 409);
-  const mensaje = (await antes.json()).mensaje;
-  assert.match(mensaje, /Antes de borrar la evaluación, descarga sus resultados/);
-  assert.equal(db.prepare('SELECT count(*) AS t FROM sesiones WHERE id = ?').get(sesion.id).t, 1);
-
-  const descarga = await llamar(`/api/docente/sesiones/${sesion.id}/export/zip`);
-  assert.equal(descarga.status, 200);
-  assert.ok(db.prepare('SELECT descargado_en FROM sesiones WHERE id = ?').get(sesion.id).descargado_en);
-
-  const despues = await llamar(`/api/docente/sesiones/${sesion.id}`, { method: 'DELETE' });
-  assert.equal(despues.status, 200);
+  const respuesta = await llamar(`/api/docente/sesiones/${sesion.id}`, { method: 'DELETE' });
+  assert.equal(respuesta.status, 200);
   assert.equal(db.prepare('SELECT count(*) AS t FROM sesiones WHERE id = ?').get(sesion.id).t, 0);
+  assert.equal(db.prepare('SELECT count(*) AS t FROM intentos WHERE sesion_id = ?').get(sesion.id).t, 0);
 });
 
 test('todas las rutas de evaluaciones exigen contraseña', async () => {
@@ -325,6 +355,7 @@ test('todas las rutas de evaluaciones exigen contraseña', async () => {
     ['/api/docente/sesiones/1/export/json', 'GET'],
     ['/api/docente/proyeccion/1', 'GET'],
     ['/api/docente/qr.svg?texto=http%3A%2F%2Flocalhost', 'GET'],
+    ['/api/docente/apagar', 'POST'],
     ['/api/docente/sesiones/1', 'DELETE'],
   ];
 

@@ -220,13 +220,12 @@ function acciones(sesion) {
     grupo.append(resultados, selector);
 
     if (sesion.dentro > 0) {
-      const descargado = Boolean(sesion.descargado_en);
       grupo.append(botonBorrar(sesion, {
-        habilitado: descargado,
-        motivo: descargado
-          ? null
-          : 'Descarga los resultados al menos una vez antes de borrar.',
-        confirmar: `¿Borrar "${sesion.nombre}" y todos los intentos? Ya no podrás consultar los resultados.`,
+        habilitado: true,
+        motivo: null,
+        confirmar: sesion.descargado_en
+          ? `¿Borrar "${sesion.nombre}" y todos los intentos? Ya no podrás consultar los resultados.`
+          : `¿Borrar "${sesion.nombre}" y todos los intentos? Todavía no has descargado sus resultados: se perderán para siempre.`,
       }));
     } else {
       grupo.append(botonBorrar(sesion, {

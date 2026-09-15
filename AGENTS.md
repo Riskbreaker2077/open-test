@@ -22,9 +22,11 @@
 
 **La 032 está implementada (15/09/2026) y revierte la 024.** El docente reportó como bug grave el botón "Pausar y salir" del examen: pausaba la evaluación para todo el grupo. Se quitaron el botón, `POST /api/examen/pausar` (ahora 404) y `pausarIntentoComoEstudiante`. Pausar es solo del docente.
 
+**La 033, la 034 y la 035 están implementadas (15/09/2026).** La 033 son ajustes de usabilidad pedidos tras usar la 1.1.1: **Volver** y **Finalizar** (antes "Cerrar") en la proyección, nombres cortos (primer nombre + primer apellido) en el tablero con más de 30 convocados (`LIMITE_NOMBRE_COMPLETO` en `server/routes/docente.js`), borrar evaluaciones sin descarga previa (revisa la 022) y **Volver al inicio** en la pantalla de resultados, que llama a `/api/examen/salir` antes de ir a `/`. La 034 abre OpenTest sin consola: accesos directos a `wscript.exe OpenTest.vbs`, botón **Apagar OpenTest** en el panel (`POST /api/docente/apagar` → `app.locals.apagar`), `yaEstaAbierto` vía `/api/salud` para no duplicar servidores y `CloseApplications=force` en el instalador. La 035 adopta el logo (cubo con check): `isotipo-opentest.png` y `logo-opentest.png` en `public/assets` y `docs/assets`, `scripts/installer/opentest.ico`. Los derivados se generaron una vez fuera del repo; el escudo institucional queda sin uso en `assets/`.
+
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · **032** | — | — (roadmap del encargo original completo; ver `roadmap.md → Backlog / ideas`) |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · **035** | — | — (roadmap del encargo original completo; ver `roadmap.md → Backlog / ideas`) |
 
 ### Para retomar, en este orden
 

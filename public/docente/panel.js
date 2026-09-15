@@ -30,3 +30,22 @@ if (resumen) {
         : `Tienes ${estudiantes} estudiante(s) cargados.`;
   });
 }
+
+// OpenTest corre sin ventana de consola (034): este botón es su interruptor.
+const apagar = document.getElementById('apagar');
+if (apagar) {
+  apagar.addEventListener('click', async () => {
+    if (!window.confirm('¿Apagar OpenTest? Las tablets no podrán entrar hasta que lo vuelvas a abrir.')) return;
+    apagar.disabled = true;
+    try {
+      await fetch('/api/docente/apagar', { method: 'POST' });
+    } catch {
+      // Si el servidor ya se fue, igual está apagado.
+    }
+    const aviso = document.createElement('main');
+    aviso.className = 'tarjeta tarjeta--centrada';
+    aviso.innerHTML = '<h1>OpenTest está apagado</h1>'
+      + '<p>Ya puedes cerrar esta pestaña. Para volver a usarlo, abre OpenTest desde el escritorio o el menú Inicio.</p>';
+    document.body.replaceChildren(aviso);
+  });
+}

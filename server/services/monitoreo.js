@@ -24,6 +24,8 @@ export function estadoDeSesion(db, sesionId, ahora = new Date()) {
       return {
         codigo: estudiante.codigo,
         nombre: `${estudiante.nombres} ${estudiante.apellidos}`,
+        nombres: estudiante.nombres,
+        apellidos: estudiante.apellidos,
         curso: estudiante.curso,
         estado,
         intentoId: estudiante.intento_id,

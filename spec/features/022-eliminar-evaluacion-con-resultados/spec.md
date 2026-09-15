@@ -1,6 +1,6 @@
 # 022 · Eliminar evaluación con resultados ya descargados
 
-**Estado:** implementado ✅
+**Estado:** implementado ✅ _Revisada por la [033](../033-ajustes-usabilidad/spec.md) (15/09/2026): el borrado ya no exige descarga previa; `descargado_en` se sigue escribiendo y solo cambia el texto de la confirmación._
 
 ## Qué hace
 

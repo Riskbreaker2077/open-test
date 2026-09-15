@@ -2,24 +2,23 @@
 
 ## Última actualización y rama activa
 
-- 15/09/2026 — `main`. Publicada la **1.1.0** (tablero de asistencia, tiempo mínimo de 60 s). Encima, la **032** quita "Pausar y salir" del examen; se publica como **1.1.1**.
+- 15/09/2026 — `main`. Publicada la **1.1.1** (sin "Pausar y salir"). Encima, sin publicar todavía: **033** (usabilidad), **034** (sin ventana de consola) y **035** (logo), que salen juntas como **1.2.0**.
 
 ## Feature/tarea en curso
 
-- Ninguna. La 031 quedó implementada con el tablero; falta la verificación física en el proyector del aula.
+- Ninguna. 033, 034 y 035 implementadas; quedan las verificaciones físicas en Windows (sin ventana, apagar desde el panel, ícono de los accesos directos) y en el proyector.
 
 ## Qué se hizo en esta sesión
 
-1. El docente pidió ver en la pantalla del QR quién está conectado y quién falta. Se revisó la regla "nada de nombres" de `mission.md` y la 012 por decisión suya.
-2. Primera versión: dos listas (faltan / conectados). Commit `4a4e80e`, publicado.
-3. El tiempo mínimo por pregunta por defecto pasó de 10 a 60 s (`POR_DEFECTO` y formulario). Las evaluaciones existentes no cambian. También en `4a4e80e`.
-4. El docente corrigió el diseño: un cuadro por estudiante, blanco sin entrar, verde conectado, rojo si salió y verde con ✓ al entregar. Nuevo `server/presencia.js` (en memoria, umbral de 15 s), enganchado en `conIntento`, `/entrar`, `/pausar` y `/salir`. La API de proyección devuelve `estudiantes` con `estado`.
-5. El docente reportó como bug grave el botón "Pausar y salir" (pausaba a todo el grupo). La 032 lo quita junto con `POST /api/examen/pausar` y `pausarIntentoComoEstudiante`.
-6. Verificado con capturas de Chromium headless (40 convocados, los cuatro estados) a 1920×1080 y 1024×768.
+1. 031: tablero de asistencia por colores en la proyección (presencia en memoria, `server/presencia.js`). Publicada en 1.1.0 junto con el tiempo mínimo por defecto de 60 s.
+2. 032: se quitó "Pausar y salir" del examen (pausaba a todo el grupo). Publicada en 1.1.1.
+3. 033: Volver/Finalizar en la proyección, nombres cortos con más de 30 convocados, borrar sin descarga previa, Volver al inicio desde resultados.
+4. 034: accesos directos sin consola (`OpenTest.vbs`), botón Apagar OpenTest, detección de instancia abierta, cierre al actualizar.
+5. 035: logo en app, sitio, README e instalador. Los derivados (PNG transparentes e `.ico`) se generaron con un script con `pngjs` fuera del repo, a partir del PNG que entregó el docente.
 
 ## Estado
 
-- Tests: 451/451, lint de 95 archivos limpio.
+- Tests y lint: ver el último `npm test` / `npm run lint` antes del commit de la 1.2.0.
 - Instalador: compilado y probado en Windows (runner), publicado como 1.0.0.
 - Hay cambios sin commitear que **no son de esta sesión** y no se tocaron: borrados de `spec_template/`, que ya estaban al empezar, y en `.opencode/skills/` dos skills renombradas a `*-opentest`, que aparecieron durante la sesión. Preguntar al usuario antes de commitearlos o restaurarlos.
 

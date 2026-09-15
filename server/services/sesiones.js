@@ -272,17 +272,7 @@ export function listarSesiones(db) {
  *  copia de la evidencia sin que el docente la tenga fuera de la base. */
 export function borrarSesion(db, id) {
   const sesion = obtenerSesion(db, id);
-  const intentos = db
-    .prepare('SELECT count(*) AS total FROM intentos WHERE sesion_id = ?')
-    .get(id).total;
-
-  if (intentos > 0 && !sesion.descargado_en) {
-    throw error(
-      'Antes de borrar la evaluación, descarga sus resultados al menos una vez.',
-      409,
-    );
-  }
-
+  // El docente decide cuándo borrar: ya no se exige descargar antes (033).
   db.prepare('DELETE FROM sesiones WHERE id = ?').run(id);
   return sesion;
 }

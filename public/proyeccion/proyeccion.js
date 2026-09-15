@@ -61,9 +61,9 @@ function boton(texto, accion, clase = '') {
   return control;
 }
 
-function enlace(texto, ruta) {
+function enlace(texto, ruta, clase = '') {
   const control = document.createElement('a');
-  control.className = 'boton control control--volver';
+  control.className = `boton control ${clase}`.trim();
   control.href = ruta;
   control.textContent = texto;
   return control;
@@ -79,7 +79,9 @@ async function transicion(nombre) {
 }
 
 function pintarControles(proyeccion) {
-  const controles = [];
+  const cerrada = proyeccion.estado === 'cerrada';
+  // Volver no toca la evaluación: el docente sale de la proyección y la prueba sigue.
+  const controles = [enlace('Volver', '/docente/sesiones.html', cerrada ? 'control--volver' : 'control--secundario')];
   if (proyeccion.estado === 'abierta') {
     controles.push(boton('Comenzar', () => transicion('comenzar')));
   } else if (proyeccion.estado === 'en_curso') {
@@ -88,16 +90,14 @@ function pintarControles(proyeccion) {
     controles.push(boton('Reanudar', () => transicion('reanudar')));
   }
 
-  if (proyeccion.estado !== 'cerrada') {
-    controles.push(boton('Cerrar', async () => {
+  if (!cerrada) {
+    controles.push(boton('Finalizar', async () => {
       const pendientes = Math.max(0, proyeccionActual.dentro - proyeccionActual.entregados);
       if (!window.confirm(
-        `${pendientes} estudiante(s) siguen presentando. ¿Cerrar y entregar sus pruebas?`,
+        `${pendientes} estudiante(s) siguen presentando. ¿Finalizar y entregar sus pruebas?`,
       )) return;
       await transicion('cerrar');
-    }, 'control--cerrar'));
-  } else {
-    controles.push(enlace('Volver a Evaluaciones', '/docente/sesiones.html'));
+    }, 'control--finalizar'));
   }
   elementos.controles.replaceChildren(...controles);
 }
@@ -129,27 +129,54 @@ function cuadroEstudiante(estudiante, conCurso) {
 /** Busca la letra más grande con la que el tablero cabe sin desbordar su caja. */
 function ajustarLetra(lista) {
   const maxima = Math.max(LETRA_MINIMA, Math.min(window.innerWidth, window.innerHeight) * LETRA_MAXIMA_VMIN / 100);
+  const cabe = () => lista.scrollHeight <= lista.clientHeight;
   let bajo = LETRA_MINIMA;
   let alto = maxima;
   lista.style.fontSize = `${alto}px`;
-  if (lista.scrollHeight <= lista.clientHeight) return;
+  if (cabe()) return;
   for (let paso = 0; paso < 8; paso += 1) {
     const medio = (bajo + alto) / 2;
     lista.style.fontSize = `${medio}px`;
-    if (lista.scrollHeight <= lista.clientHeight) bajo = medio;
+    if (cabe()) bajo = medio;
     else alto = medio;
   }
   lista.style.fontSize = `${bajo}px`;
 }
 
+/**
+ * Ancho, en em, del cuadro compacto más largo (nombre + curso). Como la columna
+ * se mide en em, un ancho fijo recortaría los nombres a cualquier tamaño de letra.
+ */
+function anchoCompacto(tablero) {
+  const letra = parseFloat(getComputedStyle(tablero).fontSize);
+  let maximo = 0;
+  for (const cuadro of tablero.querySelectorAll('.cuadro')) {
+    const estilo = getComputedStyle(cuadro);
+    const curso = cuadro.querySelector('.cuadro-curso');
+    const ancho = cuadro.querySelector('.cuadro-nombre').scrollWidth
+      + (curso ? curso.offsetWidth + parseFloat(estilo.columnGap || '0') : 0)
+      + parseFloat(estilo.paddingLeft) + parseFloat(estilo.paddingRight) + 2;
+    maximo = Math.max(maximo, ancho);
+  }
+  return maximo / letra;
+}
+
 function ajustarTablero() {
+  if (elementos.tablero.classList.contains('tablero--compacto')) {
+    elementos.tablero.style.setProperty('--ancho-cuadro', `${anchoCompacto(elementos.tablero).toFixed(2)}em`);
+  } else {
+    elementos.tablero.style.removeProperty('--ancho-cuadro');
+  }
   ajustarLetra(elementos.tablero);
 }
 
 function pintarAsistencia(proyeccion) {
-  const clave = JSON.stringify([proyeccion.cursos, proyeccion.estudiantes]);
+  const clave = JSON.stringify([proyeccion.cursos, proyeccion.nombresCortos, proyeccion.estudiantes]);
   if (clave === claveAsistencia) return;
   claveAsistencia = clave;
+
+  // Con grupos grandes el servidor manda nombres cortos: cuadros de una sola línea.
+  elementos.tablero.classList.toggle('tablero--compacto', Boolean(proyeccion.nombresCortos));
 
   const conCurso = proyeccion.cursos.length > 1;
   if (proyeccion.estudiantes.length === 0) {
