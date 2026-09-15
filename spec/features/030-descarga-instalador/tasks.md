@@ -6,7 +6,7 @@
 - [x] `.github/workflows/instalador.yml` con prueba de humo, release y commit del `.exe`.
 - [x] `.gitattributes`.
 - [x] Sitio, `README.md` y `GUIA-DOCENTE.md` con enlace de descarga.
-- [ ] Corrida manual (`workflow_dispatch`) en verde.
-- [ ] Tag `v1.0.0` → release publicada e `instalador/OpenTest-Setup.exe` en `main`.
-- [ ] Verificar el enlace `releases/latest/download/OpenTest-Setup.exe` y el sitio publicado.
-- [ ] Cerrar la 029 (compilada y probada en Windows real vía runner) y mover 030 a "Hecho" en el roadmap.
+- [x] Corrida manual (`workflow_dispatch`) en verde (run 34968728449; instalador de 52,9 MB).
+- [x] Tag `v1.0.0` → release publicada e `instalador/OpenTest-Setup.exe` en `main` (run 34968970710, commit `3143b0d` del bot).
+- [x] Verificar el enlace `releases/latest/download/OpenTest-Setup.exe` y el sitio publicado.
+- [x] Cerrar la 029 (compilada y probada en Windows real vía runner) y mover 030 a "Hecho" en el roadmap.

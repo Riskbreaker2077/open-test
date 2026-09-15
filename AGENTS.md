@@ -14,11 +14,13 @@
 
 **La validación final en el equipo destino se completó el 14/09/2026.** El usuario cubrió en una sesión física todo el checklist pendiente: QR y legibilidad en proyector, corte real de red, usabilidad táctil/orientación, línea gráfica en dispositivos reales, legibilidad de la pantalla de resultado, apertura del `.xlsx` de la 018 en Excel/LibreOffice, clic-a-clic en la pantalla de estadísticas de la 019, los botones de la 021 y la 022, el recorrido de los tres tipos de grupo de la 026 con `ejemplos/banco-grupos-ingles.zip`, y el diálogo `--recuperar-contrasena` de la 027 — todo sin novedades. No quedan criterios diferidos por hardware real en ninguna feature.
 
+**La 029 y la 030 están implementadas (15/09/2026).** El instalador de Windows (029) se compila y prueba en GitHub Actions (`.github/workflows/instalador.yml`, runner `windows-2025`): instalación silenciosa, `OpenTest.exe` respondiendo HTTP 200, reinstalación sin tocar `data\opentest.db` y desinstalación que la conserva. Cada tag `vX.Y.Z` publica `OpenTest-Setup.exe` en Releases y lo commitea en `instalador/`; el sitio lo enlaza con `releases/latest/download/OpenTest-Setup.exe`. Primera versión: **1.0.0**.
+
 **La 028 está implementada (14/09/2026).** En Bancos de preguntas, "+ Nuevo banco vacío" crea un banco sin preguntas y "+ Agregar pregunta" en su detalle abre un formulario con la forma simple original de la 003 (contexto opcional, imagen opcional, enunciado, 4 opciones marcando cuál es correcta, justificación opcional por opción) — sin la metadata pedagógica ni los grupos del estándar preguntas-icfes, que siguen siendo exclusivos del ZIP (015/016/026). Cada pregunta suelta gana botones Editar/Eliminar; una pregunta ya usada en una evaluación no se puede tocar (409, mismo principio que `borrarBanco`/`borrarSesion`). Complementaria a la carga por ZIP, igual que la 020 lo es de la 002. 446 tests en verde, lint de 92 archivos limpio.
 
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · **028** | — | — (roadmap del encargo original completo; ver `roadmap.md → Backlog / ideas`) |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · **030** | — | — (roadmap del encargo original completo; ver `roadmap.md → Backlog / ideas`) |
 
 ### Para retomar, en este orden
 
@@ -95,6 +97,8 @@ Antes de trabajar en cualquier cosa, en este orden:
 | `npm test` | Suite con el runner nativo `node:test` |
 | `npm run lint` | Estilo |
 | `npm run build:exe` | Genera el ejecutable único para el docente |
+| `npm run build:installer` | Empaqueta ese build en `dist/instalador/OpenTest-Setup.exe` (Windows + Inno Setup 6) |
+| `git tag vX.Y.Z && git push origin vX.Y.Z` | Publica una versión: el workflow compila, prueba, crea la release y actualiza `instalador/` (la versión de `package.json` debe coincidir) |
 
 ## Límites duros (los que más se violan)
 

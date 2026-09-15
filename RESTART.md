@@ -2,37 +2,31 @@
 
 ## Última actualización y rama activa
 
-- 14/09/2026 — `main`, **limpio y pusheado** hasta `7d67a87` (docs: GitHub Pages + README). Roadmap del encargo original completo; además, dos extensiones nuevas (028, 029).
+- 15/09/2026 — `main`. Se publicó **OpenTest 1.0.0**: release `v1.0.0` con `OpenTest-Setup.exe`, copia en `instalador/` y botón de descarga en el sitio.
 
 ## Feature/tarea en curso
 
-- Ninguna. Esta sesión, después de cerrar la validación física, agregó por pedido del usuario:
-  - **028 · Ingreso manual de preguntas** — implementada, probada (446/446) y documentada. Ver `spec/features/028-ingreso-manual-preguntas/`.
-  - **029 · Instalador de Windows** — el script de Inno Setup y su wrapper están escritos y revisados, pero **nunca se compilaron** (esta sesión fue en Linux, sin Windows ni Inno Setup disponibles). Queda pendiente compilarlo y probarlo de verdad en la próxima sesión con equipo real. Ver `spec/features/029-instalador-windows/spec.md`.
-  - **Sitio de GitHub Pages** — `docs/index.html`, publicado y verificado en `https://riskbreaker2077.github.io/open-test/` (Pages activado vía API sobre `main:/docs`; el build ya corrió y la página responde 200). El repo también quedó con esa URL como "Website".
-  - **README.md** — reescrito: ya no dice "en construcción", enlaza la página nueva y la guía, resume las funciones actuales.
+- Ninguna. **030 · Descarga pública del instalador** quedó implementada, y con ella se cerró la **029** (el instalador se compiló y probó por primera vez).
 
 ## Qué se hizo en esta sesión
 
-1. Se confirmó con el usuario que la validación física cubrió el checklist completo de `Siguiente` sin problemas; se cerró esa parte (commit `3c45962`).
-2. El usuario pidió, en un solo mensaje: instalador de Windows, página de GitHub Pages, README más cuidado, y una feature nueva (ingreso manual de preguntas). Antes de programar la feature nueva se acotó su alcance con el usuario (formulario mínimo, banco vacío creable desde el panel, editar/eliminar sí).
-3. **028 implementada de punta a punta** con SDD (spec/plan/tasks en `spec/features/028-ingreso-manual-preguntas/`): `crearBancoVacio`, `agregarPreguntaManual`, `actualizarPreguntaManual`, `eliminarPregunta` en `server/services/bancos.js` (con 409 si la pregunta es de un grupo o ya se usó en una evaluación); cuatro rutas nuevas; modal nuevo en `bancos.html`/`bancos.js` con Editar/Eliminar por pregunta suelta. 26 tests nuevos. Commit `7d9f604`.
-4. **029 escrita** (`scripts/installer/opentest.iss` + `scripts/build-installer.js` + `npm run build:installer`): empaqueta `dist/OpenTest-Windows` con Inno Setup, sin admin, excluyendo `data\` para no pisar evaluaciones ya cargadas al reinstalar. **No se pudo compilar ni probar** — sin Windows en esta sesión. Commit `545633e`.
-5. **GitHub Pages + README** (commit `7d67a87`): página estática de presentación en `docs/index.html` (misma paleta que `public/shared/base.css`, sin dependencias externas), y README renovado. Se activó Pages vía `gh api` (`source: main:/docs`), se esperó el build (~20s) y se verificó `HTTP 200` en la URL real. Se fijó como "Website" del repo en GitHub.
-6. No hubo forma de probar la 028 visualmente en navegador: la extensión Claude in Chrome no se conectó en esta sesión. Se compensó con revisión estática cuidadosa de los `id` HTML↔JS y con la cobertura de integración HTTP real de las pruebas (no mocks).
+1. El usuario pidió el instalador descargable desde la web y dentro del repositorio. Eligió la versión **1.0.0**, y publicarlo en Releases **y** commitearlo.
+2. Sin Windows local, se armó `.github/workflows/instalador.yml` (runner `windows-2025`, Node 22, Inno Setup de la imagen). Corre los mismos `build:exe` y `build:installer`, y hace una prueba de humo real: instalar en silencio, arrancar `OpenTest.exe` hasta HTTP 200, reinstalar sin tocar `data\opentest.db` y desinstalar conservándola.
+3. Se corrigió `Excludes` del `.iss`: el patrón sin barra inicial excluía cualquier `data` en cualquier nivel. El instalador ahora tiene nombre fijo, `OpenTest-Setup.exe`, y `build-installer.js` pasa la versión de `package.json`.
+4. Enlaces de descarga en `docs/index.html` (botón en el hero y en la navegación), `docs/guia.html`, `GUIA-DOCENTE.md` y `README.md`.
+5. Corrida manual en verde (run 34968728449). Después, tag `v1.0.0` (run 34968970710): release creada y `instalador/OpenTest-Setup.exe` commiteado por el bot (`3143b0d`, 55,5 MB). Se verificó que `releases/latest/download/OpenTest-Setup.exe` responde 200.
 
 ## Estado
 
-- Git: limpio, pusheado hasta `7d67a87`.
-- Tests: 446/446 en verde, lint de 93 archivos limpio.
-- GitHub Pages: activo y verificado (`https://riskbreaker2077.github.io/open-test/`).
-- Instalador de Windows: código listo, **sin compilar ni probar** — es lo único que quedó a medias esta sesión.
+- Tests: 446/446, lint de 93 archivos limpio.
+- Instalador: compilado y probado en Windows (runner), publicado como 1.0.0.
+- Hay cambios sin commitear que **no son de esta sesión** y no se tocaron: borrados de `spec_template/`, que ya estaban al empezar, y en `.opencode/skills/` dos skills renombradas a `*-opentest`, que aparecieron durante la sesión. Preguntar al usuario antes de commitearlos o restaurarlos.
 
 ## Siguiente tarea
 
-1. **Compilar y probar el instalador (029)** en un Windows real: `npm run build:exe && npm run build:installer`, luego instalar limpio, instalar encima de una copia con datos (no debe perderlos) y desinstalar (no debe borrar `data\`). Corregir el `.iss` si algo falla — nunca se compiló de verdad.
-2. Fuera de eso, nada obligatorio. Lo siguiente sale de `roadmap.md → Backlog / ideas` si el usuario decide continuar.
+- Para publicar una versión nueva: subir `version` en `package.json`, commit, `git tag vX.Y.Z && git push origin vX.Y.Z`. El workflow hace el resto.
+- Aparte de eso, nada obligatorio; ver `roadmap.md → Backlog / ideas`.
 
 ## Bloqueos / decisiones pendientes
 
-- Ninguno, salvo la verificación pendiente de la 029 (necesita Windows, no es un bloqueo de diseño).
+- Ninguno. Cada versión suma unos 50 MB al historial de git por la copia commiteada (decisión del usuario, ver bitácora 15/09/2026).

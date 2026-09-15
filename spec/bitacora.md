@@ -505,3 +505,43 @@ real (la extensión Claude in Chrome no se conectó), y el instalador no se
 compiló. Todo lo demás — 028, la página, el README, la activación de Pages —
 se verificó de verdad antes de reportarlo como terminado: 446/446 tests, lint
 de 93 archivos, y la URL de Pages respondiendo 200 en vivo.
+
+---
+
+## 15/09/2026 — 030: instalador compilado, probado y publicado
+
+**Pedido.** El usuario quería el instalador descargable desde la web y también
+dentro del repositorio. Eligió publicar como **1.0.0** y guardarlo en los dos
+lugares: Releases y una copia commiteada en `instalador/`.
+
+**Cómo se compiló sin Windows.** Esta sesión también fue en WSL, sin Node de
+Windows ni Inno Setup. En vez de dejarlo pendiente otra vez, se armó un
+workflow de GitHub Actions en `windows-2025`, cuya imagen trae Inno Setup 6. El
+workflow corre los mismos `npm run build:exe` y `npm run build:installer`
+documentados, sin un camino de build paralelo. La primera corrida
+(`workflow_dispatch`, run 34968728449) fue también la primera compilación real
+del `.iss` de la 029: compiló en 22 s y el instalador pesa 52,9 MB.
+
+**Defecto encontrado antes de compilar.** Al revisar la documentación de
+`Excludes` de Inno Setup: un patrón sin barra inicial compara contra el
+*final* de la ruta. `data\*,data` habría excluido cualquier archivo o carpeta
+llamado `data` en cualquier nivel del paquete, `node_modules` incluido. Hoy
+no hay ninguno, pero la próxima dependencia que traiga uno se habría roto en
+silencio solo en el instalador. Quedó `\data,\data\*`, anclado a la raíz.
+
+**La prueba de humo sustituye la verificación manual pendiente de la 029.**
+Instalación silenciosa en una carpeta con espacios; `OpenTest.exe` arrancado
+de verdad hasta responder HTTP 200 (prueba el blob SEA, `server/` junto al
+ejecutable y el `better-sqlite3` nativo); reinstalación encima comparando el
+hash de `data\opentest.db`; y desinstalación comprobando que la base
+sobrevive. Si falla, no se publica.
+
+**Nombre fijo `OpenTest-Setup.exe`.** `releases/latest/download/<nombre>`
+necesita un nombre estable para que el botón del sitio no cambie con cada
+versión. La versión se ve en "Agregar o quitar programas" y en el título de
+la release.
+
+**Costo aceptado de commitear el binario.** Cada versión agrega unos 50 MB al
+historial de git. Se le explicó al usuario al preguntarle y lo eligió igual.
+El workflow falla antes de hacer push si el instalador pasa de 95 MB (el
+límite de GitHub es 100 MB).

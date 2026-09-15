@@ -1,6 +1,6 @@
 # 030 · Descarga pública del instalador
 
-**Estado:** implementado; ver criterios 🔧
+**Estado:** implementado ✅
 
 ## Qué hace
 
@@ -16,12 +16,12 @@ La 029 dejó el instalador como algo que cada quien compila en su Windows con No
 
 ## Criterios de aceptación
 
-- [ ] El workflow compila `build:exe` y `build:installer` en Windows sin intervención manual.
-- [ ] El workflow instala en silencio, arranca `OpenTest.exe` y recibe `HTTP 200`, reinstala encima sin alterar `data\opentest.db` y desinstala sin borrar `data\`. Si algo falla, no se publica.
-- [ ] Un tag `vX.Y.Z` que no coincide con `package.json` hace fallar el workflow antes de publicar.
-- [ ] La release `v1.0.0` existe con `OpenTest-Setup.exe` adjunto.
-- [ ] `instalador/OpenTest-Setup.exe` está en `main`.
-- [ ] `https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe` descarga el instalador, y el sitio publicado lo enlaza.
+- [x] El workflow compila `build:exe` y `build:installer` en Windows sin intervención manual.
+- [x] El workflow instala en silencio, arranca `OpenTest.exe` y recibe `HTTP 200`, reinstala encima sin alterar `data\opentest.db` y desinstala sin borrar `data\`. Si algo falla, no se publica.
+- [ ] Un tag `vX.Y.Z` que no coincide con `package.json` hace fallar el workflow antes de publicar. *(La comprobación existe, y con `v1.0.0` pasó porque coincidía; el caso de fallo no se provocó a propósito, para no crear un tag falso en el repo público.)*
+- [x] La release `v1.0.0` existe con `OpenTest-Setup.exe` adjunto.
+- [x] `instalador/OpenTest-Setup.exe` está en `main`.
+- [x] `https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe` descarga el instalador, y el sitio publicado lo enlaza.
 
 ## Fuera de alcance
 

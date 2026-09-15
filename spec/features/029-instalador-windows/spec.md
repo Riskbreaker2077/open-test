@@ -1,6 +1,6 @@
 # 029 · Instalador de Windows
 
-**Estado:** implementado; compilación y prueba en Windows real pendiente 🧪
+**Estado:** implementado ✅
 
 ## Qué hace
 
@@ -20,11 +20,11 @@ La 010 dejó esto explícitamente fuera de alcance ("se distribuye el ejecutable
 - [x] Crea accesos directos al ejecutable y a `GUIA-DOCENTE.md` en el menú Inicio, y opcionalmente uno en el escritorio.
 - [x] Aparece en "Agregar o quitar programas" con un desinstalador funcional.
 - [x] **Instalar sobre una copia existente con datos no borra `data\`**: el paquete del instalador excluye explícitamente esa carpeta (`Excludes: "data\*,data"` en `[Files]`), y el desinstalador de Inno solo borra lo que él mismo instaló — nunca archivos que no empaquetó.
-- [ ] Verificado compilando con Inno Setup 6 real en Windows y probando instalar, actualizar (con datos ya cargados) y desinstalar. **Pendiente**: esta sesión de trabajo se hizo en Linux, sin Inno Setup ni Windows disponibles; el script se escribió y se revisó con cuidado pero no se compiló nunca. Queda para la próxima sesión de validación física, junto al resto de lo que ya espera equipo Windows real.
+- [x] Verificado compilando con Inno Setup 6 real en Windows y probando instalar, actualizar (con datos ya cargados) y desinstalar. **15/09/2026**, en el runner `windows-2025` de GitHub Actions (feature 030): compila, instala en silencio, `OpenTest.exe` responde HTTP 200, reinstalar no altera `data\opentest.db` y desinstalar no lo borra. La primera compilación destapó un defecto: `Excludes: "data\*,data"` excluía cualquier `data` en cualquier nivel; quedó anclado a la raíz (`\data,\data\*`). El nombre del instalador pasó a ser fijo, `OpenTest-Setup.exe`.
 
 ## Fuera de alcance
 
 - **Firma de código**: el instalador (y el propio `OpenTest.exe`) no están firmados; Windows SmartScreen seguirá avisando la primera vez, igual que hoy con la copia manual. Firmar requiere un certificado de editor de software, un costo recurrente fuera del alcance de este proyecto.
 - **Actualizaciones automáticas desde el instalador**: implicaría red, prohibida por `tech-stack.md`. Actualizar sigue siendo "genera un instalador nuevo y vuelve a instalar encima" (o reemplazar la carpeta a mano).
-- **Publicar el instalador en algún sitio de descargas**: queda como archivo que el docente/administrador del colegio distribuye por USB, correo o la intranet, igual que ya se distribuye la carpeta hoy.
+- **Publicar el instalador en algún sitio de descargas**: fuera de esta feature; lo resolvió después la 030.
 - **macOS/Linux**: sigue sin ser una plataforma soportada (ver 010).
