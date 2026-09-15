@@ -146,44 +146,16 @@ test('entregar manualmente con preguntas pendientes devuelve 409 y no cierra el 
   assert.equal(intento.entregado_en, null);
 });
 
-test('POST /api/examen/pausar pone la sesión en pausada y limpia la cookie', async () => {
+test('el estudiante no puede pausar la evaluación: POST /api/examen/pausar ya no existe', async () => {
   await examen('/api/examen/pregunta/1');
 
   const respuesta = await fetch(`${base}/api/examen/pausar`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', cookie: cookieEstudiante },
   });
-  assert.equal(respuesta.status, 200);
-  assert.equal((await respuesta.json()).ok, true);
-
-  assert.equal(db.prepare('SELECT estado FROM sesiones WHERE id = ?').get(sesionId).estado, 'pausada');
-
-  const setCookie = respuesta.headers.getSetCookie().find((v) => v.startsWith(`${NOMBRE_COOKIE_ESTUDIANTE}=`));
-  assert.match(setCookie ?? '', /expires=Thu, 01 Jan 1970|1970/, 'la cookie del estudiante debe expirar');
-});
-
-test('POST /api/examen/pausar dos veces seguidas también devuelve 200 (idempotente)', async () => {
-  await examen('/api/examen/pregunta/1');
-
-  const primera = await fetch(`${base}/api/examen/pausar`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', cookie: cookieEstudiante },
-  });
-  const segunda = await fetch(`${base}/api/examen/pausar`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', cookie: cookieEstudiante },
-  });
-  assert.equal(primera.status, 200);
-  assert.equal(segunda.status, 200);
-  assert.equal(db.prepare('SELECT estado FROM sesiones WHERE id = ?').get(sesionId).estado, 'pausada');
-});
-
-test('POST /api/examen/pausar sin cookie del estudiante devuelve 401', async () => {
-  const respuesta = await fetch(`${base}/api/examen/pausar`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-  });
-  assert.equal(respuesta.status, 401);
+  assert.equal(respuesta.status, 404);
+  assert.equal(db.prepare('SELECT estado FROM sesiones WHERE id = ?').get(sesionId).estado, 'en_curso');
+  assert.equal((await examen('/api/examen/estado')).status, 200, 'la tablet sigue dentro del examen');
 });
 
 test('ninguna ruta del examen revela respuestas correctas ni la semilla', async () => {

@@ -1,6 +1,6 @@
 {
   "name": "opentest",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Evaluación en aula con pruebas personalizadas, sobre servidor local e intranet.",
   "type": "module",
   "private": true,

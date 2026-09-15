@@ -10,7 +10,7 @@ La pantalla de proyección (feature 012) muestra un **tablero de asistencia**: u
 |---|---|
 | **Blanco** | Todavía no ha entrado. |
 | **Verde** | Entró y su tablet sigue conectada. |
-| **Rojo** | Entró, pero salió: tocó "Pausar y salir" o "Salir", o su tablet dejó de comunicarse con el servidor (se cerró, perdió el wifi, cambió de aplicación). |
+| **Rojo** | Entró, pero salió: tocó "Salir", o su tablet dejó de comunicarse con el servidor (se cerró, perdió el wifi, cambió de aplicación). |
 | **Verde con ✓** | Ya entregó. Se queda en verde aunque después cierre la tablet. |
 
 Si un estudiante en rojo vuelve a entrar, su cuadro vuelve a verde. El tablero se actualiza solo cada 5 s, durante toda la evaluación.
@@ -28,7 +28,7 @@ Es una decisión consciente contra la regla original de la 012 ("nada de nombres
 - [x] `GET /api/docente/proyeccion/:sesionId` devuelve `estudiantes`: uno por convocado, con `nombre`, `curso` y `estado` ∈ `sin_entrar`, `conectado`, `desconectado`, `entregado`.
 - [x] Solo cuenta a los convocados; se ordenan por apellido y nombre, igual que el monitoreo.
 - [x] Un estudiante que entra aparece `conectado`. Cualquier petición autenticada de su tablet (el sondeo de 5 s del examen o de la sala de espera) renueva esa marca.
-- [x] Pasa a `desconectado` al tocar "Pausar y salir" o "Salir", o cuando su tablet lleva más de **15 s** sin comunicarse. _(umbral en `presencia.test.js`; "Salir" en el test de API.)_
+- [x] Pasa a `desconectado` al tocar "Salir", o cuando su tablet lleva más de **15 s** sin comunicarse. _(umbral en `presencia.test.js`; "Salir" en el test de API.)_
 - [x] Un estudiante que entregó aparece `entregado` sin importar su conexión.
 - [x] La respuesta de proyección **sigue sin contener** puntajes, aciertos, preguntas, respuestas, pregunta actual ni códigos de estudiante.
 - [x] La pantalla pinta un cuadro por estudiante: blanco, verde o rojo según el estado; el entregado, verde con ✓. Una leyenda explica los colores.

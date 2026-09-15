@@ -568,3 +568,9 @@ Al ver las dos listas, el docente precisó lo que quería: un cuadro blanco por 
 **Entregado sigue en verde**, con ✓ para distinguirlo, como pidió el docente. La leyenda en pantalla evita que el color sea la única pista.
 
 **A 1024×768, 40 cuadros no cabían** ni con la letra mínima, porque QR y reloj se llevaban media pantalla. En 4:3 se achicaron el QR, el nombre y el reloj, y se bajó la altura mínima de cada cuadro.
+
+## 15/09/2026 — 032 · Quitar "Pausar y salir" (revierte la 024)
+
+Tras instalar la 1.1.0, el docente reportó como bug grave el botón "Pausar y salir" del examen. El problema de fondo es de diseño, no de implementación: la 024 lo conectó a la misma pausa del docente, así que cualquier estudiante podía detener el reloj y bloquear las respuestas de todo el grupo con un toque.
+
+Se quitó de punta a punta, no solo el botón: una ruta viva seguiría llamable desde cualquier tablet con su cookie. Salen el botón y su lógica, `POST /api/examen/pausar` y `pausarIntentoComoEstudiante` con sus tests. Un test nuevo confirma que la ruta responde 404 y la sesión sigue `en_curso`. No se agregó un sustituto: cerrar la tablet ya es seguro, porque el examen se retoma donde iba (006) y la proyección la marca en rojo (031).

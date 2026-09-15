@@ -26,7 +26,6 @@ import {
   estadoDelExamen,
   guardarRespuesta,
   obtenerPregunta,
-  pausarIntentoComoEstudiante,
 } from './examen.js';
 
 const INICIO = new Date('2026-08-26T10:00:00.000Z');
@@ -264,28 +263,6 @@ test('la entrega forzada por el docente cierra aunque haya preguntas sin respond
 
   const entrega = forzarEntrega(db, intento.id, new Date(INICIO.getTime() + 5000));
   assert.equal(entrega.intento.motivo_entrega, 'forzada_docente');
-  cerrarBd(db);
-});
-
-test('pausar desde el lado del estudiante pone la sesión en pausada y deja el intento sin entregar', () => {
-  const { db, intento } = preparar({ minimo: 0 });
-  obtenerPregunta(db, intento, 1, INICIO);
-
-  const sesion = pausarIntentoComoEstudiante(db, intento, INICIO);
-
-  assert.equal(sesion.estado, 'pausada');
-  assert.equal(db.prepare('SELECT entregado_en FROM intentos WHERE id = ?').get(intento.id).entregado_en, null);
-  cerrarBd(db);
-});
-
-test('pausar desde el estudiante es idempotente si la sesión ya está pausada', () => {
-  const { db, intento } = preparar({ minimo: 0 });
-  obtenerPregunta(db, intento, 1, INICIO);
-
-  pausarIntentoComoEstudiante(db, intento, INICIO);
-  const segunda = pausarIntentoComoEstudiante(db, intento, new Date(INICIO.getTime() + 5000));
-
-  assert.equal(segunda.estado, 'pausada');
   cerrarBd(db);
 });
 

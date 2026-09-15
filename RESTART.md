@@ -2,7 +2,7 @@
 
 ## Última actualización y rama activa
 
-- 15/09/2026 — `main`. Primera versión de la 031 (dos listas) y el tiempo mínimo de 60 s ya están en `origin/main` (`4a4e80e`). Encima, **sin commitear**, el rediseño de la 031 como tablero de colores.
+- 15/09/2026 — `main`. Publicada la **1.1.0** (tablero de asistencia, tiempo mínimo de 60 s). Encima, la **032** quita "Pausar y salir" del examen; se publica como **1.1.1**.
 
 ## Feature/tarea en curso
 
@@ -14,12 +14,12 @@
 2. Primera versión: dos listas (faltan / conectados). Commit `4a4e80e`, publicado.
 3. El tiempo mínimo por pregunta por defecto pasó de 10 a 60 s (`POR_DEFECTO` y formulario). Las evaluaciones existentes no cambian. También en `4a4e80e`.
 4. El docente corrigió el diseño: un cuadro por estudiante, blanco sin entrar, verde conectado, rojo si salió y verde con ✓ al entregar. Nuevo `server/presencia.js` (en memoria, umbral de 15 s), enganchado en `conIntento`, `/entrar`, `/pausar` y `/salir`. La API de proyección devuelve `estudiantes` con `estado`.
-5. Verificado con capturas de Chromium headless (40 convocados, los cuatro estados) a 1920×1080 y 1024×768.
+5. El docente reportó como bug grave el botón "Pausar y salir" (pausaba a todo el grupo). La 032 lo quita junto con `POST /api/examen/pausar` y `pausarIntentoComoEstudiante`.
+6. Verificado con capturas de Chromium headless (40 convocados, los cuatro estados) a 1920×1080 y 1024×768.
 
 ## Estado
 
 - Tests: 451/451, lint de 95 archivos limpio.
-- El rediseño de la 031 está sin commitear, junto con los cambios ajenos de abajo.
 - Instalador: compilado y probado en Windows (runner), publicado como 1.0.0.
 - Hay cambios sin commitear que **no son de esta sesión** y no se tocaron: borrados de `spec_template/`, que ya estaban al empezar, y en `.opencode/skills/` dos skills renombradas a `*-opentest`, que aparecieron durante la sesión. Preguntar al usuario antes de commitearlos o restaurarlos.
 

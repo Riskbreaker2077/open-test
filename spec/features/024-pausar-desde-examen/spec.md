@@ -1,6 +1,6 @@
 # 024 · Pausar la evaluación desde el examen del estudiante
 
-**Estado:** implementado ✅
+**Estado:** revertida ❌ por la [032](../032-quitar-pausar-y-salir/spec.md) (15/09/2026): el botón pausaba la evaluación para todo el grupo.
 
 ## Qué hace
 

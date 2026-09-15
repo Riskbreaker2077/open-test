@@ -70,19 +70,6 @@ body {
   color: var(--tinta-suave);
 }
 
-.terminar {
-  display: block;
-  min-height: var(--toque);
-  margin: 1.5rem auto 0;
-  padding: 0.5rem 1rem;
-  font: inherit;
-  color: var(--error);
-  background: transparent;
-  border: 0;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
 .espera-examen {
   margin-top: 10vh;
 }

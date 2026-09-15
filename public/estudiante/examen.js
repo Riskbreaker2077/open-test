@@ -15,7 +15,6 @@ const elementos = {
   saltar: document.getElementById('saltar'),
   siguiente: document.getElementById('siguiente'),
   cuentaMinima: document.getElementById('cuenta-minima'),
-  pausarSalir: document.getElementById('pausar-salir'),
 };
 
 let actual = null;
@@ -175,7 +174,6 @@ function actualizarBloqueo() {
   elementos.siguiente.disabled = bloqueada || !todosRespondidos();
   elementos.saltar.disabled = bloqueada;
   elementos.anterior.disabled = actual.orden === 1 || ocupada;
-  elementos.pausarSalir.disabled = ocupada;
   elementos.cuentaMinima.textContent = faltan > 0
     ? `Podés avanzar en ${faltan} segundo(s).`
     : '';
@@ -288,21 +286,6 @@ async function confirmarEntrega(motivo) {
   }
 }
 
-async function pausarYSalir() {
-  if (!window.confirm('Vas a pausar la evaluación para todos. ¿Continuar?')) return;
-
-  ocupada = true;
-  actualizarBloqueo();
-  try {
-    await pedir('/api/examen/pausar', { method: 'POST' }, true);
-    window.location.replace('/');
-  } catch (err) {
-    mostrarError(`No se pudo pausar. ${err.message}`);
-    ocupada = false;
-    actualizarBloqueo();
-  }
-}
-
 async function avanzar(idElegido) {
   if (!(await guardar(idElegido))) return;
   const siguienteOrden = ultimoOrdenDePantalla() + 1;
@@ -356,7 +339,6 @@ async function actualizarEstado() {
 elementos.anterior.addEventListener('click', volver);
 elementos.saltar.addEventListener('click', () => avanzar(null));
 elementos.siguiente.addEventListener('click', () => avanzar(estaEnPantallaDeGrupo() ? undefined : opcionElegida));
-elementos.pausarSalir.addEventListener('click', pausarYSalir);
 
 window.setInterval(() => {
   pintarReloj();

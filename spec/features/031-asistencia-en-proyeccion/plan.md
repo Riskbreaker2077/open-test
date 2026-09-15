@@ -9,7 +9,7 @@ Quién entró o entregó ya lo sabe `estadoDeSesion` (008). Lo nuevo es la conex
 ## Implementación
 
 1. `server/presencia.js` — módulo en memoria, con el mismo estilo que `server/sesion.js`: `marcarVisto(intentoId, ahora)`, `marcarSalida(intentoId)`, `estaConectado(intentoId, ahora)` y `_reiniciar()` para los tests. Un `Map` de intento → instante.
-2. `server/routes/examen.js` — `conIntento` llama a `marcarVisto`; `/entrar` marca al intento recién creado o retomado; `/pausar` y `/salir` llaman a `marcarSalida` (en `/salir`, resolviendo el intento por la cookie antes de borrarla).
+2. `server/routes/examen.js` — `conIntento` llama a `marcarVisto`; `/entrar` marca al intento recién creado o retomado; `/salir` llama a `marcarSalida` (en `/salir`, resolviendo el intento por la cookie antes de borrarla).
 3. `server/routes/docente.js` — la proyección arma `estudiantes` con forma mínima: `nombre`, `curso`, `estado`. `presentando` se traduce a `conectado` o `desconectado` según `estaConectado`.
 4. `public/proyeccion/` — el panel de asistencia pasa a un tablero de cuadros con leyenda. Se mantiene el ajuste de letra por búsqueda binaria y `ResizeObserver`.
 5. Tests: unidad de `presencia.js` (umbral de 15 s, salida explícita, reingreso) y API de proyección (sin entrar, conectado, desconectado por "Salir", entregado, sin datos reservados).

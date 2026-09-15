@@ -1,4 +1,4 @@
-import { tiempoRestante, pausarSesion, obtenerSesion } from './sesiones.js';
+import { tiempoRestante } from './sesiones.js';
 import { entregarIntentoCalificado } from './calificacion.js';
 import { analizarBloques } from './bloques.js';
 
@@ -319,31 +319,6 @@ export function guardarRespuesta(db, intento, datos, ahora = new Date()) {
     segundosEnPantalla: segundos,
     segundosRestantes: vigente.segundosRestantes,
   };
-}
-
-/**
- * Pausa la sesión del intento a pedido del estudiante.
- *
- * - Si la sesión está `en_curso`: la pausa (efecto `pausarSesion`).
- * - Si ya está `pausada`: no-op. La idempotencia evita que dos
- *   estudiantes que pulsen el botón "Pausar y salir" a la vez se
- *   pisen y produzcan un 409 visible.
- * - Cualquier otro estado (`borrador`, `abierta`, `cerrada`): 409. El
- *   cliente no debería estar en la pantalla de examen si la sesión no
- *   está en curso o pausada, pero si pasa (carrera con el docente
- *   cerrando), el mensaje es accionable.
- */
-export function pausarIntentoComoEstudiante(db, intento, ahora = new Date()) {
-  const sesion = sesionDelIntento(db, intento);
-  if (sesion.estado === 'en_curso') {
-    pausarSesion(db, sesion.id, ahora);
-  } else if (sesion.estado !== 'pausada') {
-    throw error(
-      `No se puede pausar una evaluación en estado "${sesion.estado}".`,
-      409,
-    );
-  }
-  return obtenerSesion(db, sesion.id);
 }
 
 export function entregarIntento(db, intento, motivo, ahora = new Date()) {
