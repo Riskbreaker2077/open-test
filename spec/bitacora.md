@@ -558,3 +558,13 @@ El docente pidió ver en la pantalla del QR quién está conectado y quién falt
 ## 15/09/2026 — Tiempo mínimo por pregunta por defecto: 60 s
 
 El docente pidió que el tiempo mínimo por pregunta predeterminado sea de 1 minuto. Se corrigió primero el criterio de la 004 y `tech-stack.md`, y luego `POR_DEFECTO` y el valor inicial del formulario de evaluaciones. La columna `sesiones.segundos_minimos_pregunta` conserva `DEFAULT 10`: el servicio siempre escribe el valor explícito, y cambiar un `DEFAULT` en SQLite exige reconstruir la tabla con una migración que no aporta nada. Las evaluaciones ya creadas mantienen su valor.
+
+## 15/09/2026 — 031 rediseñada: tablero de asistencia por colores
+
+Al ver las dos listas, el docente precisó lo que quería: un cuadro blanco por estudiante que se pone verde al entrar, rojo si sale y sigue verde al terminar. La diferencia de fondo es "salió", que las listas no mostraban.
+
+**Presencia por silencio y en memoria.** Una tablet que se cierra o pierde el wifi no avisa. Pero el examen y la sala de espera ya consultan `/api/examen/estado` cada 5 s, así que `conIntento` deja una marca de "visto" en `server/presencia.js`. Con más de 15 s sin marca (tres sondeos perdidos) el estudiante cuenta como salido; "Pausar y salir" y "Salir" lo marcan al instante. Se descartó una columna en la base: habría exigido migración y una escritura en SQLite cada 5 s por tablet, para un dato que no se exporta. Tras un reinicio del servidor, las tablets vuelven a verde en su siguiente sondeo.
+
+**Entregado sigue en verde**, con ✓ para distinguirlo, como pidió el docente. La leyenda en pantalla evita que el color sea la única pista.
+
+**A 1024×768, 40 cuadros no cabían** ni con la letra mínima, porque QR y reloj se llevaban media pantalla. En 4:3 se achicaron el QR, el nombre y el reloj, y se bajó la altura mínima de cada cuadro.

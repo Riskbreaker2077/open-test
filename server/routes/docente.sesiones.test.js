@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { crearApp } from '../app.js';
 import { abrirBd, cerrarBd } from '../db.js';
 import { _reiniciar } from '../sesion.js';
+import { _reiniciar as _reiniciarPresencia } from '../presencia.js';
 import { _reiniciarLimitador } from './auth.js';
 import { guardarBanco } from '../services/bancos.js';
 import { preguntasDeEjemplo } from '../fixtures-preguntas.js';
@@ -16,6 +17,7 @@ const ESTUDIANTES = 'codigo,nombres,apellidos,curso\n2024001,Ana,Gómez,10A\n202
 
 beforeEach(async () => {
   _reiniciar();
+  _reiniciarPresencia();
   _reiniciarLimitador();
   db = abrirBd(':memory:');
   servidor = crearApp(db).listen(0);
@@ -96,11 +98,13 @@ test('comienza, pausa y reanuda la evaluación desde la API', async () => {
 test('la proyección devuelve la asistencia sin datos reservados y un QR local', async () => {
   const { sesion } = await post('/api/docente/sesiones', NUEVA);
   await post(`/api/docente/sesiones/${sesion.id}/abrir`);
-  await fetch(`${base}/api/examen/entrar`, {
+  const entrada = await fetch(`${base}/api/examen/entrar`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ codigo: '2024001', sesionId: sesion.id }),
   });
+  const cookieAna = entrada.headers.getSetCookie()[0].split(';')[0];
+  const proyeccionDe = async (id) => (await (await llamar(`/api/docente/proyeccion/${id}`)).json()).proyeccion;
 
   const respuesta = await llamar(`/api/docente/proyeccion/${sesion.id}`);
   const texto = await respuesta.text();
@@ -112,19 +116,24 @@ test('la proyección devuelve la asistencia sin datos reservados y un QR local',
   assert.equal(cuerpo.proyeccion.dentro, 1);
   assert.equal(cuerpo.proyeccion.entregados, 0);
   assert.match(cuerpo.proyeccion.direccion, /^http:\/\//);
-  assert.deepEqual(cuerpo.proyeccion.asistencia, {
-    faltan: [],
-    conectados: [{ nombre: 'Ana Gómez', curso: '10A', entregado: false }],
-  });
+  assert.deepEqual(cuerpo.proyeccion.estudiantes, [{ nombre: 'Ana Gómez', curso: '10A', estado: 'conectado' }]);
   assert.doesNotMatch(texto, /Luis|puntaje|aciertos|pregunta|respuesta|codigo|2024001/i);
+
+  await fetch(`${base}/api/examen/salir`, { method: 'POST', headers: { cookie: cookieAna } });
+  assert.equal((await proyeccionDe(sesion.id)).estudiantes[0].estado, 'desconectado');
+
+  const { monitoreo } = await (await llamar(`/api/docente/sesiones/${sesion.id}/monitoreo`)).json();
+  await post(`/api/docente/intentos/${monitoreo.estudiantes[0].intentoId}/forzar-entrega`);
+  assert.equal((await proyeccionDe(sesion.id)).estudiantes[0].estado, 'entregado');
 
   const { sesion: dosCursos } = await post('/api/docente/sesiones', {
     ...NUEVA, nombre: 'Final', cursos: ['10B', '10A'],
   });
   await post(`/api/docente/sesiones/${dosCursos.id}/abrir`);
-  const { proyeccion } = await (await llamar(`/api/docente/proyeccion/${dosCursos.id}`)).json();
-  assert.deepEqual(proyeccion.asistencia.faltan.map((e) => e.nombre), ['Ana Gómez', 'Luis Pérez']);
-  assert.deepEqual(proyeccion.asistencia.conectados, []);
+  assert.deepEqual((await proyeccionDe(dosCursos.id)).estudiantes, [
+    { nombre: 'Ana Gómez', curso: '10A', estado: 'sin_entrar' },
+    { nombre: 'Luis Pérez', curso: '10B', estado: 'sin_entrar' },
+  ]);
 
   const qr = await llamar(`/api/docente/qr.svg?texto=${encodeURIComponent(cuerpo.proyeccion.direccion)}`);
   assert.equal(qr.status, 200);

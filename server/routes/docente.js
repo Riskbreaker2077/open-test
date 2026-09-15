@@ -30,6 +30,7 @@ import { svgQr } from '../qr.js';
 import { urlsDeIntranet } from '../red.js';
 import { contarIntentos, forzarEntrega } from '../services/intentos.js';
 import { estadoDeSesion } from '../services/monitoreo.js';
+import { estaConectado } from '../presencia.js';
 import {
   armarExportacion,
   aExcelRico,
@@ -372,15 +373,16 @@ export function rutasDocente(db) {
 
   router.get('/proyeccion/:sesionId', (req, res) => {
     responder(res, () => {
-      const { sesion, estudiantes } = estadoDeSesion(db, Number(req.params.sesionId));
+      const { sesion, estudiantes: convocados } = estadoDeSesion(db, Number(req.params.sesionId));
       const { dentro, entregados } = contarIntentos(db, sesion.id);
-      // Solo nombre y curso: el monitoreo trae puntajes y avance que no se proyectan.
-      const asistencia = { faltan: [], conectados: [] };
-      for (const estudiante of estudiantes) {
-        const persona = { nombre: estudiante.nombre, curso: estudiante.curso };
-        if (estudiante.estado === 'sin_entrar') asistencia.faltan.push(persona);
-        else asistencia.conectados.push({ ...persona, entregado: estudiante.estado === 'entregado' });
-      }
+      // Solo nombre, curso y estado: el monitoreo trae puntajes y avance que no se proyectan.
+      const estudiantes = convocados.map((estudiante) => ({
+        nombre: estudiante.nombre,
+        curso: estudiante.curso,
+        estado: estudiante.estado === 'presentando'
+          ? (estaConectado(estudiante.intentoId) ? 'conectado' : 'desconectado')
+          : estudiante.estado,
+      }));
       return {
         proyeccion: {
           sesionId: sesion.id,
@@ -391,7 +393,7 @@ export function rutasDocente(db) {
           segundosRestantes: sesion.segundosRestantes,
           dentro,
           entregados: entregados ?? 0,
-          asistencia,
+          estudiantes,
         },
       };
     });

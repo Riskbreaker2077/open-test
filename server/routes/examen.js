@@ -9,6 +9,7 @@ import {
   pausarIntentoComoEstudiante,
 } from '../services/examen.js';
 import { obtenerResultado } from '../services/calificacion.js';
+import { marcarSalida, marcarVisto } from '../presencia.js';
 
 export const NOMBRE_COOKIE_ESTUDIANTE = 'opentest_estudiante';
 
@@ -55,6 +56,7 @@ export function rutasExamen(db) {
 
     try {
       const { intento, nuevo } = iniciarOReanudarIntento(db, sesion, estudiante);
+      marcarVisto(intento.id);
 
       res.cookie(NOMBRE_COOKIE_ESTUDIANTE, intento.token, {
         httpOnly: true,
@@ -98,6 +100,7 @@ export function rutasExamen(db) {
   });
 
   router.post('/pausar', conIntento(db), (req, res) => {
+    marcarSalida(req.intento.id);
     try {
       pausarIntentoComoEstudiante(db, req.intento);
     } catch (err) {
@@ -119,6 +122,8 @@ export function rutasExamen(db) {
   });
 
   router.post('/salir', (req, res) => {
+    const intento = intentoPorToken(db, req.cookies?.[NOMBRE_COOKIE_ESTUDIANTE]);
+    if (intento) marcarSalida(intento.id);
     res.clearCookie(NOMBRE_COOKIE_ESTUDIANTE, { path: '/' });
     res.json({ ok: true });
   });
@@ -137,6 +142,8 @@ export function conIntento(db) {
         .json({ ok: false, mensaje: 'Vuelve a escribir tu código para continuar.' });
     }
 
+    // Cualquier petición de la tablet, incluido el sondeo de 5 s, cuenta como conexión.
+    marcarVisto(intento.id);
     req.intento = intento;
     next();
   };

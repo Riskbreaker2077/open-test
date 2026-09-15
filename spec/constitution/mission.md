@@ -7,7 +7,7 @@
 La aplicación tiene **tres superficies separadas**, y esa separación es parte del diseño, no un detalle de implementación:
 
 1. **Portal del estudiante** — vive en la raíz del servidor, en una dirección **estable que no cambia de una evaluación a otra**. El estudiante entra ahí, ve las evaluaciones abiertas para su curso, se identifica con su código y presenta.
-2. **Pantalla de proyección** — lo que el docente pone en el proyector y ve toda la clase: el código QR para entrar, la dirección en letra grande, el nombre de la prueba, el reloj, cuántos han entrado y entregado, y la asistencia: quién falta por entrar y quién está conectado, con nombre y apellido (feature 031, decisión del docente del 15/09/2026). Nada de notas, puntajes, avance ni preguntas.
+2. **Pantalla de proyección** — lo que el docente pone en el proyector y ve toda la clase: el código QR para entrar, la dirección en letra grande, el nombre de la prueba, el reloj, cuántos han entrado y entregado, y el tablero de asistencia: un cuadro por estudiante con nombre y apellido, blanco si no ha entrado, verde si está conectado o ya entregó y rojo si salió (feature 031, decisión del docente del 15/09/2026). Nada de notas, puntajes, avance ni preguntas.
 3. **Panel del docente** — protegido con contraseña. Importar estudiantes y bancos, configurar y abrir sesiones, monitorear con nombres y descargar resultados.
 
 Por debajo de las tres, el **motor de personalización**: a partir de una semilla por estudiante decide qué preguntas le tocan y en qué orden van sus opciones, de forma determinista y auditable.

@@ -11,12 +11,7 @@ const elementos = {
   entregados: document.getElementById('entregados'),
   controles: document.getElementById('controles'),
   error: document.getElementById('error'),
-  bloqueFaltan: document.getElementById('bloque-faltan'),
-  bloqueConectados: document.getElementById('bloque-conectados'),
-  faltan: document.getElementById('faltan'),
-  conectados: document.getElementById('conectados'),
-  nFaltan: document.getElementById('n-faltan'),
-  nConectados: document.getElementById('n-conectados'),
+  tablero: document.getElementById('tablero'),
 };
 
 const ETIQUETAS = {
@@ -34,7 +29,7 @@ let claveAsistencia = null;
 
 /** Límites de la letra de las listas, en píxeles. */
 const LETRA_MINIMA = 11;
-const LETRA_MAXIMA_VMIN = 3.2;
+const LETRA_MAXIMA_VMIN = 2.8;
 
 function mostrarError(mensaje) {
   elementos.error.textContent = mensaje;
@@ -107,27 +102,31 @@ function pintarControles(proyeccion) {
   elementos.controles.replaceChildren(...controles);
 }
 
-function itemEstudiante(estudiante, conCurso) {
-  const item = document.createElement('li');
-  if (estudiante.entregado) item.className = 'entregado';
-  item.textContent = `${estudiante.entregado ? '✓ ' : ''}${estudiante.nombre}`;
+const ESTADOS_ASISTENCIA = {
+  sin_entrar: 'sin entrar',
+  conectado: 'conectado',
+  desconectado: 'salió',
+  entregado: 'entregó',
+};
+
+function cuadroEstudiante(estudiante, conCurso) {
+  const cuadro = document.createElement('li');
+  cuadro.className = `cuadro cuadro--${estudiante.estado}`;
+  cuadro.title = `${estudiante.nombre}: ${ESTADOS_ASISTENCIA[estudiante.estado] ?? estudiante.estado}`;
+  const nombre = document.createElement('span');
+  nombre.className = 'cuadro-nombre';
+  nombre.textContent = `${estudiante.estado === 'entregado' ? '✓ ' : ''}${estudiante.nombre}`;
+  cuadro.append(nombre);
   if (conCurso) {
     const curso = document.createElement('span');
-    curso.className = 'curso';
-    curso.textContent = ` · ${estudiante.curso}`;
-    item.append(curso);
+    curso.className = 'cuadro-curso';
+    curso.textContent = estudiante.curso;
+    cuadro.append(curso);
   }
-  return item;
+  return cuadro;
 }
 
-function vacia(texto) {
-  const item = document.createElement('li');
-  item.className = 'vacia';
-  item.textContent = texto;
-  return item;
-}
-
-/** Busca la letra más grande con la que la lista cabe sin desbordar su caja. */
+/** Busca la letra más grande con la que el tablero cabe sin desbordar su caja. */
 function ajustarLetra(lista) {
   const maxima = Math.max(LETRA_MINIMA, Math.min(window.innerWidth, window.innerHeight) * LETRA_MAXIMA_VMIN / 100);
   let bajo = LETRA_MINIMA;
@@ -143,30 +142,27 @@ function ajustarLetra(lista) {
   lista.style.fontSize = `${bajo}px`;
 }
 
-function ajustarListas() {
-  ajustarLetra(elementos.faltan);
-  ajustarLetra(elementos.conectados);
+function ajustarTablero() {
+  ajustarLetra(elementos.tablero);
 }
 
 function pintarAsistencia(proyeccion) {
-  const { faltan, conectados } = proyeccion.asistencia;
-  const clave = JSON.stringify([proyeccion.cursos, faltan, conectados]);
+  const clave = JSON.stringify([proyeccion.cursos, proyeccion.estudiantes]);
   if (clave === claveAsistencia) return;
   claveAsistencia = clave;
 
   const conCurso = proyeccion.cursos.length > 1;
-  elementos.nFaltan.textContent = faltan.length;
-  elementos.nConectados.textContent = conectados.length;
-  elementos.faltan.replaceChildren(...(faltan.length
-    ? faltan.map((estudiante) => itemEstudiante(estudiante, conCurso))
-    : [vacia('Ya entraron todos')]));
-  elementos.conectados.replaceChildren(...(conectados.length
-    ? conectados.map((estudiante) => itemEstudiante(estudiante, conCurso))
-    : [vacia('Todavía no ha entrado nadie')]));
-  // Cada lista ocupa espacio en proporción a cuántos nombres tiene.
-  elementos.bloqueFaltan.style.flexGrow = faltan.length + 3;
-  elementos.bloqueConectados.style.flexGrow = conectados.length + 3;
-  ajustarListas();
+  if (proyeccion.estudiantes.length === 0) {
+    const vacio = document.createElement('li');
+    vacio.className = 'vacia';
+    vacio.textContent = 'Esta evaluación no tiene estudiantes convocados.';
+    elementos.tablero.replaceChildren(vacio);
+  } else {
+    elementos.tablero.replaceChildren(
+      ...proyeccion.estudiantes.map((estudiante) => cuadroEstudiante(estudiante, conCurso)),
+    );
+  }
+  ajustarTablero();
 }
 
 function pintar(proyeccion) {
@@ -221,11 +217,9 @@ if (!Number.isInteger(sesionId) || sesionId <= 0) {
   window.setInterval(sincronizar, 5000);
   // La caja de las listas cambia al cargar el QR o las fuentes, no solo al redimensionar.
   // Su tamaño no depende de la letra que se ajusta, así que no hay bucle.
-  const observador = new ResizeObserver(ajustarListas);
-  observador.observe(elementos.faltan);
-  observador.observe(elementos.conectados);
-  elementos.qr.addEventListener('load', ajustarListas);
-  document.fonts?.ready.then(ajustarListas);
+  new ResizeObserver(ajustarTablero).observe(elementos.tablero);
+  elementos.qr.addEventListener('load', ajustarTablero);
+  document.fonts?.ready.then(ajustarTablero);
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) sincronizar();
   });
