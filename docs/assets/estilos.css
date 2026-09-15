@@ -224,3 +224,10 @@ footer.pie {
 }
 footer.pie a { color: var(--azul-900); font-weight: 600; text-decoration: none; }
 footer.pie a:hover { color: var(--rojo-700); }
+
+/* Botón dentro de la navegación: sin esto, el color de los enlaces del menú
+   le pone texto oscuro sobre el fondo rojo. */
+nav.enlaces a.boton--primario,
+nav.enlaces a.boton--primario:hover { color: #fff; }
+nav.enlaces a { white-space: nowrap; }
+@media (max-width: 720px) { nav.enlaces { gap: 1rem; } }

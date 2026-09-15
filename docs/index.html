@@ -4,133 +4,87 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>OpenTest — evaluación en el aula, sin internet</title>
-<meta name="description" content="OpenTest: cada estudiante recibe una prueba distinta, personalizada y calificada al instante, sobre un servidor que corre en el portátil del docente y sin internet.">
+<title>OpenTest — una prueba distinta para cada estudiante</title>
+<meta name="description" content="OpenTest le da a cada estudiante su propia versión del examen, lo califica al instante y le muestra al docente qué reforzar. Gratis y sin internet.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b263b'/%3E%3Cpath d='M18 33l9 9 19-21' stroke='%23d18037' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/estilos.css">
 <style>
-  .hero {
-    padding: clamp(3.5rem, 8vw, 6rem) 0 clamp(3rem, 7vw, 5rem);
-  }
+  .hero { padding: clamp(3.5rem, 8vw, 6rem) 0 clamp(3rem, 7vw, 5rem); }
   .hero__grid {
-    display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
-    gap: clamp(2rem, 5vw, 4rem);
-    align-items: center;
+    display: grid; grid-template-columns: 1.1fr 0.9fr;
+    gap: clamp(2rem, 5vw, 4rem); align-items: center;
   }
   @media (max-width: 880px) { .hero__grid { grid-template-columns: 1fr; } }
-  .hero h1 { margin-bottom: 0.7em; }
   .hero p.lead { font-size: clamp(1.05rem, 2vw, 1.2rem); max-width: 34rem; }
-  .hero__botones { display: flex; gap: 0.9rem; flex-wrap: wrap; margin-top: 1.75rem; }
-  .hero__descarga { margin-top: 0.9rem; font-size: 0.85rem; color: rgb(243 236 217 / 70%); }
-  .hero__descarga a { color: var(--dorado-500); }
+  .botones { display: flex; gap: 0.9rem; flex-wrap: wrap; margin-top: 1.75rem; }
+  .garantias {
+    display: flex; flex-wrap: wrap; gap: 0.4rem 1.3rem;
+    margin: 1.2rem 0 0; padding: 0; list-style: none;
+    font-size: 0.9rem; color: rgb(243 236 217 / 78%);
+  }
+  .garantias li::before { content: "✓ "; color: var(--dorado-500); font-weight: 700; }
   .hero__diagrama { width: 100%; height: auto; }
-  .hero__diagrama-leyenda {
-    text-align: center; font-size: 0.82rem; color: rgb(243 236 217 / 62%);
-    margin-top: 0.75rem;
-  }
 
-  .franja-stats { padding: 1.9rem 0; }
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); }
-  .stats .stat {
-    text-align: center; padding: 0 1rem;
-    border-left: 1px solid var(--borde-oscuro);
-  }
-  .stats .stat:first-child { border-left: none; }
-  @media (max-width: 700px) {
-    .stats { grid-template-columns: repeat(2, 1fr); row-gap: 1.3rem; }
-    .stats .stat:nth-child(3) { border-left: none; }
-  }
-  .stats .stat strong {
-    display: block; font-family: Georgia, serif; font-size: clamp(1.6rem, 3.4vw, 2.1rem);
-    color: var(--dorado-500);
-  }
-  .stats .stat span { font-size: 0.78rem; color: rgb(243 236 217 / 70%); }
+  .encabezado { max-width: 40rem; margin-bottom: 2.25rem; }
+  .encabezado p { color: var(--tinta-suave); font-size: 1.05rem; }
 
-  .cita {
-    position: relative;
-    padding: clamp(2.5rem, 5vw, 3.5rem) clamp(1.5rem, 5vw, 4rem);
-    background: var(--crema);
-    border-radius: var(--radio);
+  .valores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  @media (max-width: 880px) { .valores { grid-template-columns: 1fr; } }
+  .valor {
+    background: var(--papel); border: 1px solid var(--borde);
+    border-radius: var(--radio); padding: 1.75rem;
   }
-  .cita__marca {
-    font-family: Georgia, serif; font-size: 5rem; line-height: 1;
-    color: var(--dorado-500); opacity: 0.55; margin-bottom: -1.2rem;
-  }
-  .cita blockquote {
-    margin: 0; font-family: Georgia, serif; font-style: italic;
-    font-size: clamp(1.25rem, 2.6vw, 1.65rem); color: var(--azul-950);
-    line-height: 1.45; max-width: 40rem;
-  }
-  .cita p.explicacion { margin-top: 1.3rem; max-width: 40rem; font-style: normal; }
-
-  .pasos { counter-reset: paso; margin-top: 2rem; }
-  .paso {
-    display: grid; grid-template-columns: 3.2rem 1fr; gap: 1.1rem;
-    position: relative; padding-bottom: 2rem;
-  }
-  .paso:last-child { padding-bottom: 0; }
-  .paso::before {
-    counter-increment: paso; content: counter(paso);
-    width: 3.2rem; height: 3.2rem; border-radius: 50%;
-    background: var(--azul-950); color: var(--dorado-500);
-    font-family: Georgia, serif; font-size: 1.15rem; font-weight: 700;
+  .valor__icono {
+    width: 3rem; height: 3rem; border-radius: 12px; margin-bottom: 1.1rem;
+    background: var(--dorado-100); color: var(--dorado-700);
     display: grid; place-items: center;
-    z-index: 1;
   }
-  .paso:not(:last-child)::after {
-    content: ""; position: absolute; left: 1.6rem; top: 3.2rem; bottom: -0.3rem;
-    width: 2px; background: var(--borde);
-  }
-  .paso h3 { margin-bottom: 0.3rem; font-size: 1.1rem; }
-  .paso p { margin-bottom: 0; color: var(--tinta-suave); font-size: 0.96rem; }
+  .valor__icono svg { width: 1.5rem; height: 1.5rem; }
+  .valor h3 { font-size: 1.2rem; }
+  .valor p { margin: 0; color: var(--tinta-suave); }
 
-  .rasgos { display: flex; flex-direction: column; margin-top: 1.75rem; }
-  .rasgo {
-    display: grid; grid-template-columns: 3rem 1fr; gap: 1.1rem;
-    padding: 1.35rem 0; border-top: 1px solid var(--borde);
+  .pasos {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem;
+    margin: 0; padding: 0; list-style: none; counter-reset: paso;
   }
-  .rasgo:last-child { border-bottom: 1px solid var(--borde); }
-  .rasgo__icono {
-    width: 3rem; height: 3rem; border-radius: 10px;
-    background: var(--azul-100); color: var(--azul-800);
-    display: grid; place-items: center; flex: 0 0 auto;
+  @media (max-width: 880px) { .pasos { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .pasos { grid-template-columns: 1fr; } }
+  .paso { counter-increment: paso; }
+  .paso::before {
+    content: counter(paso);
+    width: 2.6rem; height: 2.6rem; border-radius: 50%; margin-bottom: 0.9rem;
+    background: var(--azul-950); color: var(--dorado-500);
+    font-family: Georgia, serif; font-size: 1.1rem; font-weight: 700;
+    display: grid; place-items: center;
   }
-  .rasgo__icono svg { width: 1.4rem; height: 1.4rem; }
-  .rasgo h3 { font-size: 1.02rem; margin-bottom: 0.25rem; }
-  .rasgo p { margin: 0; font-size: 0.93rem; color: var(--tinta-suave); }
+  .paso h3 { font-size: 1.08rem; margin-bottom: 0.35rem; }
+  .paso p { margin: 0; color: var(--tinta-suave); font-size: 0.96rem; }
 
-  .guia-promo {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center;
+  .dos-columnas {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: clamp(2rem, 5vw, 4rem); align-items: start;
   }
-  @media (max-width: 820px) { .guia-promo { grid-template-columns: 1fr; } }
-  .guia-promo__lista { margin: 1.5rem 0; padding: 0; list-style: none; }
-  .guia-promo__lista li {
-    display: flex; gap: 0.65rem; align-items: baseline;
-    padding: 0.5rem 0; border-top: 1px dotted var(--borde); font-size: 0.94rem;
-  }
-  .guia-promo__lista li:first-child { border-top: none; }
-  .guia-promo__lista .num { font-family: Georgia, serif; color: var(--dorado-600); font-weight: 700; min-width: 1.4rem; }
-  .guia-promo__panel {
-    background: var(--azul-950); border-radius: var(--radio); padding: 2rem;
-    color: var(--crema);
-  }
-  .guia-promo__panel h3 { color: #fff; }
-  .guia-promo__panel p { color: rgb(243 236 217 / 78%); font-size: 0.94rem; }
+  @media (max-width: 820px) { .dos-columnas { grid-template-columns: 1fr; } }
+  .lista-marcada { margin: 0; padding: 0; list-style: none; }
+  .lista-marcada li { padding: 0.95rem 0; border-top: 1px solid var(--borde); }
+  .lista-marcada li:last-child { border-bottom: 1px solid var(--borde); }
+  .lista-marcada strong { display: block; margin-bottom: 0.15rem; }
+  .lista-marcada span { color: var(--tinta-suave); font-size: 0.96rem; }
 
-  .decisiones { list-style: none; margin: 1.75rem 0 0; padding: 0; }
-  .decisiones li { padding: 1.1rem 0; border-top: 1px solid var(--borde); }
-  .decisiones li:last-child { border-bottom: 1px solid var(--borde); }
-  .decisiones strong { display: block; color: var(--azul-950); margin-bottom: 0.2rem; }
-  .decisiones span { color: var(--tinta-suave); font-size: 0.94rem; }
-
-  .cierre {
-    display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 2.5rem; align-items: start;
+  .cierre { text-align: center; }
+  .cierre h2 { margin-bottom: 0.5rem; }
+  .cierre p.lead { max-width: 36rem; margin: 0 auto; font-size: 1.08rem; }
+  .cierre .botones { justify-content: center; }
+  .necesita {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+    max-width: 48rem; margin: 2.5rem auto 0; padding: 0; list-style: none;
   }
-  .cierre > div { min-width: 0; } /* que el terminal scrollee en vez de estirar la grilla */
-  @media (max-width: 820px) { .cierre { grid-template-columns: 1fr; } }
-  .requisitos ul { margin: 0.75rem 0 0; padding-left: 1.2rem; }
-  .requisitos li { margin-bottom: 0.5rem; font-size: 0.94rem; }
+  @media (max-width: 700px) { .necesita { grid-template-columns: 1fr; } }
+  .necesita li {
+    border: 1px solid var(--borde-oscuro); border-radius: var(--radio-chico);
+    padding: 1rem; font-size: 0.95rem; color: rgb(243 236 217 / 85%);
+  }
+  .necesita strong { display: block; color: #fff; }
 </style>
 </head>
 <body>
@@ -143,13 +97,8 @@
     </a>
     <nav class="enlaces">
       <a class="oculto-movil" href="#como-funciona">Cómo funciona</a>
-      <a class="oculto-movil" href="#funciones">Funciones</a>
       <a href="guia.html">Guía docente</a>
-      <a class="oculto-movil" href="https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe">Descargar</a>
-      <a class="nav__git" href="https://github.com/Riskbreaker2077/open-test">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2 .37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
-        GitHub
-      </a>
+      <a class="boton boton--primario" style="padding:0.5rem 1.1rem" href="https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe">Descargar</a>
     </nav>
   </div>
 </header>
@@ -159,25 +108,29 @@
   <section class="franja-oscura hero">
     <div class="contenedor hero__grid">
       <div>
-        <p class="eyebrow eyebrow--claro">Evaluación en el aula · sin internet</p>
-        <h1>Cada estudiante responde una prueba distinta, sin dejar de ser el mismo examen.</h1>
+        <p class="eyebrow eyebrow--claro">Evaluación en el aula</p>
+        <h1>Una prueba distinta para cada estudiante.</h1>
         <p class="lead">
-          OpenTest corre en el portátil del docente. Las tablets se conectan por la
-          intranet del colegio, cada estudiante recibe preguntas sorteadas de un banco
-          común con las opciones barajadas, y el resultado sale calificado al instante.
-          Mirar la pantalla del compañero no sirve de nada.
+          OpenTest arma para cada estudiante su propia versión del examen: las
+          preguntas salen de su banco en distinto orden y las opciones vienen
+          barajadas. Mirar la pantalla del compañero deja de servir, y la nota
+          muestra lo que cada uno realmente sabe.
         </p>
-        <div class="hero__botones">
+        <div class="botones">
           <a class="boton boton--claro" href="https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-            Descargar para Windows
+            Descargar gratis
           </a>
-          <a class="boton boton--fantasma" href="guia.html">Ver la guía para docentes</a>
+          <a class="boton boton--fantasma" href="#como-funciona">Ver cómo funciona</a>
         </div>
-        <p class="hero__descarga">Instalador para Windows 10/11 de 64 bits, sin permisos de administrador · <a href="https://github.com/Riskbreaker2077/open-test/releases">Todas las versiones</a></p>
+        <ul class="garantias">
+          <li>Gratis</li>
+          <li>No necesita internet</li>
+          <li>Para Windows</li>
+        </ul>
       </div>
       <div>
-        <svg class="hero__diagrama" viewBox="0 0 600 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Un estudiante, la proyección del aula y el panel del docente, conectados por la misma red local">
+        <svg class="hero__diagrama" viewBox="0 0 600 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Los estudiantes, la proyección del aula y el docente, conectados por el wifi del colegio">
           <g transform="translate(40,40)" fill="none" stroke="#f3ecd9" stroke-width="2.5" opacity="0.9">
             <rect x="0" y="0" width="110" height="80" rx="14"/>
             <path d="M30 42 L48 60 L82 24" stroke="#d18037" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -186,223 +139,124 @@
           <g transform="translate(240,30)" fill="none" stroke="#f3ecd9" stroke-width="2.5" opacity="0.9">
             <rect x="0" y="0" width="120" height="86" rx="12"/>
             <g fill="#f3ecd9" stroke="none">
-              <rect x="18" y="16" width="13" height="13"/>
-              <rect x="41" y="16" width="13" height="13"/>
-              <rect x="87" y="16" width="13" height="13"/>
-              <rect x="18" y="39" width="13" height="13"/>
-              <rect x="64" y="39" width="13" height="13"/>
-              <rect x="18" y="62" width="13" height="13"/>
-              <rect x="41" y="62" width="13" height="13"/>
-              <rect x="87" y="62" width="13" height="13"/>
+              <rect x="18" y="16" width="13" height="13"/><rect x="41" y="16" width="13" height="13"/><rect x="87" y="16" width="13" height="13"/>
+              <rect x="18" y="39" width="13" height="13"/><rect x="64" y="39" width="13" height="13"/>
+              <rect x="18" y="62" width="13" height="13"/><rect x="41" y="62" width="13" height="13"/><rect x="87" y="62" width="13" height="13"/>
             </g>
           </g>
           <line x1="360" y1="80" x2="450" y2="80" stroke="#d18037" stroke-width="2" stroke-dasharray="3 7"/>
           <g transform="translate(460,40)" fill="none" stroke="#f3ecd9" stroke-width="2.5" opacity="0.9">
             <rect x="0" y="0" width="110" height="80" rx="14"/>
-            <rect x="35" y="34" width="38" height="28" rx="4" stroke="#d18037" stroke-width="5"/>
-            <path d="M42 34 v-9 a11 11 0 0 1 22 0 v9" stroke="#d18037" stroke-width="5"/>
+            <path d="M22 58 V40 M42 58 V28 M62 58 V46 M82 58 V22" stroke="#d18037" stroke-width="7" stroke-linecap="round"/>
           </g>
-          <g fill="#f3ecd9" font-family="Georgia, serif" font-size="14" text-anchor="middle" opacity="0.85">
-            <text x="95" y="150">Estudiante</text>
-            <text x="300" y="150">Proyección</text>
-            <text x="515" y="150">Panel docente</text>
+          <g fill="#f3ecd9" font-family="Georgia, serif" font-size="15" text-anchor="middle" opacity="0.85">
+            <text x="95" y="150">Estudiantes</text>
+            <text x="300" y="150">Código QR</text>
+            <text x="515" y="150">Resultados</text>
           </g>
         </svg>
-        <p class="hero__diagrama-leyenda">Misma red local del colegio — ninguna petición sale del portátil.</p>
       </div>
     </div>
   </section>
 
-  <section class="franja-oscura franja-stats">
-    <div class="contenedor stats">
-      <div class="stat"><strong>30</strong><span>features en el roadmap</span></div>
-      <div class="stat"><strong>446</strong><span>pruebas automáticas</span></div>
-      <div class="stat"><strong>3</strong><span>superficies separadas</span></div>
-      <div class="stat"><strong>0</strong><span>peticiones a internet</span></div>
-    </div>
-  </section>
-
-  <section class="bloque" id="por-que">
+  <section class="bloque" id="valor">
     <div class="contenedor">
-      <p class="eyebrow">Por qué existe</p>
-      <div class="cita">
-        <p class="cita__marca">“</p>
-        <blockquote>
-          Copiar en un examen es fácil porque toda el aula ve exactamente lo mismo.
-        </blockquote>
-        <p class="explicacion">
-          La respuesta habitual es vigilar más. OpenTest prueba otra: hacer que copiar
-          no dé información útil. La pregunta 7 de un estudiante no es la pregunta 7 de
-          su compañero, y sus opciones de respuesta no están en el mismo orden. El
-          sorteo es determinista a partir de una semilla por estudiante — medido sobre
-          200 estudiantes con un banco de 50 preguntas y 20 por prueba: 200 pruebas
-          únicas, unas 8 preguntas compartidas en promedio entre dos compañeros
-          cualesquiera, y la respuesta correcta repartida en partes iguales entre las
-          cuatro posiciones.
-        </p>
+      <div class="encabezado">
+        <p class="eyebrow">Lo que gana su clase</p>
+        <h2>Evaluar para aprender, no solo para calificar</h2>
+      </div>
+      <div class="valores">
+        <article class="valor">
+          <span class="valor__icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="9" rx="1.5"/><path d="M6 16v2a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3v-2"/></svg></span>
+          <h3>Resultados honestos</h3>
+          <p>Nadie tiene la misma prueba que su compañero, pero todos se evalúan en las mismas competencias y en la misma proporción. La comparación entre estudiantes sigue siendo justa.</p>
+        </article>
+        <article class="valor">
+          <span class="valor__icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/><path d="M9 12l2 2 4-4"/></svg></span>
+          <h3>Retroalimentación inmediata</h3>
+          <p>Al entregar, el estudiante ve su resultado en la misma tablet. Si usted lo permite, también la respuesta correcta y por qué cada opción es correcta o no, mientras la duda sigue fresca.</p>
+        </article>
+        <article class="valor">
+          <span class="valor__icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+          <h3>Sabe qué reforzar</h3>
+          <p>Vea qué preguntas falló más el grupo y en qué competencias va más flojo cada curso. Así planea la siguiente clase con datos, no con intuición.</p>
+        </article>
       </div>
     </div>
   </section>
 
   <section class="bloque" id="como-funciona">
     <div class="contenedor">
-      <p class="eyebrow">De la lista de estudiantes al resultado</p>
-      <h2>Cómo funciona, de punta a punta</h2>
-      <div class="pasos">
-        <div class="paso">
-          <div>
-            <h3>Cargar estudiantes y preguntas</h3>
-            <p>Por CSV/JSON y un ZIP con el estándar abierto <strong>preguntas-icfes</strong> —
-            o escribiendo las preguntas una a una desde el panel, sin ningún archivo.</p>
-          </div>
-        </div>
-        <div class="paso">
-          <div>
-            <h3>Convocar y proyectar</h3>
-            <p>Se crea la evaluación por curso, se proyecta el QR del aula y se pulsa
-            <strong>Comenzar</strong>: arranca un reloj único para todos.</p>
-          </div>
-        </div>
-        <div class="paso">
-          <div>
-            <h3>Presentar el examen</h3>
-            <p>Una pregunta a la vez, con guardado inmediato y tiempo mínimo por
-            pregunta. Se puede pausar y retomar sin perder el avance.</p>
-          </div>
-        </div>
-        <div class="paso">
-          <div>
-            <h3>Calificar al instante</h3>
-            <p>Al entregar (o al vencer el reloj) la nota se calcula y se guarda de
-            inmediato, con el nivel de detalle que el docente eligió.</p>
-          </div>
-        </div>
-        <div class="paso">
-          <div>
-            <h3>Monitorear y exportar</h3>
-            <p>Quién entró, quién avanza, quién entregó — en vivo — y descarga de
-            resultados y estadísticas por pregunta y competencia.</p>
-          </div>
-        </div>
+      <div class="encabezado">
+        <p class="eyebrow">Un día de evaluación</p>
+        <h2>Así se usa en el aula</h2>
+        <p>Sin instalar nada en las tablets y sin conocimientos técnicos.</p>
       </div>
+      <ol class="pasos">
+        <li class="paso">
+          <h3>Prepare sus preguntas</h3>
+          <p>Escríbalas una a una dentro del programa, o cargue un banco completo con imágenes y lecturas.</p>
+        </li>
+        <li class="paso">
+          <h3>Proyecte el código QR</h3>
+          <p>Los estudiantes lo escanean y entran con su código. Usted pulsa <strong>Comenzar</strong> y el tiempo corre igual para todos.</p>
+        </li>
+        <li class="paso">
+          <h3>Acompañe en vivo</h3>
+          <p>Vea quién entró, quién avanza y quién ya entregó. Si algo pasa, puede pausar la evaluación.</p>
+        </li>
+        <li class="paso">
+          <h3>Revise los resultados</h3>
+          <p>Las notas quedan listas al instante, con estadísticas por pregunta y descarga en Excel.</p>
+        </li>
+      </ol>
     </div>
   </section>
 
-  <section class="bloque" id="funciones">
-    <div class="contenedor">
-      <p class="eyebrow">Lo que ya trae</p>
-      <h2>Funciones</h2>
-      <div class="rasgos">
-        <div class="rasgo">
-          <span class="rasgo__icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M4 10l8-6 8 6M4 10l8 6 8-6M20 10v10"/></svg></span>
-          <div><h3>Personalización real</h3><p>Sorteo balanceado por competencia y barajado de opciones, materializado una sola vez por intento — se puede auditar meses después.</p></div>
-        </div>
-        <div class="rasgo">
-          <span class="rasgo__icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h4"/></svg></span>
-          <div><h3>Banco preguntas-icfes</h3><p>Metadata pedagógica, contenido en bloques (texto/imagen/tabla) y justificación por cada opción, en un único ZIP.</p></div>
-        </div>
-        <div class="rasgo">
-          <span class="rasgo__icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
-          <div><h3>Ingreso manual de preguntas</h3><p>Para quien no genera el ZIP con ayuda de una IA: un formulario simple, pregunta por pregunta, directo en el panel.</p></div>
-        </div>
-        <div class="rasgo">
-          <span class="rasgo__icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 20h10"/></svg></span>
-          <div><h3>Grupos de preguntas</h3><p>Lectura compartida, emparejamiento y completar espacios, resueltos en una sola pantalla como los define el estándar.</p></div>
-        </div>
-        <div class="rasgo">
-          <span class="rasgo__icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M7 19V9M12 19V5M17 19v7"/></svg></span>
-          <div><h3>Estadísticas por pregunta</h3><p>Qué falla más el grupo, por sesión concreta o acumulado por banco, con filtro de curso.</p></div>
-        </div>
-        <div class="rasgo">
-          <span class="rasgo__icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
-          <div><h3>Exportación completa</h3><p>Un <code>.xlsx</code> con resumen, detalle y banco, y un ZIP reproducible con las imágenes empaquetadas.</p></div>
-        </div>
-        <div class="rasgo">
-          <span class="rasgo__icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4-3 7-6.5 7-11a7 7 0 1 0-14 0c0 4.5 3 8 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-          <div><h3>Línea gráfica adaptable</h3><p>El sistema visual se ajusta a la identidad de cada colegio, en las cinco pantallas, todo local.</p></div>
-        </div>
-        <div class="rasgo">
-          <span class="rasgo__icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0"/></svg></span>
-          <div><h3>Recuperación sin red</h3><p>Si se olvida la contraseña del panel, se restablece desde la consola del propio equipo — nunca desde la web.</p></div>
-        </div>
-        <div class="rasgo">
-          <span class="rasgo__icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v4H4zM4 12h16M4 20h10"/></svg></span>
-          <div><h3>Instalador de Windows</h3><p>Asistente sin permisos de administrador, o la carpeta portable de siempre — actualizar no pierde los datos.</p></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="bloque" id="guia">
-    <div class="contenedor guia-promo">
+  <section class="bloque" id="detalles">
+    <div class="contenedor dos-columnas">
       <div>
-        <p class="eyebrow">Del portátil apagado al primer estudiante respondiendo</p>
-        <h2>La guía para docentes vive dentro del sitio</h2>
-        <p>
-          Sin jerga técnica y sin necesitar una terminal para el uso diario. Cubre
-          instalar, cargar estudiantes y preguntas, convocar y proyectar la evaluación,
-          monitorear en vivo, descargar resultados y resolver lo que de verdad ocurre
-          el primer día.
-        </p>
-        <ol class="guia-promo__lista">
-          <li><span class="num">01</span> Preparar OpenTest (instalador o carpeta portable)</li>
-          <li><span class="num">02</span> Preparar estudiantes y el banco de preguntas</li>
-          <li><span class="num">03</span> Crear y abrir la evaluación</li>
-          <li><span class="num">04</span> Proyectar el QR y comenzar</li>
-          <li><span class="num">05</span> Monitorear en vivo</li>
-          <li><span class="num">06</span> Descargar resultados y estadísticas</li>
-          <li><span class="num">07</span> Problemas frecuentes y prueba de humo</li>
-        </ol>
-        <a class="boton boton--primario" href="guia.html">Abrir la guía completa</a>
-      </div>
-      <div class="guia-promo__panel">
-        <h3>Prueba de humo en menos de 10 minutos</h3>
-        <p>
-          Con los archivos de <code>ejemplos/</code>: encender el portátil, importar
-          estudiantes y banco, crear una evaluación, escanear el QR desde una tablet
-          real y ver a un estudiante presentando en el panel de monitoreo.
-        </p>
-        <p>Repetirla antes de cada entrega del equipo y después de cualquier cambio importante.</p>
-        <a class="boton boton--fantasma" href="guia.html#prueba-de-humo" style="margin-top:0.5rem">Ver el paso a paso →</a>
-      </div>
-    </div>
-  </section>
-
-  <section class="bloque" id="decisiones">
-    <div class="contenedor">
-      <p class="eyebrow">Lo que explica el resto</p>
-      <h2 class="lectura">Decisiones de diseño</h2>
-      <ul class="decisiones lectura">
-        <li><strong>Cero red en tiempo de ejecución.</strong><span>Ninguna petición sale de la máquina durante la evaluación; un test automático lo verifica.</span></li>
-        <li><strong>Sin dependencias más allá de Express y SQLite.</strong><span>Ni framework de frontend, ni paso de compilación, ni CDNs.</span></li>
-        <li><strong>La prueba de cada estudiante se materializa al empezar</strong><span>y nunca se regenera: permite reanudar tras una caída y auditar después qué vio exactamente quien reclama su nota.</span></li>
-        <li><strong>Los datos son del docente.</strong><span>Todo vive en un archivo SQLite copiable a una USB, con salida en Excel, ZIP y JSON abiertos.</span></li>
-        <li><strong>Spec Driven Development.</strong><span>Cada feature tiene su especificación, plan técnico y checklist de aceptación antes de escribir código — <a href="https://github.com/Riskbreaker2077/open-test/tree/main/spec">se puede leer todo el historial</a>.</span></li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="bloque" id="empezar">
-    <div class="contenedor cierre">
-      <div>
-        <p class="eyebrow">Para desarrolladores</p>
-        <h2>Correr OpenTest en local</h2>
-        <div class="terminal">
-          <div class="terminal__barra"><span class="terminal__punto"></span><span class="terminal__punto"></span><span class="terminal__punto"></span></div>
-          <pre><code>git clone https://github.com/Riskbreaker2077/open-test.git
-cd open-test
-npm install
-npm start</code></pre>
-        </div>
-      </div>
-      <div class="requisitos aviso aviso--verde">
-        <h3>Requisitos</h3>
-        <ul>
-          <li>Node 22 o superior.</li>
-          <li>Un portátil y una red wifi. Nada más: sin internet, sin cuentas, sin servicios externos.</li>
-          <li>Para el día del examen en Windows no hace falta Node: <a href="https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe">descargue el instalador</a>. Para compilarlo usted mismo: <code>npm run build:exe</code> y <code>npm run build:installer</code>, documentados en la <a href="guia.html">guía</a>.</li>
+        <p class="eyebrow">Preguntas con intención</p>
+        <h2>Pensado para evaluar por competencias</h2>
+        <ul class="lista-marcada">
+          <li><strong>Organizadas como las pruebas Saber</strong><span>Cada pregunta puede indicar su competencia, afirmación y evidencia, para saber exactamente qué mide.</span></li>
+          <li><strong>Una explicación por cada opción</strong><span>No solo cuál es la correcta: también el error que hay detrás de cada respuesta equivocada.</span></li>
+          <li><strong>Más que selección múltiple</strong><span>Lecturas con varias preguntas, ejercicios de emparejar y de completar espacios.</span></li>
         </ul>
       </div>
+      <div>
+        <p class="eyebrow">Tranquilidad el día del examen</p>
+        <h2>Nada queda al azar</h2>
+        <ul class="lista-marcada">
+          <li><strong>Funciona sin internet</strong><span>Basta el wifi del colegio. El examen no depende de que haya conexión.</span></li>
+          <li><strong>Nadie pierde su avance</strong><span>Si una tablet se apaga, el estudiante vuelve a entrar con su código y sigue donde iba.</span></li>
+          <li><strong>Evita respuestas al azar</strong><span>Puede fijar un tiempo mínimo por pregunta para que nadie conteste sin leer.</span></li>
+          <li><strong>Sus datos son suyos</strong><span>Todo queda en su computador, nada se sube a internet. Y se adapta a los colores y el escudo de su colegio.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="franja-oscura bloque" id="empezar">
+    <div class="contenedor cierre">
+      <p class="eyebrow">Empiece hoy</p>
+      <h2>Haga un simulacro antes del día del examen</h2>
+      <p class="lead">
+        La guía lo lleva paso a paso y trae estudiantes y preguntas de ejemplo,
+        para que en diez minutos vea a un estudiante respondiendo desde una tablet.
+      </p>
+      <div class="botones">
+        <a class="boton boton--claro" href="https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          Descargar gratis
+        </a>
+        <a class="boton boton--fantasma" href="guia.html">Abrir la guía</a>
+      </div>
+      <ul class="necesita">
+        <li><strong>Un computador</strong>con Windows 10 u 11</li>
+        <li><strong>El wifi del colegio</strong>no hace falta internet</li>
+        <li><strong>Tablets o celulares</strong>con navegador y cámara para el QR</li>
+      </ul>
     </div>
   </section>
 
@@ -410,8 +264,8 @@ npm start</code></pre>
 
 <footer class="pie">
   <div class="contenedor pie__fila">
-    <span>MIT © OpenTest — proyecto abierto en <a href="https://github.com/Riskbreaker2077/open-test">GitHub</a></span>
-    <span><a href="guia.html">Guía docente</a> · <a href="https://github.com/Riskbreaker2077/open-test/tree/main/spec">Especificaciones</a></span>
+    <span>OpenTest es gratuito para cualquier docente y colegio.</span>
+    <span><a href="guia.html">Guía docente</a> · <a href="https://github.com/Riskbreaker2077/open-test/releases/latest/download/OpenTest-Setup.exe">Descargar</a></span>
   </div>
 </footer>
 
