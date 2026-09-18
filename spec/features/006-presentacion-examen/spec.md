@@ -23,6 +23,9 @@ Es la única parte que ve el estudiante, y es donde el aula pone a prueba todos 
 - [x] Se puede saltar una pregunta sin responder y seguir adelante.
 - [x] Se puede volver a una pregunta anterior y cambiar la respuesta mientras el examen siga abierto.
 - [x] El botón de avanzar permanece deshabilitado hasta cumplirse `segundos_minimos_pregunta`, mostrando la cuenta atrás de forma visible.
+  > **Revisado por la [037](../037-sin-espera-al-volver/spec.md) (18/09/2026).** El mínimo
+  > solo se cobra la primera vez que se ve cada pregunta: volver a una que ya se respondió
+  > o se saltó no exige espera. La regla sigue validándose en el servidor.
 - [x] Con `segundos_minimos_pregunta = 0` no hay bloqueo alguno.
 - [x] El bloqueo se aplica también **en el servidor**: una respuesta enviada antes del mínimo se rechaza, aunque se manipule el navegador.
 - [x] Se registran los segundos que el estudiante estuvo en cada pregunta.

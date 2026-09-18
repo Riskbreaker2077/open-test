@@ -61,6 +61,38 @@ function filaPregunta(db, intentoId, orden) {
   `).get(intentoId, orden);
 }
 
+/**
+ * ¿El estudiante ya despachó esta pantalla, es decir, respondió o saltó todo
+ * lo que muestra?
+ *
+ * La fila de `respuestas` es la marca: se escribe tanto al responder como al
+ * saltar (`opcion_id = NULL`), que es exactamente "la vio y decidió". Por eso
+ * no hace falta una columna nueva ni una migración.
+ *
+ * Es lo que permite no volver a cobrar el tiempo mínimo al volver atrás (037):
+ * el mínimo se paga la primera vez que se ve cada pregunta, que es cuando hace
+ * su trabajo contra el que responde a ciegas.
+ */
+function pantallaDespachada(db, intentoId, fila) {
+  if (fila.grupo_id) {
+    // Una pantalla de grupo (matching, cloze) se despacha entera: sus miembros
+    // se responden juntos y comparten `pregunta_mostrada_en`.
+    const pendientes = db.prepare(`
+      SELECT count(*) AS t
+      FROM intento_preguntas ipg
+      LEFT JOIN respuestas r ON r.intento_pregunta_id = ipg.id
+      WHERE ipg.intento_id = ?
+        AND ipg.pregunta_id IN (SELECT id FROM preguntas WHERE grupo_id = ?)
+        AND r.id IS NULL
+    `).get(intentoId, fila.grupo_id).t;
+    return pendientes === 0;
+  }
+  return Boolean(
+    db.prepare('SELECT 1 AS hay FROM respuestas WHERE intento_pregunta_id = ?')
+      .get(fila.intento_pregunta_id),
+  );
+}
+
 function cargarGrupo(db, grupoId) {
   const fila = db.prepare(`
     SELECT id, tipo, contexto, banco, metadata_pedagogica
@@ -151,6 +183,8 @@ export function obtenerPregunta(db, intento, orden, ahora = new Date()) {
   const fila = filaPregunta(db, intento.id, numero);
   if (!fila) throw error('Esa pregunta no forma parte de tu prueba.', 404);
 
+  const despachada = pantallaDespachada(db, intento.id, fila);
+
   let mostradaEn = vigente.intento.pregunta_mostrada_en;
   if (vigente.intento.pregunta_actual !== numero || !mostradaEn) {
     mostradaEn = iso(ahora);
@@ -160,22 +194,13 @@ export function obtenerPregunta(db, intento, orden, ahora = new Date()) {
   } else if (
     (fila.tipo_item === 'miembro_banco_opciones' || fila.tipo_item === 'miembro_texto_con_blancos')
     && fila.grupo_id
+    && !despachada
   ) {
     // Reanudación en mitad de una pantalla de grupo: mientras quede algún
     // miembro sin enviar, el mínimo vuelve a correr desde ahora (decisión
     // confirmada en el plan de la 026).
-    const pendientes = db.prepare(`
-      SELECT count(*) AS t
-      FROM intento_preguntas ipg
-      LEFT JOIN respuestas r ON r.intento_pregunta_id = ipg.id
-      WHERE ipg.intento_id = ?
-        AND ipg.pregunta_id IN (SELECT id FROM preguntas WHERE grupo_id = ?)
-        AND r.id IS NULL
-    `).get(intento.id, fila.grupo_id).t;
-    if (pendientes > 0) {
-      mostradaEn = iso(ahora);
-      db.prepare('UPDATE intentos SET pregunta_mostrada_en = ? WHERE id = ?').run(mostradaEn, intento.id);
-    }
+    mostradaEn = iso(ahora);
+    db.prepare('UPDATE intentos SET pregunta_mostrada_en = ? WHERE id = ?').run(mostradaEn, intento.id);
   }
 
   const preguntaActual = (() => {
@@ -218,7 +243,11 @@ export function obtenerPregunta(db, intento, orden, ahora = new Date()) {
     respuestaBancoId: respuestaBanco?.respuesta_banco_id ?? null,
     segundosEnPantalla: respuesta?.segundos_en_pantalla ?? 0,
     segundosMinimos: vigente.sesion.segundos_minimos_pregunta,
-    segundosParaAvanzar: Math.max(0, vigente.sesion.segundos_minimos_pregunta - segundosVista),
+    // Volver a una pregunta ya despachada no cuesta espera: el mínimo de esa
+    // pregunta ya se pagó la primera vez que se vio (037).
+    segundosParaAvanzar: despachada
+      ? 0
+      : Math.max(0, vigente.sesion.segundos_minimos_pregunta - segundosVista),
     segundosRestantes: vigente.segundosRestantes,
   };
 
@@ -258,7 +287,11 @@ export function guardarRespuesta(db, intento, datos, ahora = new Date()) {
     0,
     Math.floor(((ahora instanceof Date ? ahora : new Date(ahora)) - new Date(vigente.intento.pregunta_mostrada_en)) / 1000),
   );
-  if (transcurridos < vigente.sesion.segundos_minimos_pregunta) {
+  // El mínimo solo se cobra la primera vez que se despacha la pantalla (037).
+  if (
+    !pantallaDespachada(db, intento.id, fila)
+    && transcurridos < vigente.sesion.segundos_minimos_pregunta
+  ) {
     const faltan = vigente.sesion.segundos_minimos_pregunta - transcurridos;
     throw error(`Espera ${faltan} segundo(s) antes de avanzar.`, 409);
   }

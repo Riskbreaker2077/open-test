@@ -434,3 +434,123 @@ test('una pregunta standalone no trae grupo en la respuesta', () => {
   assert.equal(pregunta.tipo_item, 'estandar');
   cerrarBd(db);
 });
+
+// --- 037: el tiempo mínimo solo se cobra la primera vez que se ve la pregunta ---
+
+test('volver a una pregunta ya respondida no vuelve a cobrar el mínimo', () => {
+  const { db, intento } = preparar({ minimo: 10 });
+  const primera = obtenerPregunta(db, intento, 1, INICIO);
+  const trasEsperar = new Date(INICIO.getTime() + 10_000);
+  guardarRespuesta(db, intento, { n: 1, opcionId: primera.opciones[0].id, segundos: 10 }, trasEsperar);
+
+  // Avanza a la 2 (nueva: sigue con cuenta atrás completa) y vuelve a la 1.
+  const segunda = obtenerPregunta(db, intento, 2, trasEsperar);
+  assert.equal(segunda.segundosParaAvanzar, 10, 'una pregunta nueva sigue cobrando el mínimo');
+
+  const revisita = obtenerPregunta(db, intento, 1, trasEsperar);
+  assert.equal(revisita.segundosParaAvanzar, 0, 'la ya respondida no hace esperar');
+
+  // Y el servidor acepta el cambio de respuesta un segundo después de abrirla.
+  const respuesta = guardarRespuesta(
+    db,
+    intento,
+    { n: 1, opcionId: primera.opciones[1].id, segundos: 11 },
+    new Date(trasEsperar.getTime() + 1000),
+  );
+  assert.equal(respuesta.opcionId, primera.opciones[1].id);
+  cerrarBd(db);
+});
+
+test('una pregunta saltada también queda despachada', () => {
+  const { db, intento } = preparar({ minimo: 10 });
+  obtenerPregunta(db, intento, 1, INICIO);
+  const trasEsperar = new Date(INICIO.getTime() + 10_000);
+  guardarRespuesta(db, intento, { n: 1, opcionId: null, segundos: 10 }, trasEsperar);
+
+  obtenerPregunta(db, intento, 2, trasEsperar);
+  const revisita = obtenerPregunta(db, intento, 1, trasEsperar);
+  assert.equal(revisita.segundosParaAvanzar, 0);
+
+  const pregunta = obtenerPregunta(db, intento, 1, trasEsperar);
+  assert.doesNotThrow(() => guardarRespuesta(
+    db,
+    intento,
+    { n: 1, opcionId: pregunta.opciones[0].id, segundos: 11 },
+    new Date(trasEsperar.getTime() + 1000),
+  ));
+  cerrarBd(db);
+});
+
+test('el mínimo sigue rechazando la primera visita de una pregunta nunca despachada', () => {
+  const { db, intento } = preparar({ minimo: 10 });
+  const primera = obtenerPregunta(db, intento, 1, INICIO);
+  const trasEsperar = new Date(INICIO.getTime() + 10_000);
+  guardarRespuesta(db, intento, { n: 1, opcionId: primera.opciones[0].id, segundos: 10 }, trasEsperar);
+
+  const segunda = obtenerPregunta(db, intento, 2, trasEsperar);
+  assert.throws(
+    () => guardarRespuesta(
+      db,
+      intento,
+      { n: 2, opcionId: segunda.opciones[0].id, segundos: 1 },
+      new Date(trasEsperar.getTime() + 1000),
+    ),
+    /Espera 9 segundo/,
+  );
+  cerrarBd(db);
+});
+
+test('el tiempo por pregunta sigue acumulando las visitas posteriores', () => {
+  const { db, intento } = preparar({ minimo: 10 });
+  const primera = obtenerPregunta(db, intento, 1, INICIO);
+  const trasEsperar = new Date(INICIO.getTime() + 10_000);
+  guardarRespuesta(db, intento, { n: 1, opcionId: primera.opciones[0].id, segundos: 10 }, trasEsperar);
+  obtenerPregunta(db, intento, 2, trasEsperar);
+  obtenerPregunta(db, intento, 1, trasEsperar);
+  const respuesta = guardarRespuesta(
+    db,
+    intento,
+    { n: 1, opcionId: primera.opciones[1].id, segundos: 14 },
+    new Date(trasEsperar.getTime() + 4000),
+  );
+  assert.equal(respuesta.segundosEnPantalla, 14, 'suma la revisita, no la reemplaza');
+  cerrarBd(db);
+});
+
+test('una pantalla de grupo con un miembro pendiente sigue cobrando el mínimo', () => {
+  const { db } = prepararConBanco((d) => {
+    const grupo = grupoBancoOpciones({ id: 'g-bo' });
+    const m1 = preguntaMiembroBancoOpciones('g-bo', grupo.banco, { respuesta_pool_id: 'p1' });
+    const m2 = preguntaMiembroBancoOpciones('g-bo', grupo.banco, { respuesta_pool_id: 'p2' });
+    guardarBanco(d, 'Inglés', [m1, m2, ...Array.from({ length: 18 }, () => preguntaDeEjemplo())], [grupo]);
+  });
+  const creada = crearSesion(db, {
+    nombre: 'P', banco_id: 1, cursos: ['10A'], n_preguntas: 20, segundos_minimos_pregunta: 10,
+  });
+  abrirSesion(db, creada.id);
+  const intento = iniciarOReanudarIntento(db, obtenerSesion(db, creada.id), { codigo: '1001', curso: '10A' }).intento;
+  comenzarSesion(db, creada.id, INICIO);
+
+  const miembros = db.prepare(`
+    SELECT ip.orden FROM intento_preguntas ip
+    JOIN preguntas p ON p.id = ip.pregunta_id
+    WHERE ip.intento_id = ? AND p.grupo_id = 'g-bo' ORDER BY ip.orden
+  `).all(intento.id);
+  assert.equal(miembros.length, 2);
+
+  obtenerPregunta(db, intento, miembros[0].orden, INICIO);
+  const trasEsperar = new Date(INICIO.getTime() + 10_000);
+  // Solo uno de los dos miembros: la pantalla sigue pendiente.
+  guardarRespuesta(db, intento, { n: miembros[0].orden, respuestaBancoId: 'p1', segundos: 10 }, trasEsperar);
+  const aMedias = obtenerPregunta(db, intento, miembros[0].orden, trasEsperar);
+  assert.equal(aMedias.segundosParaAvanzar, 10, 'con un miembro sin responder, el mínimo vuelve a correr');
+
+  // Completada la pantalla, la revisita es libre.
+  guardarRespuesta(
+    db, intento, { n: miembros[1].orden, respuestaBancoId: 'p2', segundos: 10 },
+    new Date(trasEsperar.getTime() + 10_000),
+  );
+  const completa = obtenerPregunta(db, intento, miembros[0].orden, new Date(trasEsperar.getTime() + 10_000));
+  assert.equal(completa.segundosParaAvanzar, 0);
+  cerrarBd(db);
+});
