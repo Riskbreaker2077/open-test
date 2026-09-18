@@ -25,6 +25,9 @@ La subida de v2 → v3 es **aditiva**: todos los consumidores que ya leían v2 s
 - Las hojas del Excel crecen con los mismos campos nuevos sin obligar a que
   estén presentes: una columna omitida significa que su valor es el default
   (`valor = 1`, sin procedencia, etc.).
+- Más adelante, la 038 añade `anulado` al final de la hoja `Resumen` y
+  `anulado`/`anulado_en` al intento del JSON, más el motivo de entrega
+  `anulada_docente`. Sigue siendo v3: ver *Pruebas anuladas*, abajo.
 
 ## Qué se descarga
 
@@ -48,9 +51,23 @@ Libro con tres hojas, en este orden. Cabecera de cada hoja en **negrita** sobre 
 
 ### Hoja `Resumen`
 
-Una fila por intento. Igual que en v2.
+Una fila por intento. Igual que en v2, más la columna `anulado` al final.
 
-Cabeceras: `formato_version, sesion, codigo, nombres, apellidos, curso, total_preguntas, respondidas, saltadas, aciertos, puntaje, porcentaje, inicio, entrega, motivo_entrega`.
+Cabeceras: `formato_version, sesion, codigo, nombres, apellidos, curso, total_preguntas, respondidas, saltadas, aciertos, puntaje, porcentaje, inicio, entrega, motivo_entrega, anulado`.
+
+#### Pruebas anuladas (desde la [038](../features/038-anular-prueba/spec.md), 18/09/2026)
+
+El docente puede anular la prueba de un estudiante durante la evaluación. Un intento anulado se reconoce por dos señales y **no sube la versión del contrato**, porque la columna se añadió al final y el campo del JSON es una clave nueva:
+
+| Dónde | Campo | Valor |
+|---|---|---|
+| Hoja `Resumen` | `anulado` | `SÍ` en el anulado, `no` en el resto |
+| Hoja `Resumen` | `motivo_entrega` | `anulada_docente` si se le anuló mientras presentaba; si ya había entregado, conserva su motivo original |
+| `resultados.json` | `anulado` / `anulado_en` | `true` y la fecha ISO 8601 de la anulación |
+
+- Un intento anulado sale siempre con `aciertos = 0`, `puntaje = 0` y `porcentaje = 0.0`, aunque tuviera respuestas correctas. En la planilla del docente eso es la nota mínima.
+- **Sus respuestas se exportan igual**, en la hoja `Detalle` y en el JSON: son la evidencia de lo que había hecho hasta que se le anuló, y el consumidor debe poder verla. Lo que no debe hacer es recalcular una nota a partir de ellas.
+- `motivo_entrega` gana el valor `anulada_docente`, que se suma a `manual`, `tiempo`, `ultima_pregunta` y `forzada_docente`.
 
 ### Hoja `Detalle`
 

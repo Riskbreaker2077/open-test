@@ -41,18 +41,27 @@ function pintarTabla(estudiantes) {
   for (const estudiante of estudiantes) {
     const fila = document.createElement('tr');
     fila.append(celda(estudiante.nombre), celda(estudiante.curso));
-    const estado = celda(estudiante.estado.replace('_', ' '));
-    estado.className = `estado-monitor estado-monitor--${estudiante.estado}`;
+    // La anulación (038) se superpone al estado: se anuló, pero sigue
+    // importando si había entrado y si había entregado.
+    const estado = celda(estudiante.anulado
+      ? `anulada · ${estudiante.estado.replace('_', ' ')}`
+      : estudiante.estado.replace('_', ' '));
+    estado.className = estudiante.anulado
+      ? 'estado-monitor estado-monitor--anulado'
+      : `estado-monitor estado-monitor--${estudiante.estado}`;
     fila.append(
       estado,
       celda(estudiante.estado === 'presentando' ? `Pregunta ${estudiante.preguntaActual}` : '—'),
       celda(estudiante.estado === 'presentando' ? tiempo(estudiante.segundosRestantes) : '—'),
-      celda(estudiante.estado === 'entregado'
-        ? `${estudiante.puntaje} puntos · ${estudiante.porcentaje} % · ${estudiante.motivoEntrega}`
-        : '—'),
+      celda((() => {
+        if (estudiante.anulado) return 'Anulada · 0 puntos · 0 %';
+        return estudiante.estado === 'entregado'
+          ? `${estudiante.puntaje} puntos · ${estudiante.porcentaje} % · ${estudiante.motivoEntrega}`
+          : '—';
+      })()),
     );
     const acciones = document.createElement('td');
-    if (estudiante.estado === 'presentando') {
+    if (estudiante.estado === 'presentando' && !estudiante.anulado) {
       const boton = document.createElement('button');
       boton.type = 'button';
       boton.className = 'boton boton--secundario boton--pequeno';

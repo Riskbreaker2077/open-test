@@ -8,7 +8,7 @@ export function estadoDeSesion(db, sesionId, ahora = new Date()) {
   const estudiantes = db.prepare(`
     SELECT e.codigo, e.nombres, e.apellidos, e.curso,
            i.id AS intento_id, i.pregunta_actual, i.entregado_en,
-           i.motivo_entrega, i.puntaje, i.aciertos,
+           i.motivo_entrega, i.puntaje, i.aciertos, i.anulado_en,
            (SELECT count(*) FROM respuestas r
             JOIN intento_preguntas ip ON ip.id = r.intento_pregunta_id
             WHERE ip.intento_id = i.id AND r.opcion_id IS NOT NULL) AS respondidas
@@ -28,6 +28,9 @@ export function estadoDeSesion(db, sesionId, ahora = new Date()) {
         apellidos: estudiante.apellidos,
         curso: estudiante.curso,
         estado,
+        // La anulación (038) es un estado aparte: no cambia `estado`, que
+        // sigue contando si entró y si entregó, sino que se superpone.
+        anulado: Boolean(estudiante.anulado_en),
         intentoId: estudiante.intento_id,
         preguntaActual: estado === 'presentando' ? estudiante.pregunta_actual : null,
         respondidas: estudiante.intento_id ? estudiante.respondidas : 0,

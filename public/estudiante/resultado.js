@@ -9,6 +9,8 @@ const titulo = document.getElementById('titulo');
 const puntaje = document.getElementById('puntaje');
 const porcentaje = document.getElementById('porcentaje');
 const detalle = document.getElementById('detalle');
+const fin = document.getElementById('fin');
+const avisoAnulada = document.getElementById('aviso-anulada');
 
 const ETIQUETAS = {
   acertada: 'Acertada',
@@ -64,7 +66,15 @@ async function cargar() {
     const cuerpo = await respuesta.json();
     if (!respuesta.ok) throw new Error(cuerpo.mensaje ?? 'No pudimos consultar el resultado.');
     const resultado = cuerpo.resultado;
-    titulo.textContent = `${resultado.estudiante}, este es tu resultado`;
+    // Una prueba anulada no trae detalle en ningún nivel de feedback (038):
+    // el servidor ya lo dejó fuera, aquí solo se explica lo que pasó.
+    if (resultado.anulado) {
+      fin.textContent = 'Prueba anulada';
+      avisoAnulada.hidden = false;
+    }
+    titulo.textContent = resultado.anulado
+      ? `${resultado.estudiante}, tu prueba fue anulada`
+      : `${resultado.estudiante}, este es tu resultado`;
     puntaje.textContent = `${resultado.puntaje} / ${resultado.total}`;
     porcentaje.textContent = `${resultado.porcentaje} %`;
     detalle.replaceChildren(...(resultado.preguntas ?? []).map(
@@ -92,5 +102,23 @@ async function volverAlInicio() {
 
 volver.addEventListener('click', volverAlInicio);
 volverInicio.addEventListener('click', volverAlInicio);
+
+/**
+ * Si el docente deshace una anulación (038), la prueba vuelve a estar viva:
+ * la tablet regresa sola al examen, sin que el estudiante tenga que hacer
+ * nada ni volver a escribir su código.
+ */
+async function vigilarReapertura() {
+  try {
+    const respuesta = await fetch('/api/examen/estado');
+    if (!respuesta.ok) return;
+    const { estado } = await respuesta.json();
+    if (!estado.entregado) window.location.replace('/estudiante/examen.html');
+  } catch {
+    // Sin conexión no hay nada que decidir: se reintenta en el siguiente sondeo.
+  }
+}
+
+window.setInterval(vigilarReapertura, 5000);
 
 await cargar();

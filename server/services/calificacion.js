@@ -140,6 +140,22 @@ function estadoDe(pregunta) {
 
 /** Único punto donde se decide qué información sale hacia la tablet. */
 export function armarResultado(intento, preguntas, nivel) {
+  // Una prueba anulada no lleva retroalimentación de ningún tipo, ni siquiera
+  // con `nivel_feedback = 'completo'` (038). El filtro va aquí, que es por
+  // donde pasa todo lo que sale hacia la tablet: hacerlo en el cliente dejaría
+  // las respuestas correctas viajando hacia quien se acaba de sancionar.
+  if (intento.anulado_en) {
+    return {
+      anulado: true,
+      anuladoEn: intento.anulado_en,
+      puntaje: 0,
+      aciertos: 0,
+      total: preguntas.length,
+      porcentaje: 0,
+      nivel,
+    };
+  }
+
   const base = {
     puntaje: intento.puntaje,
     aciertos: intento.aciertos,
@@ -205,7 +221,8 @@ export function obtenerResultado(db, intentoId) {
   if (!intento?.entregado_en) throw error('Esta prueba todavía no ha sido entregada.', 409);
 
   // Compatibilidad con intentos entregados por versiones anteriores a la 007.
-  if (intento.aciertos === null || intento.puntaje === null) {
+  // Un intento anulado nunca se recalifica: su cero es una sanción, no una nota.
+  if (!intento.anulado_en && (intento.aciertos === null || intento.puntaje === null)) {
     intento = entregarIntentoCalificado(
       db,
       intento.id,

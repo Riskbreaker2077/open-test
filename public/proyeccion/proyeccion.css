@@ -210,6 +210,20 @@ body {
   background: #c62828;
 }
 
+/* Prueba anulada por el docente (038). Negro, para que no se confunda con el
+   rojo de "salió" ni desde el fondo del aula. */
+.cuadro--anulado {
+  color: #fff;
+  background: #1b1b1b;
+  text-decoration: line-through;
+}
+
+.cuadro {
+  cursor: pointer;
+  /* El doble clic para anular no debe seleccionar el nombre de paso. */
+  user-select: none;
+}
+
 .tablero--compacto {
   /* El JS mide el nombre corto más largo: así ninguno se corta. */
   grid-template-columns: repeat(auto-fill, minmax(var(--ancho-cuadro, 7.5em), 1fr));

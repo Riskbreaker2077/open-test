@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { idsDePreguntasYOpciones } from './bancos.js';
 import { generarPrueba } from './personalizacion.js';
 import { puedeEntrar } from './sesiones.js';
-import { entregarIntentoCalificado } from './calificacion.js';
+import { calificarIntento, entregarIntentoCalificado, preguntasCalificables } from './calificacion.js';
 
 const error = (mensaje, estado = 400) => Object.assign(new Error(mensaje), { estado });
 
@@ -144,4 +144,84 @@ export function forzarEntrega(db, intentoId, ahora = new Date()) {
     intento: entregarIntentoCalificado(db, intento.id, 'forzada_docente', entregadoEn),
     nueva: true,
   };
+}
+
+/**
+ * Anula la prueba de un estudiante (038).
+ *
+ * Anular es un **estado del intento**, no una nota: por eso vive en
+ * `anulado_en` y no solo en un puntaje cero, que también lo saca quien falla
+ * las veinte preguntas. La sanción tiene que poder demostrarse meses después.
+ *
+ * No borra ni una respuesta. Eso es lo que hace reversible un doble clic
+ * accidental sobre el proyector y lo que conserva la evidencia de lo que el
+ * estudiante llevaba hecho.
+ */
+export function anularIntento(db, intentoId, ahora = new Date()) {
+  const intento = db.prepare('SELECT * FROM intentos WHERE id = ?').get(intentoId);
+  if (!intento) throw error('Ese intento no existe.', 404);
+  if (intento.anulado_en) return { intento, nueva: false };
+
+  const sesion = db.prepare('SELECT * FROM sesiones WHERE id = ?').get(intento.sesion_id);
+  if (sesion.estado === 'borrador') {
+    throw error('Esta evaluación todavía no ha empezado: no hay prueba que anular.', 409);
+  }
+
+  const cuando = (ahora instanceof Date ? ahora : new Date(ahora)).toISOString();
+  return db.transaction(() => {
+    if (intento.entregado_en) {
+      // Ya había entregado: se le conserva su entrega original, que cuenta qué
+      // pasó de verdad. La anulación se superpone, no reescribe la historia.
+      db.prepare('UPDATE intentos SET anulado_en = ?, aciertos = 0, puntaje = 0 WHERE id = ?')
+        .run(cuando, intentoId);
+    } else {
+      db.prepare(`
+        UPDATE intentos
+        SET anulado_en = ?, entregado_en = ?, motivo_entrega = 'anulada_docente',
+            aciertos = 0, puntaje = 0
+        WHERE id = ?
+      `).run(cuando, cuando, intentoId);
+    }
+    return {
+      intento: db.prepare('SELECT * FROM intentos WHERE id = ?').get(intentoId),
+      nueva: true,
+    };
+  })();
+}
+
+/**
+ * Deshace una anulación. Como la calificación es una función pura de las
+ * respuestas, y anular no borró ninguna, recalcularla devuelve exactamente la
+ * nota que había.
+ */
+export function revertirAnulacion(db, intentoId) {
+  const intento = db.prepare('SELECT * FROM intentos WHERE id = ?').get(intentoId);
+  if (!intento) throw error('Ese intento no existe.', 404);
+  if (!intento.anulado_en) return { intento, nueva: false };
+
+  return db.transaction(() => {
+    if (intento.motivo_entrega === 'anulada_docente') {
+      // La entrega era la de la propia anulación: el estudiante vuelve a
+      // presentar donde iba, con sus respuestas intactas.
+      db.prepare(`
+        UPDATE intentos
+        SET anulado_en = NULL, entregado_en = NULL, motivo_entrega = NULL,
+            aciertos = NULL, puntaje = NULL
+        WHERE id = ?
+      `).run(intentoId);
+    } else {
+      // Ya había entregado antes de que se le anulara: se le restituye su nota.
+      const { aciertos, puntaje } = calificarIntento(preguntasCalificables(db, intentoId));
+      db.prepare('UPDATE intentos SET anulado_en = NULL, aciertos = ?, puntaje = ? WHERE id = ?')
+        .run(aciertos, puntaje, intentoId);
+    }
+    return {
+      intento: db.prepare('SELECT * FROM intentos WHERE id = ?').get(intentoId),
+      nueva: true,
+    };
+  })();
+}
+
+export function anulado(intento) {
+  return Boolean(intento?.anulado_en);
 }

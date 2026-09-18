@@ -13,10 +13,20 @@ import {
   preguntasDeEjemplo,
 } from '../fixtures-preguntas.js';
 import { guardarEstudiantes } from './estudiantes.js';
-import { abrirSesion, cerrarSesion, crearSesion, obtenerSesion } from './sesiones.js';
 import {
+  abrirSesion,
+  cerrarSesion,
+  comenzarSesion,
+  crearSesion,
+  obtenerSesion,
+} from './sesiones.js';
+import {
+  anulado,
+  anularIntento,
   contarIntentos,
   entregado,
+  forzarEntrega,
+  revertirAnulacion,
   iniciarOReanudarIntento,
   intentoPorToken,
   materializarPrueba,
@@ -335,5 +345,138 @@ test('cloze: el miembro tiene opciones propias y orden_opciones las permuta', ()
   if (fila) {
     assert.equal(fila.ordenOpciones.length, 3, 'cada miembro cloze trae 3 opciones');
   }
+  cerrarBd(db);
+});
+
+// --- 038: anular la prueba de un estudiante ---
+
+function prepararEnCurso() {
+  const db = abrirBd(':memory:');
+  guardarBanco(db, 'Ciencias', preguntasDeEjemplo(25));
+  guardarEstudiantes(db, [ANA, LUIS]);
+  const creada = crearSesion(db, {
+    nombre: 'Parcial', banco_id: 1, cursos: ['10A'], n_preguntas: 5, segundos_minimos_pregunta: 0,
+  });
+  abrirSesion(db, creada.id);
+  const { intento } = iniciarOReanudarIntento(db, obtenerSesion(db, creada.id), ANA);
+  comenzarSesion(db, creada.id, new Date('2026-09-18T10:00:00.000Z'));
+  return { db, sesion: obtenerSesion(db, creada.id), intento };
+}
+
+/** Responde bien las `cuantas` primeras preguntas del intento. */
+function responderBien(db, intento, cuantas) {
+  const filas = db.prepare(`
+    SELECT ip.id, ip.orden,
+           (SELECT id FROM opciones WHERE pregunta_id = ip.pregunta_id AND es_correcta = 1) AS correcta
+    FROM intento_preguntas ip WHERE ip.intento_id = ? ORDER BY ip.orden LIMIT ?
+  `).all(intento.id, cuantas);
+  for (const fila of filas) {
+    db.prepare(`
+      INSERT INTO respuestas (intento_pregunta_id, opcion_id, segundos_en_pantalla, respondido_en)
+      VALUES (?, ?, 10, ?)
+    `).run(fila.id, fila.correcta, new Date().toISOString());
+  }
+}
+
+test('anular deja la prueba entregada, en cero y marcada, sin borrar respuestas', () => {
+  const { db, intento } = prepararEnCurso();
+  responderBien(db, intento, 3);
+
+  const { nueva } = anularIntento(db, intento.id, new Date('2026-09-18T10:20:00.000Z'));
+  assert.equal(nueva, true);
+
+  const anuladoEnBase = db.prepare('SELECT * FROM intentos WHERE id = ?').get(intento.id);
+  assert.equal(anuladoEnBase.anulado_en, '2026-09-18T10:20:00.000Z');
+  assert.equal(anuladoEnBase.motivo_entrega, 'anulada_docente');
+  assert.ok(anuladoEnBase.entregado_en, 'la prueba queda entregada');
+  assert.equal(anuladoEnBase.aciertos, 0);
+  assert.equal(anuladoEnBase.puntaje, 0);
+  assert.equal(anulado(anuladoEnBase), true);
+  // La evidencia se conserva: es lo que hace reversible la anulación.
+  assert.equal(
+    db.prepare(`
+      SELECT count(*) AS t FROM respuestas r
+      JOIN intento_preguntas ip ON ip.id = r.intento_pregunta_id WHERE ip.intento_id = ?
+    `).get(intento.id).t,
+    3,
+  );
+
+  // Anular dos veces no cambia nada ni falla.
+  assert.equal(anularIntento(db, intento.id).nueva, false);
+  cerrarBd(db);
+});
+
+test('revertir devuelve a presentar a quien fue anulado a mitad de la prueba', () => {
+  const { db, intento } = prepararEnCurso();
+  responderBien(db, intento, 3);
+  anularIntento(db, intento.id);
+
+  const { nueva } = revertirAnulacion(db, intento.id);
+  assert.equal(nueva, true);
+
+  const vuelto = db.prepare('SELECT * FROM intentos WHERE id = ?').get(intento.id);
+  assert.equal(vuelto.anulado_en, null);
+  assert.equal(vuelto.entregado_en, null, 'vuelve a presentar');
+  assert.equal(vuelto.motivo_entrega, null);
+  assert.equal(vuelto.aciertos, null);
+  assert.equal(entregado(vuelto), false);
+  assert.equal(
+    db.prepare(`
+      SELECT count(*) AS t FROM respuestas r
+      JOIN intento_preguntas ip ON ip.id = r.intento_pregunta_id WHERE ip.intento_id = ?
+    `).get(intento.id).t,
+    3,
+    'sus respuestas siguen ahí',
+  );
+  cerrarBd(db);
+});
+
+test('revertir a quien ya había entregado le restituye su nota recalculada', () => {
+  const { db, intento } = prepararEnCurso();
+  responderBien(db, intento, 4);
+  const entregadoAntes = forzarEntrega(db, intento.id).intento;
+  assert.equal(entregadoAntes.aciertos, 4);
+  assert.equal(entregadoAntes.motivo_entrega, 'forzada_docente');
+
+  anularIntento(db, intento.id);
+  const enCero = db.prepare('SELECT * FROM intentos WHERE id = ?').get(intento.id);
+  assert.equal(enCero.puntaje, 0);
+  // Su entrega original se conserva: cuenta qué pasó de verdad.
+  assert.equal(enCero.motivo_entrega, 'forzada_docente');
+  assert.equal(enCero.entregado_en, entregadoAntes.entregado_en);
+
+  revertirAnulacion(db, intento.id);
+  const restituido = db.prepare('SELECT * FROM intentos WHERE id = ?').get(intento.id);
+  assert.equal(restituido.anulado_en, null);
+  assert.equal(restituido.aciertos, 4);
+  assert.equal(restituido.puntaje, 4);
+  assert.equal(restituido.entregado_en, entregadoAntes.entregado_en, 'sigue entregada');
+  cerrarBd(db);
+});
+
+test('no se puede anular en una evaluación en borrador ni un intento inexistente', () => {
+  const { db } = preparar();
+  assert.throws(() => anularIntento(db, 999), /no existe/);
+
+  const borrador = crearSesion(db, { nombre: 'Sin abrir', banco_id: 1, cursos: ['10A'] });
+  const intentoId = db.prepare(`
+    INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en)
+    VALUES (?, ?, 'x', 'tok-borrador', ?)
+  `).run(borrador.id, ANA.codigo, new Date().toISOString()).lastInsertRowid;
+  assert.throws(() => anularIntento(db, Number(intentoId)), /todavía no ha empezado/);
+  cerrarBd(db);
+});
+
+test('cerrar la evaluación no recalifica ni revive al anulado', () => {
+  const { db, sesion, intento } = prepararEnCurso();
+  responderBien(db, intento, 5);
+  anularIntento(db, intento.id);
+
+  cerrarSesion(db, sesion.id);
+
+  const tras = db.prepare('SELECT * FROM intentos WHERE id = ?').get(intento.id);
+  assert.equal(tras.puntaje, 0, 'sigue en cero pese a tener las cinco bien');
+  assert.equal(tras.aciertos, 0);
+  assert.ok(tras.anulado_en);
   cerrarBd(db);
 });

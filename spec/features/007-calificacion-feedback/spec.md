@@ -33,6 +33,11 @@ Los tres niveles existen por un conflicto real: el nivel `completo` es el más �
 - [ ] La pantalla es legible en tablet y deja claro que la prueba terminó y que puede levantarse.
 - [x] Si el docente cambia el nivel de feedback de una sesión cerrada, los estudiantes que vuelvan a consultar ven el nivel nuevo; ningún otro parámetro de la sesión cerrada se puede modificar.
 
+> **Revisado por la [038](../038-anular-prueba/spec.md) (18/09/2026).** Una prueba anulada
+> por el docente no recibe retroalimentación con ningún `nivel_feedback`, tampoco con
+> `completo`: su resultado es el aviso de anulación, 0 puntos y 0 %. El filtro vive en
+> `armarResultado`, el mismo punto único por el que pasa todo lo que sale hacia la tablet.
+
 ## Cierre
 
 Implementación cerrada con 11 de 12 criterios verificados. La legibilidad y facilidad de uso en una tablet real queda aplazada, por decisión del usuario, a la sesión final de pruebas con el equipo destino.

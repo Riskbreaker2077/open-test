@@ -117,7 +117,11 @@ test('la proyección devuelve la asistencia sin datos reservados y un QR local',
   assert.equal(cuerpo.proyeccion.entregados, 0);
   assert.match(cuerpo.proyeccion.direccion, /^http:\/\//);
   assert.equal(cuerpo.proyeccion.nombresCortos, false);
-  assert.deepEqual(cuerpo.proyeccion.estudiantes, [{ nombre: 'Ana Gómez', curso: '10A', estado: 'conectado' }]);
+  // `intentoId` y `nombreCompleto` viajan para poder anular sobre el cuadro
+  // (038); ninguno de los dos se pinta ni es un dato reservado del aula.
+  assert.deepEqual(cuerpo.proyeccion.estudiantes, [{
+    intentoId: 1, nombre: 'Ana Gómez', nombreCompleto: 'Ana Gómez', curso: '10A', estado: 'conectado',
+  }]);
   assert.doesNotMatch(texto, /Luis|puntaje|aciertos|pregunta|respuesta|codigo|2024001/i);
 
   await fetch(`${base}/api/examen/salir`, { method: 'POST', headers: { cookie: cookieAna } });
@@ -132,8 +136,14 @@ test('la proyección devuelve la asistencia sin datos reservados y un QR local',
   });
   await post(`/api/docente/sesiones/${dosCursos.id}/abrir`);
   assert.deepEqual((await proyeccionDe(dosCursos.id)).estudiantes, [
-    { nombre: 'Ana Gómez', curso: '10A', estado: 'sin_entrar' },
-    { nombre: 'Luis Pérez', curso: '10B', estado: 'sin_entrar' },
+    {
+      intentoId: null, nombre: 'Ana Gómez', nombreCompleto: 'Ana Gómez',
+      curso: '10A', estado: 'sin_entrar',
+    },
+    {
+      intentoId: null, nombre: 'Luis Pérez', nombreCompleto: 'Luis Pérez',
+      curso: '10B', estado: 'sin_entrar',
+    },
   ]);
 
   const qr = await llamar(`/api/docente/qr.svg?texto=${encodeURIComponent(cuerpo.proyeccion.direccion)}`);

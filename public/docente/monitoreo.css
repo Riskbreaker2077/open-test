@@ -9,6 +9,7 @@
 .estado-monitor { font-weight: 700; }
 .estado-monitor--entregado { color: var(--exito); }
 .estado-monitor--sin_entrar { color: var(--tinta-suave); }
+.estado-monitor--anulado { color: var(--error); font-weight: 700; }
 .tabla-monitor { max-width: none; overflow-x: auto; }
 @media (max-width: 42rem) {
   .encabezado-monitoreo { align-items: stretch; flex-direction: column; }

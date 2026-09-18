@@ -41,3 +41,10 @@ Es una decisión consciente contra la regla original de la 012 ("nada de nombres
 - Guardar el historial de conexiones o mostrarlo en los resultados: la conexión vive en memoria y no se exporta.
 - Avance, pregunta actual o notas en la proyección: siguen solo en el monitoreo (008).
 - Acciones sobre un estudiante desde la proyección.
+
+> **Ampliado por la [038](../038-anular-prueba/spec.md) (18/09/2026).** El tablero gana un
+> quinto estado, **anulado** (negro con ⊘), y el doble clic sobre un cuadro anula o
+> devuelve esa prueba. La respuesta de proyección suma `intentoId` y `nombreCompleto`,
+> que no se pintan: hacen falta para saber sobre quién se actúa y para confirmarlo con el
+> nombre completo aunque el tablero muestre el nombre corto. Puntajes, avance, preguntas
+> y códigos siguen fuera del proyector.

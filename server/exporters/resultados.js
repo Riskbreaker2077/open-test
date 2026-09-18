@@ -13,6 +13,9 @@ export const CABECERAS_RESUMEN = [
   'formato_version', 'sesion', 'codigo', 'nombres', 'apellidos', 'curso',
   'total_preguntas', 'respondidas', 'saltadas', 'aciertos', 'puntaje',
   'porcentaje', 'inicio', 'entrega', 'motivo_entrega',
+  // Al final: el contrato v3 define añadir columnas al final como cambio
+  // compatible, así que `formato_version` sigue en 3.
+  'anulado',
 ];
 
 export const CABECERAS_DETALLE = [
@@ -267,6 +270,8 @@ export function armarExportacion(db, sesionId, curso, ahora = new Date()) {
         inicio: intento.iniciado_en,
         entrega: intento.entregado_en ?? '',
         motivo_entrega: intento.motivo_entrega ?? '',
+        anulado: Boolean(intento.anulado_en),
+        anulado_en: intento.anulado_en ?? null,
         aciertos,
         puntaje,
         porcentaje: Number(((puntaje / preguntas.length) * 100).toFixed(1)),
@@ -295,6 +300,7 @@ export function filasResumen(exportacion) {
     inicio: intento.inicio,
     entrega: intento.entrega,
     motivo_entrega: intento.motivo_entrega,
+    anulado: intento.anulado ? 'SÍ' : 'no',
   }));
 }
 

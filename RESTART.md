@@ -2,32 +2,29 @@
 
 ## Última actualización y rama activa
 
-- 15/09/2026 — `main`. Publicada la **1.2.0** (033–035). Encima, la **036** (presencia casi inmediata), que sale como **1.2.1**.
+- 18/09/2026 — `main`. Commiteadas y etiquetadas como **1.3.0**: **037** (sin espera al volver) y **038** (anular la prueba desde la proyección). Falta empujar a `origin`.
 
 ## Feature/tarea en curso
 
-- Ninguna. 033, 034 y 035 implementadas; quedan las verificaciones físicas en Windows (sin ventana, apagar desde el panel, ícono de los accesos directos) y en el proyector.
+- Ninguna. 037 y 038 implementadas, con 467 tests en verde y lint limpio. Quedan sus verificaciones físicas.
 
 ## Qué se hizo en esta sesión
 
-1. 031: tablero de asistencia por colores en la proyección (presencia en memoria, `server/presencia.js`). Publicada en 1.1.0 junto con el tiempo mínimo por defecto de 60 s.
-2. 032: se quitó "Pausar y salir" del examen (pausaba a todo el grupo). Publicada en 1.1.1.
-3. 033: Volver/Finalizar en la proyección, nombres cortos con más de 30 convocados, borrar sin descarga previa, Volver al inicio desde resultados.
-4. 034: accesos directos sin consola (`OpenTest.vbs`), botón Apagar OpenTest, detección de instancia abierta, cierre al actualizar.
-6. 036: el docente probó cortar la red de una tablet y el rojo tardó demasiado. Latido cada 2 s, aviso con `sendBeacon` al ocultar la página, umbral de 6 s y proyección cada 2 s.
-5. 035: logo en app, sitio, README e instalador. Los derivados (PNG transparentes e `.ico`) se generaron con un script con `pngjs` fuera del repo, a partir del PNG que entregó el docente.
+1. Se puso al día la copia local, que estaba 37 commits atrás (iba por la feature 005).
+2. 037: el tiempo mínimo por pregunta solo se cobra la primera vez que se despacha cada pantalla; volver atrás ya no hace esperar. Sin migración: "despachada" se lee de la fila en `respuestas`.
+3. 038: doble clic sobre un cuadro del tablero de la proyección para anular la prueba (0 puntos, sin retroalimentación en ningún nivel, aviso en la tablet, cuadro negro) y otro doble clic para deshacerlo. Migración **v6** (`intentos.anulado_en` y motivo `anulada_docente`, rehaciendo la tabla) y columna `anulado` en el export, sin subir de `formato_version: 3`.
 
 ## Estado
 
-- Tests y lint: ver el último `npm test` / `npm run lint` antes del commit de la 1.2.0.
-- Instalador: compilado y probado en Windows (runner), publicado como 1.0.0.
-- Hay cambios sin commitear que **no son de esta sesión** y no se tocaron: borrados de `spec_template/`, que ya estaban al empezar, y en `.opencode/skills/` dos skills renombradas a `*-opentest`, que aparecieron durante la sesión. Preguntar al usuario antes de commitearlos o restaurarlos.
+- `npm test`: 467 en verde. `npm run lint`: 95 archivos, limpio.
+- Recorrido completo probado contra el servidor real: anular, ver el cuadro en negro, leer el resultado del estudiante y deshacer.
+- Dos commits en `main` (037 y 038) y el tag `v1.3.0`, **todavía sin empujar**. Al hacer `git push origin main v1.3.0`, el workflow compila y publica `OpenTest-Setup.exe` 1.3.0 en Releases y lo commitea en `instalador/`.
 
 ## Siguiente tarea
 
-- Para publicar una versión nueva: subir `version` en `package.json`, commit, `git tag vX.Y.Z && git push origin vX.Y.Z`. El workflow hace el resto.
-- Aparte de eso, nada obligatorio; ver `roadmap.md → Backlog / ideas`.
+1. `git push origin main v1.3.0` para publicar el instalador 1.3.0.
+2. Verificación física de la 037 y la 038 en el aula: volver atrás en una tablet sin cuenta atrás; anular desde el proyector y ver la tablet del estudiante (aviso, cero, sin retroalimentación) y el cuadro en negro.
 
 ## Bloqueos / decisiones pendientes
 
-- Ninguno. Cada versión suma unos 50 MB al historial de git por la copia commiteada (decisión del usuario, ver bitácora 15/09/2026).
+- Ninguno. Decidido con el usuario: la nota del anulado se representa como 0 puntos / 0 % con marca `anulado` (no se añade escala 1–5), y la anulación se puede deshacer.

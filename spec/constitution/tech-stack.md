@@ -138,11 +138,14 @@ Sigue el estándar externo **preguntas-icfes v1**
 - `semilla` TEXT — determina íntegramente qué prueba le tocó a este estudiante. Se genera al iniciar y no cambia jamás.
 - `token` TEXT — identifica al estudiante en las peticiones siguientes; se guarda en el navegador de la tablet.
 - `iniciado_en`, `entregado_en` TEXT (ISO 8601, `entregado_en` NULL mientras presenta).
-- `motivo_entrega` TEXT — `manual` | `tiempo` | `ultima_pregunta` | `forzada_docente`.
+- `motivo_entrega` TEXT — `manual` | `tiempo` | `ultima_pregunta` | `forzada_docente` | `anulada_docente`.
 - `puntaje`, `aciertos` INTEGER — se calculan al entregar.
 - `pregunta_actual` INTEGER — orden que estaba viendo; permite recargar o cambiar de tablet y retomar exactamente ahí.
 - `pregunta_mostrada_en` TEXT NULL — inicio de la vista actual según el servidor; hace exigible el tiempo mínimo sin confiar en la tablet.
+- `anulado_en` TEXT NULL — el docente le anuló la prueba (feature 038). **Es un estado, no una nota**: un puntaje cero también lo saca quien falla todas las preguntas, y la sanción tiene que poder demostrarse meses después. Anular no borra ni una respuesta, que es lo que la hace reversible.
 - Invariante: un `(sesion_id, codigo_estudiante)` como máximo. Un estudiante que ya entregó no puede volver a entrar.
+- Invariante: un intento con `anulado_en` sale siempre con `aciertos = 0` y `puntaje = 0`, y **nunca** recibe retroalimentación, sea cual sea el `nivel_feedback` de su sesión.
+- Invariante: el **tiempo mínimo por pregunta solo se cobra la primera vez** que el estudiante despacha cada pantalla (feature 037). "Despachada" se lee de la existencia de su fila en `respuestas`, que se escribe tanto al responder como al saltar.
 
 ### `intento_preguntas`
 - `id` INTEGER PK, `intento_id` FK, `orden` INTEGER (1..N), `pregunta_id` FK.

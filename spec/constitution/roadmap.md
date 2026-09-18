@@ -41,12 +41,14 @@ _Orden y estado de las features. Cada entrada apunta a su carpeta en `../feature
 35. **034 · [Abrir OpenTest sin ventana de consola](../features/034-abrir-sin-ventana/spec.md)** — los accesos directos lanzan `OpenTest.exe` oculto vía `OpenTest.vbs`; el panel tiene **Apagar OpenTest** (`POST /api/docente/apagar`); una segunda apertura detecta el servidor por `/api/salud` y solo abre el navegador; el instalador cierra OpenTest al actualizar. `OpenTest.exe` a mano conserva la consola para la 027.
 36. **035 · [Logo de OpenTest](../features/035-logo-opentest/spec.md)** — el cubo con la marca de verificación reemplaza al escudo institucional en la marca y el favicon de la app, a la insignia "OT" del sitio, encabeza el README y es el ícono del instalador y los accesos directos.
 37. **036 · [Presencia casi inmediata](../features/036-presencia-inmediata/spec.md)** — la tablet late cada 2 s (`POST /api/examen/latido`) y avisa al ocultar o cerrar la página (`sendBeacon` a `/api/examen/ausente`); el umbral de silencio baja de 15 a 6 s y la proyección se sincroniza cada 2 s. Salir de la app pinta rojo en ~2 s; perder la red, en ~6–8 s.
+38. **037 · [Sin espera al volver a una pregunta ya vista](../features/037-sin-espera-al-volver/spec.md)** — el tiempo mínimo por pregunta se cobra solo la primera vez que el estudiante despacha cada pantalla; volver atrás a revisar o a cambiar una respuesta deja de costar un minuto. "Despachada" se lee de la fila en `respuestas`, así que no hay columna nueva ni migración. Revisa el criterio del mínimo de la 006.
+39. **038 · [Anular la prueba desde la proyección](../features/038-anular-prueba/spec.md)** — doble clic sobre el cuadro de un estudiante en el tablero de asistencia: confirma con su nombre completo y le anula la prueba. Queda en 0 puntos y 0 %, sin retroalimentación en ningún nivel, con un aviso en su tablet y el cuadro en negro para el aula. Un segundo doble clic lo deshace y el estudiante recupera sus respuestas. Nueva columna `intentos.anulado_en` y motivo `anulada_docente` (migración v6); el export gana la columna `anulado` sin subir de `formato_version: 3`.
 
 > **Revisión de arquitectura (24/08/2026).** El producto pasa a tener tres superficies separadas —portal del estudiante, pantalla de proyección y panel del docente con contraseña—, pueden coexistir varias sesiones abiertas y el temporizador pasa a ser un reloj global de sesión. Eso añade las features 011, 012 y 013, y revisa las specs de 001, 004, 006, 008 y 010. El orden de abajo es el de ejecución; los números son identidad, no secuencia.
 
 ## Siguiente 🔜
 
-Ninguna. El roadmap del encargo original queda completo con la validación física del 14/09/2026; lo que sigue, si el usuario lo decide, sale de `Backlog / ideas`.
+Ninguna. El roadmap del encargo original quedó completo con la validación física del 14/09/2026; lo posterior (028–038) son mejoras pedidas tras usarlo en el aula. Lo que sigue, si el usuario lo decide, sale de `Backlog / ideas`.
 
 ## Pendientes 📋
 

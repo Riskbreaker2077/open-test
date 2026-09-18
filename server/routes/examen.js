@@ -1,5 +1,10 @@
 import { Router } from 'express';
-import { entregado, iniciarOReanudarIntento, intentoPorToken } from '../services/intentos.js';
+import {
+  anulado,
+  entregado,
+  iniciarOReanudarIntento,
+  intentoPorToken,
+} from '../services/intentos.js';
 import { obtenerSesion, sesionesDisponiblesPara } from '../services/sesiones.js';
 import {
   entregarIntento,
@@ -167,6 +172,7 @@ export function estadoDeIntento(db, intento) {
     segundosRestantes: examen.segundosRestantes,
     entregado: entregado(intento),
     entregadoEn: intento.entregado_en,
+    anulado: anulado(intento),
     nPreguntas: sesion.n_preguntas,
     segundosMinimosPregunta: sesion.segundos_minimos_pregunta,
     preguntaActual: examen.preguntaActual,

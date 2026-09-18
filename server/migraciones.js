@@ -19,6 +19,13 @@ function anadirColumna(db, tabla, columna, definicion) {
   if (!existe) db.exec(`ALTER TABLE ${tabla} ADD COLUMN ${columna} ${definicion}`);
 }
 
+/** El `CREATE TABLE` con el que la tabla existe hoy, para saber si ya tiene lo nuevo. */
+function definicionDe(db, tabla) {
+  return db
+    .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?")
+    .get(tabla)?.sql;
+}
+
 const MIGRACIONES = [
   {
     version: 1,
@@ -26,9 +33,7 @@ const MIGRACIONES = [
     aplicar(db) {
       // SQLite no sabe modificar un CHECK, así que para ampliar los estados
       // hay que rehacer la tabla. Es la receta estándar del propio SQLite.
-      const definicion = db
-        .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'sesiones'")
-        .get()?.sql;
+      const definicion = definicionDe(db, 'sesiones');
 
       if (definicion && !definicion.includes("'en_curso'")) {
         db.exec(`
@@ -160,6 +165,55 @@ const MIGRACIONES = [
 
       // Respuesta de matching/cloze: id elegido dentro del banco del grupo.
       anadirColumna(db, 'intento_preguntas', 'respuesta_banco_id', 'TEXT');
+    },
+  },
+  {
+    version: 6,
+    descripcion: 'Anulación de la prueba por el docente',
+    aplicar(db) {
+      anadirColumna(db, 'intentos', 'anulado_en', 'TEXT');
+
+      // `motivo_entrega` gana 'anulada_docente'. Ampliar un CHECK obliga a
+      // rehacer la tabla: SQLite no sabe modificarlo. Es la misma receta que
+      // usó la migración 1 con `sesiones`, y el runner ya deja las claves
+      // foráneas desactivadas y comprueba `foreign_key_check` al terminar.
+      // Los `id` se copian tal cual, así que `intento_preguntas` y
+      // `respuestas` siguen apuntando a los mismos intentos.
+      if (!/anulada_docente/.test(definicionDe(db, 'intentos') ?? '')) {
+        db.exec(`
+          CREATE TABLE intentos_nueva (
+            id                INTEGER PRIMARY KEY AUTOINCREMENT,
+            sesion_id         INTEGER NOT NULL REFERENCES sesiones (id) ON DELETE CASCADE,
+            codigo_estudiante TEXT NOT NULL REFERENCES estudiantes (codigo),
+            semilla           TEXT NOT NULL,
+            token             TEXT NOT NULL UNIQUE,
+            iniciado_en       TEXT NOT NULL,
+            entregado_en      TEXT,
+            motivo_entrega    TEXT CHECK (motivo_entrega IN
+                                ('manual', 'tiempo', 'ultima_pregunta', 'forzada_docente',
+                                 'anulada_docente')),
+            aciertos          INTEGER,
+            puntaje           INTEGER,
+            pregunta_actual   INTEGER NOT NULL DEFAULT 1 CHECK (pregunta_actual > 0),
+            pregunta_mostrada_en TEXT,
+            anulado_en        TEXT,
+            UNIQUE (sesion_id, codigo_estudiante)
+          );
+
+          INSERT INTO intentos_nueva
+            (id, sesion_id, codigo_estudiante, semilla, token, iniciado_en,
+             entregado_en, motivo_entrega, aciertos, puntaje, pregunta_actual,
+             pregunta_mostrada_en, anulado_en)
+          SELECT id, sesion_id, codigo_estudiante, semilla, token, iniciado_en,
+                 entregado_en, motivo_entrega, aciertos, puntaje, pregunta_actual,
+                 pregunta_mostrada_en, anulado_en
+          FROM intentos;
+
+          DROP TABLE intentos;
+          ALTER TABLE intentos_nueva RENAME TO intentos;
+        `);
+        db.exec('CREATE INDEX IF NOT EXISTS idx_intentos_sesion ON intentos (sesion_id)');
+      }
     },
   },
 ];

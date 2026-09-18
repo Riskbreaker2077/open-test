@@ -46,5 +46,6 @@ Y da al aula un reloj común. Sin él, cada estudiante tiene su propio contador 
 ## Fuera de alcance
 
 - ~~Ver quién ha entrado con nombre y apellido~~ — lo agrega la [031](../031-asistencia-en-proyeccion/spec.md). El avance y las notas siguen siendo del panel de monitoreo (feature 008), que no se proyecta.
+- ~~Que la proyección no tenga más controles que Comenzar, Pausar y Finalizar~~ — la [038](../038-anular-prueba/spec.md) añade uno que no ocupa sitio en pantalla: doble clic sobre un cuadro del tablero para anular esa prueba.
 - Personalizar colores, logo del colegio o mensajes.
 - Proyectar varias sesiones a la vez: se proyecta una, la que el docente elija.

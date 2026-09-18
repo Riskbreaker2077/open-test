@@ -28,7 +28,12 @@ import {
 } from '../services/sesiones.js';
 import { svgQr } from '../qr.js';
 import { urlsDeIntranet } from '../red.js';
-import { contarIntentos, forzarEntrega } from '../services/intentos.js';
+import {
+  anularIntento,
+  contarIntentos,
+  forzarEntrega,
+  revertirAnulacion,
+} from '../services/intentos.js';
 import { estadoDeSesion } from '../services/monitoreo.js';
 import { estaConectado } from '../presencia.js';
 import {
@@ -340,6 +345,17 @@ export function rutasDocente(db) {
     responder(res, () => ({ entrega: forzarEntrega(db, Number(req.params.id)) }));
   });
 
+  // Anular y deshacer la anulación (038). Se invocan con doble clic desde el
+  // tablero de la proyección, que es donde el docente está mirando durante el
+  // examen.
+  router.post('/intentos/:id/anular', (req, res) => {
+    responder(res, () => ({ anulacion: anularIntento(db, Number(req.params.id)) }));
+  });
+
+  router.delete('/intentos/:id/anular', (req, res) => {
+    responder(res, () => ({ anulacion: revertirAnulacion(db, Number(req.params.id)) }));
+  });
+
   router.patch('/sesiones/:id/feedback', (req, res) => {
     responder(res, () => ({
       sesion: actualizarNivelFeedback(db, Number(req.params.id), req.body?.nivel_feedback),
@@ -383,13 +399,20 @@ export function rutasDocente(db) {
       // Solo nombre, curso y estado: el monitoreo trae puntajes y avance que no se proyectan.
       const nombresCortos = convocados.length > LIMITE_NOMBRE_COMPLETO;
       const estudiantes = convocados.map((estudiante) => ({
+        // `intentoId` es un identificador interno: viaja para poder anular
+        // sobre el cuadro (038), pero no se pinta. La proyección sigue sin
+        // mostrar códigos ni notas.
+        intentoId: estudiante.intentoId ?? null,
         nombre: nombresCortos
           ? `${primeraPalabra(estudiante.nombres)} ${primeraPalabra(estudiante.apellidos)}`
           : estudiante.nombre,
+        nombreCompleto: estudiante.nombre,
         curso: estudiante.curso,
-        estado: estudiante.estado === 'presentando'
-          ? (estaConectado(estudiante.intentoId) ? 'conectado' : 'desconectado')
-          : estudiante.estado,
+        estado: (() => {
+          if (estudiante.anulado) return 'anulado';
+          if (estudiante.estado !== 'presentando') return estudiante.estado;
+          return estaConectado(estudiante.intentoId) ? 'conectado' : 'desconectado';
+        })(),
       }));
       return {
         proyeccion: {

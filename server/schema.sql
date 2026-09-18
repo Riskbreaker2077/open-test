@@ -141,11 +141,17 @@ CREATE TABLE IF NOT EXISTS intentos (
   iniciado_en       TEXT NOT NULL,
   entregado_en      TEXT,
   motivo_entrega    TEXT CHECK (motivo_entrega IN
-                      ('manual', 'tiempo', 'ultima_pregunta', 'forzada_docente')),
+                      ('manual', 'tiempo', 'ultima_pregunta', 'forzada_docente',
+                       'anulada_docente')),
   aciertos          INTEGER,
   puntaje           INTEGER,
   pregunta_actual   INTEGER NOT NULL DEFAULT 1 CHECK (pregunta_actual > 0),
   pregunta_mostrada_en TEXT,
+  -- Prueba anulada por el docente (038). Es un estado, no una calificación:
+  -- un cero también lo saca quien falla las veinte preguntas, y la sanción
+  -- tiene que poder demostrarse meses después. Anular no borra respuestas,
+  -- que es lo que permite revertir un doble clic accidental.
+  anulado_en        TEXT,
   UNIQUE (sesion_id, codigo_estudiante)
 );
 

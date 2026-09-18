@@ -262,3 +262,89 @@ test('las rutas nuevas exigen la cookie del estudiante', async () => {
     assert.equal(res.status, 401);
   }
 });
+
+// --- 038: anulación desde la proyección ---
+
+test('anular corta el examen, deja 0 y no da retroalimentación en ningún nivel', async () => {
+  const intento = db.prepare('SELECT * FROM intentos').get();
+  // Responde bien las cuatro: sin la anulación sacaría 4 de 4.
+  const filas = db.prepare(`
+    SELECT ip.id, o.id AS correcta_id
+    FROM intento_preguntas ip
+    JOIN opciones o ON o.pregunta_id = ip.pregunta_id AND o.es_correcta = 1
+    WHERE ip.intento_id = ? ORDER BY ip.orden
+  `).all(intento.id);
+  const insertar = db.prepare(`
+    INSERT INTO respuestas (intento_pregunta_id, opcion_id, segundos_en_pantalla, respondido_en)
+    VALUES (?, ?, 5, '2026-09-18T10:00:05Z')
+  `);
+  for (const fila of filas) insertar.run(fila.id, fila.correcta_id);
+
+  const anulacion = await docente(`/api/docente/intentos/${intento.id}/anular`, {});
+  assert.equal(anulacion.ok, true);
+  assert.equal(anulacion.anulacion.nueva, true);
+
+  // La tablet se entera en su siguiente sondeo y ya no puede responder.
+  const estado = await (await examen('/api/examen/estado')).json();
+  assert.equal(estado.estado.anulado, true);
+  assert.equal(estado.estado.entregado, true);
+  const respondiendo = await examen('/api/examen/responder', {
+    method: 'POST', body: JSON.stringify({ n: 1, opcionId: filas[0].correcta_id, segundos: 5 }),
+  });
+  assert.equal(respondiendo.status, 409);
+
+  const cambiar = async (nivel) => fetch(`${base}/api/docente/sesiones/${sesionId}/feedback`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json', cookie: cookieDocente },
+    body: JSON.stringify({ nivel_feedback: nivel }),
+  });
+  await docente(`/api/docente/sesiones/${sesionId}/cerrar`, {});
+
+  for (const nivel of ['solo_puntaje', 'aciertos', 'completo']) {
+    assert.equal((await cambiar(nivel)).status, 200, `nivel ${nivel}`);
+    const respuesta = await examen('/api/examen/resultado');
+    const texto = await respuesta.text();
+    const { resultado } = JSON.parse(texto);
+    assert.equal(resultado.anulado, true, `nivel ${nivel}`);
+    assert.equal(resultado.puntaje, 0, `nivel ${nivel}: pese a tener las cuatro bien`);
+    assert.equal(resultado.porcentaje, 0, `nivel ${nivel}`);
+    assert.ok(!('preguntas' in resultado), `nivel ${nivel}: no hay detalle`);
+    assert.doesNotMatch(texto, /es_correcta|opcionCorrectaId|justificacion/i, `nivel ${nivel}`);
+  }
+});
+
+test('el tablero de proyección muestra el estado anulado y el doble clic se puede deshacer', async () => {
+  const intento = db.prepare('SELECT * FROM intentos').get();
+  const proyeccion = async () => (await (await fetch(`${base}/api/docente/proyeccion/${sesionId}`, {
+    headers: { cookie: cookieDocente },
+  })).json()).proyeccion;
+
+  const antes = await proyeccion();
+  assert.equal(antes.estudiantes[0].intentoId, intento.id);
+  assert.notEqual(antes.estudiantes[0].estado, 'anulado');
+
+  await docente(`/api/docente/intentos/${intento.id}/anular`, {});
+  const tras = await proyeccion();
+  assert.equal(tras.estudiantes[0].estado, 'anulado');
+  assert.equal(tras.estudiantes[0].nombreCompleto, 'Ana Gómez');
+
+  const deshacer = await fetch(`${base}/api/docente/intentos/${intento.id}/anular`, {
+    method: 'DELETE', headers: { cookie: cookieDocente },
+  });
+  assert.equal(deshacer.status, 200);
+  const vuelto = await proyeccion();
+  assert.notEqual(vuelto.estudiantes[0].estado, 'anulado');
+  // Y el estudiante puede seguir presentando donde iba.
+  assert.equal((await examen('/api/examen/pregunta/1')).status, 200);
+});
+
+test('anular exige la contraseña del docente', async () => {
+  const intento = db.prepare('SELECT * FROM intentos').get();
+  for (const metodo of ['POST', 'DELETE']) {
+    const respuesta = await fetch(`${base}/api/docente/intentos/${intento.id}/anular`, {
+      method: metodo, headers: { 'content-type': 'application/json' }, body: metodo === 'POST' ? '{}' : undefined,
+    });
+    assert.equal(respuesta.status, 401);
+  }
+  assert.equal(db.prepare('SELECT anulado_en FROM intentos WHERE id = ?').get(intento.id).anulado_en, null);
+});

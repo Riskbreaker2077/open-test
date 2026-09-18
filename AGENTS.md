@@ -4,7 +4,7 @@
 
 ---
 
-## Dónde estamos (última actualización: 14/09/2026)
+## Dónde estamos (última actualización: 18/09/2026)
 
 **Las veintisiete features están implementadas y 426 tests están en verde.** El flujo completo existe desde la importación hasta la descarga de resultados; la 014 aplica la línea gráfica institucional, la 015 permite cargar preguntas e imágenes en un solo ZIP, la 016 hace que ese banco siga el estándar externo y abierto **preguntas-icfes** (github.com/riskbreaker2077/preguntas-icfes): metadata pedagógica por pregunta, contenido en bloques (texto/imagen/tabla) y justificación por cada opción; la 017 hace que el sorteo de cada prueba reparta las preguntas entre las competencias del banco en proporción a su tamaño, en vez de puramente al azar; la 018 agrega una cuarta descarga al panel de resultados, un `.xlsx` de dos hojas (Resumen/Detalle) con cabecera en negrita/congelada y columnas ajustadas, generado con un escritor de ZIP y de SpreadsheetML propios (sin dependencias nuevas); la 019 agrega una pantalla de estadísticas por pregunta y por competencia (`/docente/estadisticas.html`), con alcance por una sesión cerrada concreta o acumulado por banco entre todas sus sesiones cerradas; la 020 agrega creación y edición manual de estudiantes desde la pantalla del docente (modal `<dialog>` con la misma validación del importador, sin pasar por CSV/JSON); la 021 quita el botón "Terminar la prueba" del examen del estudiante y endurece el servidor para rechazar entregas con preguntas pendientes (los motivos del sistema —`tiempo`, `forzada_docente`— siguen cerrando aunque haya pendientes); la 022 permite al docente borrar una evaluación cerrada **después** de haber descargado sus resultados al menos una vez, vía una nueva columna `sesiones.descargado_en` (migración v4) que se escribe desde el handler de exportación y se exige en `borrarSesion`; y la 023 hace que `urlsDeIntranet` agregue candidatas por `os.hostname()` (`http://<equipo>:3000` y `http://<equipo>.local:3000`), para que el QR use el nombre del portátil y deje de quedar mintiendo cuando el equipo cambia de subred; y... (line truncated to 2000 chars)
 
@@ -26,15 +26,17 @@
 
 **La 036 está implementada (15/09/2026).** El rojo del tablero llegaba tarde (hasta ~25 s). Ahora la tablet late cada 2 s solo con la página visible (`POST /api/examen/latido`, sin consultar la base), avisa con `sendBeacon` a `/api/examen/ausente` al ocultarse o cerrarse, `UMBRAL_MS` baja a 6 s y la proyección sincroniza cada 2 s. Costo aceptado: un corte de wifi de 6 s o más da un rojo falso breve.
 
+**La 037 y la 038 están implementadas (18/09/2026), pedidas tras usar la 1.2.1 en el aula.** La 037 deja de cobrar el tiempo mínimo por pregunta cuando el estudiante **vuelve** a una pantalla que ya despachó (respondió o saltó): con el mínimo en 60 s y la 021 obligando a responderlo todo, revisar costaba un minuto por pregunta y la gente dejaba de revisar. "Despachada" se lee de la existencia de la fila en `respuestas`, así que no hubo columna nueva ni migración, y el cliente no se tocó porque ya obedece al `segundosParaAvanzar` del servidor. La 038 permite **anular la prueba de un estudiante con doble clic sobre su cuadro** en el tablero de asistencia de la proyección: confirma con el nombre completo, la prueba termina en el acto, queda en 0 puntos y 0 % sin retroalimentación en ninguno de los tres niveles, el estudiante ve un aviso de anulación y el cuadro se pinta negro con ⊘ para toda la clase. Un segundo doble clic lo deshace: anular no borra respuestas, así que revertir devuelve la nota exacta (la calificación es función pura de las respuestas). Añade `intentos.anulado_en` y el motivo `anulada_docente` con la **migración v6**, que rehace la tabla `intentos` para ampliar su CHECK; el export gana la columna `anulado` al final del Resumen sin subir de `formato_version: 3`. 467 tests en verde, lint de 95 archivos limpio.
+
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · 035 · **036** | — | — (roadmap del encargo original completo; ver `roadmap.md → Backlog / ideas`) |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · 035 · 036 · 037 · **038** | — | — (roadmap del encargo original completo; ver `roadmap.md → Backlog / ideas`) |
 
 ### Para retomar, en este orden
 
 1. Lee `RESTART.md`: contiene el estado operativo de la última sesión.
 2. Lee `spec/constitution/roadmap.md`: el encargo original está completo; lo que sigue sale de `Backlog / ideas` si se decide continuar.
-3. `npm install && npm test` — deben pasar los 446.
+3. `npm install && npm test` — deben pasar los 467.
 4. `npm start` y entra a `http://localhost:3000/` para ver el portal del estudiante, y a `/docente/` para el panel.
 
 ## Protocolo de restart entre sesiones

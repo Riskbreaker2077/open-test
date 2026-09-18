@@ -107,15 +107,46 @@ const ESTADOS_ASISTENCIA = {
   conectado: 'conectado',
   desconectado: 'salió',
   entregado: 'entregó',
+  anulado: 'prueba anulada',
 };
+
+const MARCAS = { entregado: '✓ ', anulado: '⊘ ' };
+
+/**
+ * Anula o revierte la prueba del estudiante del cuadro (038). Va por doble
+ * clic y no por un botón: un botón por cuadro llenaría de controles una
+ * pantalla pensada para leerse desde el fondo del aula.
+ */
+async function alternarAnulacion(estudiante) {
+  if (!estudiante.intentoId) {
+    mostrarError(`${estudiante.nombreCompleto} todavía no ha entrado: no hay prueba que anular.`);
+    return;
+  }
+  const anulada = estudiante.estado === 'anulado';
+  const pregunta = anulada
+    ? `¿Devolverle la prueba a ${estudiante.nombreCompleto}? Recupera sus respuestas y sigue presentando.`
+    : `¿Anular la prueba de ${estudiante.nombreCompleto}? Su nota queda en cero y no verá retroalimentación.`;
+  if (!window.confirm(pregunta)) return;
+
+  try {
+    await api(`/api/docente/intentos/${estudiante.intentoId}/anular`, {
+      method: anulada ? 'DELETE' : 'POST',
+    });
+    elementos.error.hidden = true;
+    await sincronizar();
+  } catch (err) {
+    mostrarError(err.message);
+  }
+}
 
 function cuadroEstudiante(estudiante, conCurso) {
   const cuadro = document.createElement('li');
   cuadro.className = `cuadro cuadro--${estudiante.estado}`;
   cuadro.title = `${estudiante.nombre}: ${ESTADOS_ASISTENCIA[estudiante.estado] ?? estudiante.estado}`;
+  cuadro.addEventListener('dblclick', () => alternarAnulacion(estudiante));
   const nombre = document.createElement('span');
   nombre.className = 'cuadro-nombre';
-  nombre.textContent = `${estudiante.estado === 'entregado' ? '✓ ' : ''}${estudiante.nombre}`;
+  nombre.textContent = `${MARCAS[estudiante.estado] ?? ''}${estudiante.nombre}`;
   cuadro.append(nombre);
   if (conCurso) {
     const curso = document.createElement('span');

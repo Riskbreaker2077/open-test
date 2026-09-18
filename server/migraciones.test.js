@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -265,6 +265,84 @@ test('la migración v5 crea la tabla grupos y añade las columnas de la 026', ()
     const columnasIntento = new Set(db.pragma('table_info(intento_preguntas)').map((c) => c.name));
     assert.ok(columnasIntento.has('respuesta_banco_id'));
 
+    cerrarBd(db);
+  } finally {
+    limpiar();
+  }
+});
+
+/**
+ * Una base de la versión 5: el esquema de hoy pero con `intentos` como estaba
+ * antes de la 038 (sin `anulado_en` y sin 'anulada_docente' en el CHECK).
+ * Es la base que tiene el docente que ya aplicó un examen.
+ */
+function baseVersion5(ruta) {
+  const esquema = readFileSync(new URL('./schema.sql', import.meta.url), 'utf8')
+    .replace(
+      /motivo_entrega    TEXT CHECK \(motivo_entrega IN\n[^)]*\)\),/,
+      "motivo_entrega    TEXT CHECK (motivo_entrega IN\n"
+      + "                      ('manual', 'tiempo', 'ultima_pregunta', 'forzada_docente')),",
+    )
+    .replace(/\n  anulado_en        TEXT,/, '');
+  assert.doesNotMatch(esquema, /anulada_docente|anulado_en/, 'la base de partida no tiene lo nuevo');
+
+  const db = new Database(ruta);
+  db.exec(esquema);
+  db.prepare("INSERT INTO config VALUES ('esquema_version', '5')").run();
+  db.prepare('INSERT INTO estudiantes VALUES (?, ?, ?, ?)').run('2024001', 'Ana', 'Gómez', '10A');
+  db.prepare("INSERT INTO bancos (nombre, creado_en) VALUES ('Ciencias', '2026-01-01')").run();
+  db.prepare("INSERT INTO preguntas (banco_id, enunciado) VALUES (1, '¿Cuánto es 2+2?')").run();
+  db.prepare(
+    "INSERT INTO opciones (pregunta_id, texto, es_correcta) VALUES (1, '4', 1), (1, '5', 0), (1, '6', 0), (1, '7', 0)",
+  ).run();
+  db.prepare(`
+    INSERT INTO sesiones (nombre, banco_id, cursos, estado, creado_en)
+    VALUES ('Parcial', 1, '10A', 'cerrada', '2026-01-01')
+  `).run();
+  db.prepare(`
+    INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en,
+                          entregado_en, motivo_entrega, aciertos, puntaje, pregunta_actual)
+    VALUES (1, '2024001', 'semilla-1', 'tok-1', '2026-01-01T08:00:00', '2026-01-01T08:40:00',
+            'manual', 1, 1, 1)
+  `).run();
+  db.prepare(`
+    INSERT INTO intento_preguntas (intento_id, orden, pregunta_id, orden_opciones)
+    VALUES (1, 1, 1, '1,2,3,4')
+  `).run();
+  db.prepare(`
+    INSERT INTO respuestas (intento_pregunta_id, opcion_id, segundos_en_pantalla, respondido_en)
+    VALUES (1, 1, 42, '2026-01-01T08:05:00')
+  `).run();
+  db.close();
+}
+
+test('la migración v6 rehace intentos sin perder el examen ya aplicado', () => {
+  const { ruta, limpiar } = carpetaTemporal();
+  try {
+    baseVersion5(ruta);
+    const db = abrirBd(ruta);
+
+    assert.equal(versionDe(db), ULTIMA_VERSION);
+    const intento = db.prepare('SELECT * FROM intentos').get();
+    assert.equal(intento.id, 1, 'el id se conserva: de él cuelgan preguntas y respuestas');
+    assert.equal(intento.semilla, 'semilla-1', 'la semilla es la prueba que le tocó: no puede cambiar');
+    assert.equal(intento.motivo_entrega, 'manual');
+    assert.equal(intento.puntaje, 1);
+    assert.equal(intento.anulado_en, null, 'nadie queda anulado por migrar');
+
+    // Las filas hijas siguen colgando del mismo intento.
+    assert.equal(db.prepare('SELECT count(*) AS t FROM intento_preguntas WHERE intento_id = 1').get().t, 1);
+    assert.equal(db.prepare('SELECT segundos_en_pantalla FROM respuestas').get().segundos_en_pantalla, 42);
+    assert.equal(db.pragma('foreign_key_check').length, 0);
+
+    // Y el motivo nuevo ya se acepta.
+    assert.doesNotThrow(
+      () => db.prepare("UPDATE intentos SET motivo_entrega = 'anulada_docente' WHERE id = 1").run(),
+    );
+    assert.throws(
+      () => db.prepare("UPDATE intentos SET motivo_entrega = 'inventado' WHERE id = 1").run(),
+      /CHECK/,
+    );
     cerrarBd(db);
   } finally {
     limpiar();

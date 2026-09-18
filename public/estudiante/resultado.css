@@ -6,6 +6,23 @@
   letter-spacing: 0.04em;
 }
 
+/* Aviso de anulación (038): tiene que leerse antes que el puntaje. */
+.resultado__anulada {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--error);
+  border-radius: 0.5rem;
+  background: var(--acento-suave);
+  color: var(--error);
+  font-weight: 700;
+}
+
+/* `:not([hidden])` es obligatorio: el aviso vive siempre en el DOM y sin eso
+   el puntaje saldría en rojo también en una prueba normal. */
+.resultado__anulada:not([hidden]) ~ .resultado__puntaje {
+  color: var(--error);
+}
+
 .resultado__puntaje {
   margin: 0.25rem 0 0;
   color: var(--azul-900);

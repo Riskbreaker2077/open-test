@@ -12,7 +12,11 @@
 <body class="superficie-estudiante">
   <main class="resultado contenedor" id="contenido" hidden>
     <section class="tarjeta tarjeta--centrada resultado__resumen">
-      <p class="resultado__fin">Prueba terminada</p>
+      <p class="resultado__fin" id="fin">Prueba terminada</p>
+      <p class="resultado__anulada" id="aviso-anulada" role="alert" hidden>
+        Tu prueba fue anulada por tu docente. No hay retroalimentación y tu puntaje es cero.
+        Habla con tu docente si tienes dudas.
+      </p>
       <h1 id="titulo">Tu resultado</h1>
       <p class="resultado__puntaje" id="puntaje"></p>
       <p id="porcentaje"></p>

@@ -9,7 +9,7 @@ import {
   preguntaMiembroBancoOpciones,
 } from '../fixtures-preguntas.js';
 import { guardarEstudiantes } from '../services/estudiantes.js';
-import { iniciarOReanudarIntento } from '../services/intentos.js';
+import { anularIntento, iniciarOReanudarIntento } from '../services/intentos.js';
 import { abrirSesion, cerrarSesion, crearSesion, obtenerSesion } from '../services/sesiones.js';
 import {
   aExcelRico,
@@ -240,4 +240,41 @@ test('la hoja Detalle gana las columnas nuevas del contrato v3', () => {
   for (const cabecera of ['grupo_id', 'tipo_item', 'valor', 'nivel_mcer', 'grado', 'prueba', 'version_estandar']) {
     assert.ok(CABECERAS_BANCO.includes(cabecera), `falta ${cabecera} en Banco`);
   }
+});
+
+test('la exportación marca al anulado en cero y con la columna anulado (038)', () => {
+  const { db, sesionId, intentos } = preparar();
+  // El anulado tenía todas las respuestas correctas antes de que lo anularan.
+  const suyas = db.prepare(`
+    SELECT ip.id, (SELECT id FROM opciones WHERE pregunta_id = ip.pregunta_id AND es_correcta = 1) AS correcta
+    FROM intento_preguntas ip WHERE ip.intento_id = ?
+  `).all(intentos[0].id);
+  const insertar = db.prepare(`
+    INSERT INTO respuestas (intento_pregunta_id, opcion_id, segundos_en_pantalla, respondido_en)
+    VALUES (?, ?, 9, '2026-09-18T10:00:09Z')
+  `);
+  for (const fila of suyas) insertar.run(fila.id, fila.correcta);
+
+  anularIntento(db, intentos[0].id, new Date('2026-09-18T10:30:00.000Z'));
+  cerrarSesion(db, sesionId);
+
+  assert.equal(CABECERAS_RESUMEN.at(-1), 'anulado', 'la columna va al final: cambio compatible con v3');
+  const exportacion = armarExportacion(db, sesionId);
+  const filas = filasResumen(exportacion);
+  const anulada = filas.find((fila) => fila.codigo === intentos[0].codigo_estudiante);
+  assert.equal(anulada.anulado, 'SÍ');
+  assert.equal(anulada.puntaje, 0, 'pese a tenerlas todas bien');
+  assert.equal(anulada.aciertos, 0);
+  assert.equal(anulada.porcentaje, '0.0');
+  assert.equal(anulada.motivo_entrega, 'anulada_docente');
+  assert.equal(filas.find((fila) => fila.codigo !== intentos[0].codigo_estudiante).anulado, 'no');
+
+  const json = JSON.parse(aJson(exportacion));
+  assert.equal(json.formato_version, 3, 'añadir campos no sube la versión del contrato');
+  const enJson = json.intentos.find((intento) => intento.codigo === intentos[0].codigo_estudiante);
+  assert.equal(enJson.anulado, true);
+  assert.equal(enJson.anulado_en, '2026-09-18T10:30:00.000Z');
+  // Las respuestas siguen exportándose: son la evidencia de lo que hizo.
+  assert.equal(enJson.preguntas.filter((pregunta) => !pregunta.saltada).length, suyas.length);
+  cerrarBd(db);
 });

@@ -590,3 +590,23 @@ Tras usar la 1.1.1, el docente pidió varios ajustes de una vez; se agruparon en
 El docente conectó un estudiante, cortó el internet de la tablet y el cuadro tardó mucho en ponerse rojo. Las tres demoras se sumaban: sondeo de 5 s, umbral de 15 s y proyección cada 5 s, hasta ~25 s en el peor caso.
 
 Se separó un **latido** ligero (`/api/examen/latido`, cada 2 s, solo con la página visible) del sondeo de estado, que calcula tiempo y avance y no conviene hacer cada 2 s. Salir de la prueba sin perder la red (cerrar, cambiar de app, bloquear) se avisa al instante con `sendBeacon` a `/api/examen/ausente`, así que ahí el rojo solo espera a la proyección (~2 s). Perder la red no puede avisarse: se baja el umbral a 6 s, tres latidos perdidos. Se le explicó al docente el costo: con un wifi que parpadea 6 s o más aparecen rojos falsos breves, que vuelven a verde solos.
+
+## 18/09/2026 — 037 y 038: revisar sin castigo y anular desde el proyector
+
+Dos mejoras pedidas tras aplicar evaluaciones con la 1.2.1. Antes de empezar, la copia local del repo estaba 37 commits atrás (iba por la 005) y se puso al día: conviene comprobarlo al abrir sesión, porque las specs que se leen desde una copia vieja describen un producto que ya no existe.
+
+**037 · el tiempo mínimo dejó de cobrarse dos veces.** El mínimo por pregunta (60 s desde la 031) se reiniciaba cada vez que el estudiante abría una pregunta, incluso una que ya había contestado. Sumado a la 021 —que quitó "Terminar la prueba" y obliga a responderlo todo—, volver atrás a completar lo saltado costaba un minuto por pregunta, así que en la práctica nadie revisaba: el mecanismo terminaba castigando justo la conducta que se quiere fomentar.
+
+La corrección es de servidor y no necesitó ni columna ni migración: la fila en `respuestas` ya significa "la vio y decidió", porque se escribe tanto al responder como al saltar. Con eso, `obtenerPregunta` manda `segundosParaAvanzar = 0` en las pantallas ya despachadas y `guardarRespuesta` se salta la comprobación. El cliente no se tocó, porque ya obedecía al valor del servidor. Se descartó un mínimo corto (3 s) para las revisitas: no hay abuso que prevenir, ya que para volver hay que haber pagado antes el mínimo completo de esa misma pregunta, y era una regla más que explicar a cambio de nada. En las pantallas de grupo se conserva la decisión de la 026: mientras quede un miembro sin responder, el mínimo vuelve a correr.
+
+**038 · anular una prueba con doble clic.** El docente que pilla a alguien copiando no tenía nada que hacer dentro de OpenTest: forzar la entrega lo calificaba normalmente y la sanción había que aplicarla después, a mano y sin constancia. Ahora el doble clic sobre el cuadro del tablero de la proyección (031) anula, previa confirmación con el nombre completo.
+
+Tres decisiones que vale la pena recordar:
+
+- **Anular es un estado, no una nota.** Vive en `intentos.anulado_en`, no en un puntaje cero, porque un cero también lo saca quien falla las veinte preguntas y la sanción tiene que poder demostrarse meses después cuando se reclame.
+- **No se borra ni una respuesta.** Eso es lo que hace reversible un doble clic accidental delante del curso, y lo que conserva la evidencia. Como la calificación es función pura de las respuestas, revertir devuelve la nota exacta: a quien fue anulado presentando se le devuelve el examen vivo; a quien ya había entregado se le recalcula y se le restituye su entrega original.
+- **El filtro de la retroalimentación va en `armarResultado`**, el punto único por el que sale todo hacia la tablet. Hacerlo en el cliente dejaría las respuestas correctas viajando en la respuesta HTTP de alguien a quien se acaba de sancionar por copiar. Hay un test por cada uno de los tres niveles de feedback.
+
+Sobre la nota: el usuario pidió "que su nota sea 1", que es el mínimo de la escala colombiana. OpenTest no tiene escala 1–5 en ninguna parte —guarda puntaje y porcentaje—, así que se representa como 0 puntos y 0 %, más una marca `anulado` explícita en el Excel y en el JSON. Se descartó añadir una columna `nota` 1–5 para todos: obligaría a fijar la fórmula de conversión (¿lineal?, ¿el 3.0 en qué porcentaje?), que es una decisión institucional y no técnica.
+
+El paso delicado fue la **migración v6**: ampliar el CHECK de `motivo_entrega` obliga a rehacer la tabla `intentos`, de la que cuelgan `intento_preguntas` y `respuestas`. Se siguió la receta de la migración 1 (crear, copiar, borrar, renombrar) conservando los `id`, con las claves foráneas desactivadas por el runner y `foreign_key_check` al terminar. Hay una prueba que parte de una base v5 con un examen ya aplicado y comprueba que la semilla, la nota, las preguntas materializadas y los segundos por respuesta siguen ahí.
