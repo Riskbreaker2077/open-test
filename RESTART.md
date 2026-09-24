@@ -2,7 +2,7 @@
 
 ## Última actualización y rama activa
 
-- 23/09/2026 — `main`, integrado sobre `origin/main` (1.3.0) y empujado. Sin versión nueva ni tag: 039 y 040 quedan para la próxima versión que se publique.
+- 23/09/2026 — `main`, integrado sobre `origin/main` y publicado como **1.4.0** (tag `v1.4.0`: el workflow compila y publica `OpenTest-Setup.exe`).
 
 ## Feature/tarea en curso
 
@@ -25,7 +25,7 @@
 
 ## Siguiente tarea
 
-1. Decidir con el usuario si se publica una 1.3.1/1.4.0 con 039 y 040 (subir versión en `package.json`, tag y push para que el workflow compile el instalador).
+1. Comprobar que el workflow de la 1.4.0 terminó y el instalador quedó en Releases y en `instalador/`.
 2. En tablet real: confirmar que ya no se ven dos opciones marcadas (039); recorrer puntos y pergamino con imágenes, tablas y un grupo de emparejamiento, y una prueba anulada (040).
 
 ## Bloqueos / decisiones pendientes
