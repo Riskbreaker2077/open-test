@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
-    "test": "node --test \"server/**/*.test.js\"",
+    "test": "node --test \"server/**/*.test.js\" \"public/**/*.test.js\"",
     "lint": "node scripts/lint.js",
     "build:exe": "node scripts/build-exe.js",
     "build:installer": "node scripts/build-installer.js"

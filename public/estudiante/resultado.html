@@ -11,19 +11,42 @@
 </head>
 <body class="superficie-estudiante">
   <main class="resultado contenedor" id="contenido" hidden>
-    <section class="tarjeta tarjeta--centrada resultado__resumen">
-      <p class="resultado__fin" id="fin">Prueba terminada</p>
-      <p class="resultado__anulada" id="aviso-anulada" role="alert" hidden>
-        Tu prueba fue anulada por tu docente. No hay retroalimentación y tu puntaje es cero.
-        Habla con tu docente si tienes dudas.
-      </p>
-      <h1 id="titulo">Tu resultado</h1>
-      <p class="resultado__puntaje" id="puntaje"></p>
-      <p id="porcentaje"></p>
-      <p class="resultado__salida">Tu respuesta quedó guardada. Ya puedes levantarte.</p>
-      <button class="boton" id="volver-inicio" type="button">Volver al inicio</button>
-    </section>
-    <section id="detalle" aria-label="Detalle de respuestas"></section>
+    <div id="vista-resumen">
+      <section class="tarjeta tarjeta--centrada resultado__resumen" id="resumen">
+        <p class="resultado__fin" id="fin">Prueba terminada</p>
+        <p class="resultado__anulada" id="aviso-anulada" role="alert" hidden>
+          Tu prueba fue anulada por tu docente. No hay retroalimentación y tu puntaje es cero.
+          Habla con tu docente si tienes dudas.
+        </p>
+        <h1 id="titulo">Tu resultado</h1>
+        <p class="resultado__perfecto" id="perfecto" hidden></p>
+        <div class="puntaje-marco" id="puntaje-marco">
+          <div class="celebracion" id="celebracion" aria-hidden="true"></div>
+          <p class="resultado__puntaje" id="puntaje"></p>
+        </div>
+        <p id="porcentaje"></p>
+        <p class="resultado__salida">Tu respuesta quedó guardada. Ya puedes levantarte.</p>
+        <button class="boton" id="volver-inicio" type="button">Volver al inicio</button>
+      </section>
+      <section class="tarjeta resultado__mapa" id="mapa" hidden>
+        <h2>Tus respuestas</h2>
+        <p class="resultado__ayuda">Toca un número para ver esa pregunta.</p>
+        <nav class="puntos" id="puntos" aria-label="Preguntas de la prueba"></nav>
+        <ul class="leyenda" id="leyenda">
+          <li><span class="leyenda__muestra punto--verde"></span> Correcta</li>
+          <li><span class="leyenda__muestra punto--rojo"></span> Incorrecta</li>
+          <li><span class="leyenda__muestra punto--gris"></span> Sin responder</li>
+        </ul>
+      </section>
+    </div>
+    <div class="vista-pergamino" id="vista-pergamino" hidden>
+      <button type="button" class="boton pergamino__volver" id="volver-resumen">← Volver a mis resultados</button>
+      <article class="pergamino" id="pergamino" aria-live="polite"></article>
+      <nav class="pergamino__navegacion" aria-label="Otras preguntas">
+        <button type="button" class="boton boton--secundario" id="pergamino-anterior">← Anterior</button>
+        <button type="button" class="boton boton--secundario" id="pergamino-siguiente">Siguiente →</button>
+      </nav>
+    </div>
   </main>
   <main class="tarjeta tarjeta--centrada" id="espera">
     <h1>Consultando tu resultado…</h1>

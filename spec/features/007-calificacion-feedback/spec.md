@@ -12,6 +12,8 @@ Cuánto ve depende de lo que el docente configuró al crear la sesión:
 - **`aciertos`** (por defecto) — además, qué preguntas acertó y cuáles no, sin revelar cuál era la correcta.
 - **`completo`** — además, la respuesta correcta de cada pregunta y su explicación.
 
+> Desde la 040, en `aciertos` y `completo` las preguntas se presentan como una rejilla de puntos de colores y cada una se abre en una pantalla aparte. Lo que se revela por nivel no cambia. Ver [`040-resultado-con-puntos`](../040-resultado-con-puntos/spec.md).
+
 ## Por qué
 
 Es una regla de negocio explícita del encargo: el estudiante recibe su resultado con retroalimentación al terminar. Devolverle la nota en el momento es también lo que hace que la evaluación enseñe algo, en lugar de ser un trámite que se comenta dos semanas después.

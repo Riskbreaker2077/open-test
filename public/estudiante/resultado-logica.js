@@ -1,4 +1,4 @@
-// Lógica pura de la pantalla de resultado (031). Sin DOM, para poder
+// Lógica pura de la pantalla de resultado (040). Sin DOM, para poder
 // probarla con node:test.
 
 export const ETIQUETAS = {
@@ -8,9 +8,9 @@ export const ETIQUETAS = {
   sin_llegar: 'No alcanzaste a verla',
 };
 
-/** Todas acertadas. `aciertos` y `total` vienen en todos los niveles. */
+/** Todas acertadas. `aciertos` y `total` vienen en todos los niveles. Una prueba anulada (038) nunca celebra. */
 export function esPerfecto(resultado) {
-  return Number(resultado?.total) > 0 && resultado.aciertos === resultado.total;
+  return Number(resultado?.total) > 0 && !resultado.anulado && resultado.aciertos === resultado.total;
 }
 
 /** Verde, rojo o gris: saltada y sin llegar comparten el gris. */
@@ -34,7 +34,7 @@ export function ordenDesdeHash(hash, ordenes) {
   return ordenes.includes(orden) ? orden : null;
 }
 
-// Mensajes de la celebración del puntaje perfecto (031).
+// Mensajes de la celebración del puntaje perfecto (040).
 export const MENSAJES_PERFECTO = [
   'Excellent!',
   'Felicitaciones',

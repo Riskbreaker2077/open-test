@@ -10,6 +10,7 @@ test('esPerfecto solo con todas acertadas y al menos una pregunta', () => {
   assert.equal(esPerfecto({ aciertos: 19, total: 20 }), false);
   assert.equal(esPerfecto({ aciertos: 0, total: 0 }), false);
   assert.equal(esPerfecto(undefined), false);
+  assert.equal(esPerfecto({ aciertos: 20, total: 20, anulado: true }), false, 'una prueba anulada no celebra');
 });
 
 test('colorDePunto: verde, rojo y gris para saltada o sin llegar', () => {

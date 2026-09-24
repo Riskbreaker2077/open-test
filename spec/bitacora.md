@@ -610,3 +610,29 @@ Tres decisiones que vale la pena recordar:
 Sobre la nota: el usuario pidió "que su nota sea 1", que es el mínimo de la escala colombiana. OpenTest no tiene escala 1–5 en ninguna parte —guarda puntaje y porcentaje—, así que se representa como 0 puntos y 0 %, más una marca `anulado` explícita en el Excel y en el JSON. Se descartó añadir una columna `nota` 1–5 para todos: obligaría a fijar la fórmula de conversión (¿lineal?, ¿el 3.0 en qué porcentaje?), que es una decisión institucional y no técnica.
 
 El paso delicado fue la **migración v6**: ampliar el CHECK de `motivo_entrega` obliga a rehacer la tabla `intentos`, de la que cuelgan `intento_preguntas` y `respuestas`. Se siguió la receta de la migración 1 (crear, copiar, borrar, renombrar) conservando los `id`, con las claves foráneas desactivadas por el runner y `foreign_key_check` al terminar. Hay una prueba que parte de una base v5 con un examen ya aplicado y comprueba que la semilla, la nota, las preguntas materializadas y los segundos por respuesta siguen ahí.
+
+## 23/09/2026 — 039 y 040: una sola opción marcada y el resultado con puntos
+
+La sesión empezó sobre una copia local vieja (antes de la 030 remota) y se
+trabajó ahí completa: dos bugs y el rediseño del resultado. Al empujar, el
+remoto traía 18 commits (030–038). Se integró con permiso del usuario, en vez
+de forzar:
+
+- **Espera al volver:** ya estaba resuelta por la 037 con la misma regla (una
+  pantalla con fila en `respuestas` no vuelve a cobrar el mínimo). El arreglo
+  local se descartó entero; sus tests no añadían nada que la 037 no cubriera.
+- **Doble selección → 039.** No estaba en los datos: `:hover`,
+  `:focus-visible` y `.opcion--elegida` compartían la misma regla CSS, y en
+  tablets el hover se queda pegado donde fue el último toque o arrastre. Hover
+  solo con ratón y distinto; la elegida lleva ✓.
+- **Resultado con puntos → 040.** Rejilla verde/rojo/gris; cada punto abre la
+  pregunta en una pantalla "con diseño de pergamino medieval" (idea del
+  usuario) navegable por `#pregunta-N`, para que el atrás de la tablet y
+  "Volver" coincidan. Puntaje perfecto: dorado animado, puntos dorados y un
+  mensaje al azar de una lista del usuario, fijo por estudiante mediante un
+  hash FNV-1a de `estudiante|sesion|entregadoEn` (sin columna ni migración).
+  Se descartó una capitular porque en español el enunciado suele empezar por
+  "¿". La pantalla se fusionó con la de la 038; una prueba anulada no celebra.
+
+Las capturas con `--virtual-time-budget` congelaban la animación a mitad; se
+usó Chrome por DevTools en tiempo real, que además permitió probar los clics.

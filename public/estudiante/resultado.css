@@ -19,7 +19,7 @@
 
 /* `:not([hidden])` es obligatorio: el aviso vive siempre en el DOM y sin eso
    el puntaje saldría en rojo también en una prueba normal. */
-.resultado__anulada:not([hidden]) ~ .resultado__puntaje {
+.resultado__anulada:not([hidden]) ~ .puntaje-marco .resultado__puntaje {
   color: var(--error);
 }
 
@@ -32,15 +32,370 @@
 }
 
 .resultado__salida { margin-top: 1.5rem; font-weight: 600; }
-.resultado__pregunta { margin-bottom: 1.25rem; }
-.resultado__estado {
-  display: inline-block;
-  margin-bottom: 0.75rem;
-  padding: 0.25rem 0.65rem;
-  border-radius: 999px;
-  font-weight: 700;
+
+/* ---- 040 · Rejilla de puntos ------------------------------------------- */
+
+.resultado__mapa { margin-bottom: 1.25rem; }
+.resultado__mapa h2 { margin-bottom: 0.25rem; }
+.resultado__ayuda { margin-bottom: 1rem; color: var(--tinta-suave); }
+
+.puntos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3.1rem, 1fr));
+  gap: 0.7rem;
+  justify-items: center;
 }
-.resultado__estado--acertada { color: var(--exito); background: var(--verde-100); }
-.resultado__estado--fallada { color: var(--error); background: var(--rojo-100); }
-.resultado__estado--saltada,
-.resultado__estado--sin_llegar { color: var(--tinta-suave); background: var(--azul-100); }
+
+.punto {
+  position: relative;
+  display: inline-flex;
+  width: 3.1rem;
+  height: 3.1rem;
+  min-width: var(--toque);
+  min-height: var(--toque);
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  box-shadow: 0 3px 8px rgb(15 42 57 / 16%);
+  animation: punto-aparece 420ms cubic-bezier(0.2, 1.5, 0.4, 1) both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+  transition: transform 120ms ease;
+}
+
+.punto:active { transform: scale(0.92); }
+
+.punto--verde { color: #fff; background: var(--verde-700); }
+.punto--rojo { color: #fff; background: var(--rojo-600); }
+.punto--gris { color: var(--tinta-suave); border: 2px dashed #9aabb4; background: var(--azul-100); box-shadow: none; }
+
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--tinta-suave);
+  font-size: 0.9rem;
+}
+
+.leyenda li { display: inline-flex; align-items: center; gap: 0.45rem; }
+.leyenda__muestra { display: inline-block; width: 1rem; height: 1rem; border-radius: 50%; }
+
+@keyframes punto-aparece {
+  from { opacity: 0; transform: scale(0.3); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Puntaje perfecto: todos dorados y brillando en cascada. */
+.puntos--dorados .punto {
+  color: #4a2f00;
+  border-color: #a8740f;
+  background: radial-gradient(circle at 32% 28%, #fffbe0 0%, #ffe07a 28%, #e8a912 62%, #9c6608 100%);
+  text-shadow: 0 1px 0 rgb(255 250 220 / 70%);
+  animation:
+    punto-aparece 520ms cubic-bezier(0.2, 1.5, 0.4, 1) both calc(var(--i, 0) * 60ms),
+    punto-resplandor 2.6s ease-in-out infinite calc(600ms + var(--i, 0) * 110ms);
+}
+
+.puntos--dorados .punto::after {
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / 85%) 50%, transparent 62%);
+  transform: translateX(-120%);
+  animation: punto-destello 3.2s ease-in-out infinite calc(900ms + var(--i, 0) * 110ms);
+  content: "";
+}
+
+@keyframes punto-resplandor {
+  0%, 100% { box-shadow: 0 0 6px 1px rgb(255 196 40 / 55%); }
+  50% { box-shadow: 0 0 18px 6px rgb(255 206 60 / 90%); }
+}
+
+@keyframes punto-destello {
+  0%, 55% { transform: translateX(-120%); }
+  80%, 100% { transform: translateX(120%); }
+}
+
+/* ---- 040 · Celebración del puntaje perfecto ------------------------------ */
+
+.resultado__resumen { position: relative; isolation: isolate; overflow: hidden; }
+
+.resultado__resumen--perfecto {
+  border: 2px solid #e2b33c;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgb(255 226 140 / 55%), transparent 60%),
+    linear-gradient(180deg, #fffdf4, #fff6dc);
+  box-shadow: 0 0 0 5px rgb(226 179 60 / 18%), 0 0 48px rgb(226 179 60 / 45%);
+}
+
+.resultado__perfecto {
+  margin: 0.25rem 0 0;
+  color: #9c6608;
+  font-size: clamp(1.35rem, 5vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  overflow-wrap: anywhere;
+  animation: perfecto-entra 900ms cubic-bezier(0.2, 1.4, 0.4, 1) both 1100ms;
+}
+
+.puntaje-marco { position: relative; display: inline-block; padding: 0.5rem 1.5rem; }
+
+/* Rayos de luz girando detrás del número. */
+.puntaje-marco--dorado::before {
+  position: absolute;
+  z-index: -1;
+  inset: -120% -60%;
+  background: repeating-conic-gradient(from 0deg, rgb(255 205 70 / 42%) 0deg 9deg, transparent 9deg 22deg);
+  mask: radial-gradient(circle, #000 12%, transparent 62%);
+  animation: rayos-aparecen 1.2s ease-out both 700ms, rayos-giran 18s linear infinite;
+  content: "";
+}
+
+.resultado__puntaje--dorado {
+  color: transparent;
+  background: linear-gradient(100deg,
+    #8a5a0b 0%, #e9b83a 14%, #ffe38a 22%, #d99a10 34%, #8a5a0b 48%,
+    #e9b83a 62%, #ffe38a 70%, #d99a10 82%, #8a5a0b 100%);
+  -webkit-text-stroke: 1px rgb(122 78 6 / 55%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  font-size: clamp(3.4rem, 15vw, 6.5rem);
+  animation:
+    oro-entra 1.3s cubic-bezier(0.18, 1.6, 0.4, 1) both,
+    oro-brilla 3s linear infinite 1.2s,
+    oro-halo 2.4s ease-in-out infinite 1.2s;
+}
+
+@keyframes oro-entra {
+  0% { opacity: 0; transform: scale(0.2) rotate(-8deg); filter: drop-shadow(0 0 0 transparent) blur(6px); }
+  60% { opacity: 1; transform: scale(1.18) rotate(2deg); filter: drop-shadow(0 0 30px rgb(255 214 90 / 100%)) blur(0); }
+  100% { transform: scale(1) rotate(0); filter: drop-shadow(0 0 10px rgb(255 200 60 / 70%)); }
+}
+
+@keyframes oro-brilla {
+  from { background-position: 0% 50%; }
+  to { background-position: -220% 50%; }
+}
+
+@keyframes oro-halo {
+  0%, 100% { filter: drop-shadow(0 0 8px rgb(255 196 40 / 55%)); }
+  50% { filter: drop-shadow(0 0 24px rgb(255 214 90 / 95%)); }
+}
+
+@keyframes perfecto-entra {
+  from { opacity: 0; letter-spacing: 0.6em; }
+  to { opacity: 1; letter-spacing: 0.06em; }
+}
+
+@keyframes rayos-aparecen {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rayos-giran {
+  to { transform: rotate(1turn); }
+}
+
+.celebracion {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+}
+
+.chispa {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--tam, 10px);
+  height: var(--tam, 10px);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fffbe6 0%, #ffd34d 45%, #e09a00 100%);
+  box-shadow: 0 0 10px 2px rgb(255 205 70 / 80%);
+  opacity: 0;
+  animation: chispa-vuela 1.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards var(--retardo, 1s);
+}
+
+.chispa--estrella {
+  border-radius: 0;
+  clip-path: polygon(50% 0, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0 50%, 39% 38%);
+  box-shadow: none;
+}
+
+.chispa--titila {
+  top: var(--arr);
+  left: var(--izq);
+  border-radius: 0;
+  clip-path: polygon(50% 0, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0 50%, 39% 38%);
+  box-shadow: none;
+  animation: chispa-titila 2.2s ease-in-out infinite var(--retardo, 2s);
+}
+
+@keyframes chispa-vuela {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+  12% { opacity: 1; }
+  70% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--giro)) scale(0.4);
+  }
+}
+
+@keyframes chispa-titila {
+  0%, 100% { opacity: 0; transform: scale(0.2) rotate(0); }
+  50% { opacity: 1; transform: scale(1) rotate(90deg); }
+}
+
+/* ---- 040 · Pergamino ----------------------------------------------------- */
+
+.vista-pergamino { padding: 0.5rem 0 2rem; }
+
+.pergamino__volver {
+  color: #f8ecd0;
+  border-color: #5c3614;
+  background: linear-gradient(180deg, #7a4a1f, #4f2d10);
+}
+
+.pergamino__volver:hover,
+.pergamino__volver:focus-visible { background: #3d220b; }
+
+.pergamino {
+  position: relative;
+  max-width: 48rem;
+  margin: 2.5rem auto 2.25rem;
+  padding: clamp(1.75rem, 5vw, 3rem) clamp(1.15rem, 5vw, 3.25rem);
+  color: #3a2814;
+  border-radius: 8px / 22px;
+  background:
+    radial-gradient(ellipse at 18% 12%, rgb(255 255 255 / 45%), transparent 42%),
+    radial-gradient(ellipse at 88% 85%, rgb(140 88 28 / 22%), transparent 48%),
+    radial-gradient(circle at 78% 22%, rgb(150 100 35 / 12%) 0 5%, transparent 6%),
+    radial-gradient(circle at 12% 70%, rgb(150 100 35 / 10%) 0 4%, transparent 5%),
+    linear-gradient(135deg, #f7e9c6 0%, #eed7a3 55%, #e2c283 100%);
+  box-shadow:
+    inset 0 0 70px rgb(122 76 18 / 45%),
+    inset 0 0 14px rgb(92 56 10 / 40%),
+    0 22px 44px rgb(45 28 6 / 32%);
+  font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  animation: pergamino-abre 480ms cubic-bezier(0.2, 1.1, 0.4, 1) both;
+}
+
+/* Rollos de madera arriba y abajo. */
+.pergamino::before,
+.pergamino::after {
+  position: absolute;
+  right: -1rem;
+  left: -1rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #4a2a0e 0%, #b07a3c 30%, #d9a660 45%, #7a4a1f 75%, #3e2209 100%);
+  box-shadow: 0 5px 10px rgb(30 18 4 / 35%);
+  content: "";
+}
+
+.pergamino::before { top: -0.85rem; }
+.pergamino::after { bottom: -0.85rem; }
+
+@keyframes pergamino-abre {
+  from { opacity: 0; transform: scaleY(0.2); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+
+.pergamino__cabecera { display: flex; align-items: center; gap: 1rem; }
+
+.pergamino__titulo {
+  margin: 0;
+  color: #3a2814;
+  font-size: clamp(1.5rem, 5vw, 2.1rem);
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+}
+
+.pergamino__titulo:focus { outline: none; }
+
+.pergamino__estado { margin: 0; font-style: italic; font-weight: 700; }
+.pergamino__estado--verde { color: #2c5e33; }
+.pergamino__estado--rojo { color: #8b1e1e; }
+.pergamino__estado--gris { color: #5e5446; }
+.pergamino__estado--dorado { color: #8a5a0b; }
+
+/* Sello de lacre con el número de la pregunta. */
+.sello {
+  display: inline-flex;
+  width: 3.8rem;
+  height: 3.8rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  color: rgb(255 255 255 / 92%);
+  border-radius: 46% 54% 50% 50% / 52% 48% 55% 45%;
+  font-size: 1.35rem;
+  font-weight: 800;
+  text-shadow: 0 -1px 0 rgb(0 0 0 / 35%);
+  box-shadow:
+    inset 0 0 0 4px rgb(0 0 0 / 14%),
+    inset 3px 4px 6px rgb(255 255 255 / 30%),
+    0 3px 6px rgb(40 20 5 / 40%);
+}
+
+.sello--verde { background: radial-gradient(circle at 35% 30%, #5d9a63, #2c5e33 70%); }
+.sello--rojo { background: radial-gradient(circle at 35% 30%, #c8473d, #7d1a1a 70%); }
+.sello--gris { background: radial-gradient(circle at 35% 30%, #9a8f80, #5e5446 70%); }
+.sello--dorado {
+  color: #4a2f00;
+  background: radial-gradient(circle at 35% 30%, #fff3b0, #e8a912 55%, #9c6608 100%);
+  text-shadow: 0 1px 0 rgb(255 250 220 / 70%);
+}
+
+.pergamino__adorno {
+  margin: 0.6rem 0 1rem;
+  color: #8b5a2b;
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+.pergamino .pregunta__contexto {
+  border-left-color: #8b5a2b;
+  background: rgb(255 248 228 / 60%);
+}
+
+.pergamino .pregunta__enunciado { font-size: 1.08rem; font-weight: 600; }
+
+.pergamino .opcion {
+  color: #3a2814;
+  border-color: #c9a86a;
+  background: rgb(255 251 238 / 82%);
+}
+
+.pergamino .opcion__letra { color: #fbeed0; background: #6b3e17; }
+.pergamino .opcion--elegida { border-color: var(--dorado-500); background: rgb(250 228 190 / 95%); }
+.pergamino .opcion--elegida .opcion__letra { color: #3a2814; background: var(--dorado-500); }
+.pergamino .opcion--correcta { border-color: #2c5e33; background: rgb(223 236 220 / 95%); }
+.pergamino .opcion__justificacion { color: #5a4630; font-style: italic; }
+.pergamino .pregunta__tabla { background: rgb(255 252 242 / 90%); }
+
+.pergamino__guia,
+.pergamino__respuesta { margin: 1rem 0 0; color: #5a4630; }
+.pergamino__respuesta { font-size: 1.05rem; font-weight: 700; }
+.pergamino__guia { font-size: 0.9rem; font-style: italic; }
+
+.pergamino__navegacion {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.pergamino__navegacion .boton { width: 100%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .celebracion { display: none; }
+  .puntaje-marco--dorado::before { animation: none; }
+  .puntos--dorados .punto::after { display: none; }
+}
