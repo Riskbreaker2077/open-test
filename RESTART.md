@@ -2,7 +2,7 @@
 
 ## Última actualización y rama activa
 
-- 27/09/2026 — `main`. Última versión publicada: **1.4.0**. La 041 está en `main` sin tag de versión.
+- 27/09/2026 — `main`, publicado como **1.4.1** (tag `v1.4.1`: el workflow compila y publica `OpenTest-Setup.exe`).
 
 ## Feature/tarea en curso
 
@@ -21,8 +21,10 @@
 
 ## Siguiente tarea
 
-1. Si el usuario lo pide, publicar una versión (subir `package.json` y `git tag vX.Y.Z`).
+1. Comprobar que el workflow de la 1.4.1 terminó y el instalador quedó en Releases y en `instalador/`.
 2. En tablet real: 039 (una sola opción marcada), 040 (puntos y pergamino) y 041 (Volver al inicio desde la espera).
+
+- Los puntos del resultado (040) se agrandaron y centraron. Ojo: el pedido pudo referirse a portal-estudiantes (ver bitácora); confirmar con el usuario.
 
 ## Bloqueos / decisiones pendientes
 
