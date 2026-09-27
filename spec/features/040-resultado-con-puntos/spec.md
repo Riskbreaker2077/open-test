@@ -45,3 +45,5 @@ Con 20 o 30 preguntas, la lista actual obliga a bajar mucho para encontrar lo qu
 - [x] Sin red, sin fuentes externas, sin dependencias nuevas.
 - [x] Una prueba anulada (038) sigue mostrando su aviso, sin rejilla (el servidor no manda detalle) y sin celebración aunque el total coincidiera. _(test de `esPerfecto`)_
 - [x] "Volver al inicio" y la vuelta automática al examen si el docente deshace la anulación (038) se conservan.
+
+> **Ajuste 27/09/2026 (pedido del docente).** Los puntos dejaban espacio vacío a la derecha de la rejilla. Ahora son más grandes (`clamp(3.1rem, 13vw, 4.25rem)`, número a 1.2rem) y la fila incompleta y la leyenda van centradas. Revisado con capturas a 820 px y 390 px de ancho.
