@@ -2,31 +2,27 @@
 
 ## Última actualización y rama activa
 
-- 23/09/2026 — `main`, integrado sobre `origin/main` y publicado como **1.4.0** (tag `v1.4.0`: el workflow compila y publica `OpenTest-Setup.exe`).
+- 27/09/2026 — `main`. Última versión publicada: **1.4.0**. La 041 está en `main` sin tag de versión.
 
 ## Feature/tarea en curso
 
-- Ninguna. 039 y 040 implementadas; quedan sus verificaciones en tablet real.
+- Ninguna. 041 implementada; quedan sus verificaciones y las de 039/040 en tablet real.
 
 ## Qué se hizo en esta sesión
 
-1. El usuario pidió arreglar dos bugs del examen (espera repetida al volver; parecían dos opciones marcadas) y rediseñar el resultado con puntos.
-2. La sesión arrancó sobre una copia local desactualizada (iba por `d7f3d45`, antes de la 030 remota). Al intentar el push se vio que el remoto tenía 18 commits más (030–038, versiones 1.1.0–1.3.0). Con permiso del usuario se integró así:
-   - El arreglo de la espera al volver se **descartó**: la 037 remota ya lo resolvía con la misma regla y mejores tests.
-   - Las features locales, numeradas 030 y 031, chocaban con las remotas y se renumeraron: **039** (una sola opción elegida) y **040** (resultado con puntos).
-   - La pantalla de resultado se fusionó a mano con la de la 038 (aviso de anulación, "Volver al inicio", vuelta automática al examen si se deshace la anulación). `esPerfecto` excluye pruebas anuladas.
-   - Queda la rama local `respaldo-sesion-0923` con los commits originales, por si hiciera falta consultarlos.
-3. 040: rejilla de puntos, vista de pergamino por `#pregunta-N`, celebración dorada con mensaje al azar fijo por estudiante (lista del usuario, incluido "Excellent!" y "¡El/La mejor!"). Lógica pura en `public/estudiante/resultado-logica.js`; `npm test` corre también `public/**/*.test.js`.
+1. El usuario pidió dos cambios: que el estudiante que espera el inicio de una prueba pueda devolverse, y que el tiempo mínimo por pregunta por defecto sea 45 s.
+2. 041: botón **Volver al inicio** en la espera del portal, en la lista de evaluaciones y en los demás mensajes (`public/index.html`, `public/portal.js`). Reutiliza `POST /api/examen/salir` de la 033; el servidor no cambió. El intento no se borra: el cuadro del tablero queda rojo y el mismo código lo reanuda.
+3. `POR_DEFECTO.segundos_minimos_pregunta` y el formulario de sesiones: 60 → 45 s. `tech-stack.md` y el criterio de la 004 al día.
 
 ## Estado
 
-- `npm test`: 478 en verde. `npm run lint`: 97 archivos, limpio.
-- Verificado con Chrome sin cabeza y un arnés que simula `/api/examen/resultado`, también después de la integración: puntaje perfecto, prueba anulada (sin rejilla ni celebración) y apertura del pergamino. No se probó contra el servidor real ni en tablet.
+- `npm test`: 479 en verde. `npm run lint`: 97 archivos, limpio.
+- Recorrido en Chrome sin cabeza (DevTools) contra un servidor en memoria: espera → Volver → paso del código vacío y con foco; recargar ya no regresa a la espera; otro código entra en la misma tablet.
 
 ## Siguiente tarea
 
-1. Comprobar que el workflow de la 1.4.0 terminó y el instalador quedó en Releases y en `instalador/`.
-2. En tablet real: confirmar que ya no se ven dos opciones marcadas (039); recorrer puntos y pergamino con imágenes, tablas y un grupo de emparejamiento, y una prueba anulada (040).
+1. Si el usuario lo pide, publicar una versión (subir `package.json` y `git tag vX.Y.Z`).
+2. En tablet real: 039 (una sola opción marcada), 040 (puntos y pergamino) y 041 (Volver al inicio desde la espera).
 
 ## Bloqueos / decisiones pendientes
 

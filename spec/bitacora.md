@@ -636,3 +636,19 @@ de forzar:
 
 Las capturas con `--virtual-time-budget` congelaban la animación a mitad; se
 usó Chrome por DevTools en tiempo real, que además permitió probar los clics.
+
+## 27/09/2026 — 041: volver desde la espera y mínimo de 45 s
+
+Dos pedidos cortos. La espera del portal era un callejón: el paso de mensaje
+no tenía botones y, como `entrar` deja la cookie, recargar volvía a caer ahí.
+Se añadió **Volver al inicio** a todos los pasos sin salida del portal (espera,
+pausa, cerrada, sin pruebas, lista de evaluaciones) reutilizando el `salir` de
+la 033, así que el servidor no cambió.
+
+Se descartó borrar el intento al volver: ya está creado y sorteado desde
+`entrar`, conservarlo no hace daño y el tablero dice la verdad (alguien entró
+con ese código y se fue: rojo). Si el dueño del código entra después, reanuda
+el mismo intento.
+
+El mínimo por pregunta por defecto baja de 60 a 45 s (decisión del docente);
+las evaluaciones ya creadas conservan el suyo.

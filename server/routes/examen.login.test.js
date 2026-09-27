@@ -214,3 +214,30 @@ test('el estudiante no necesita contraseña, pero el panel de sesiones sí', asy
   assert.equal((await alumno('/api/examen/sesiones', { codigo: '2024001' })).status, 200);
   assert.equal((await fetch(`${base}/api/docente/sesiones`)).status, 401);
 });
+
+test('volver al inicio desde la espera cierra la tablet y el mismo código reanuda su intento (041)', async () => {
+  const sesion = await sesionAbierta(['10A', '10B']);
+  const tablero = async () => {
+    const res = await fetch(`${base}/api/docente/proyeccion/${sesion.id}`, { headers: { cookie: cookieDocente } });
+    return Object.fromEntries((await res.json()).proyeccion.estudiantes.map((e) => [e.nombre, e.estado]));
+  };
+
+  const primera = await alumno('/api/examen/entrar', { codigo: '2024001', sesionId: sesion.id });
+  const cookieAna = cookieDe(primera).split(';')[0];
+  const { estado } = await primera.json();
+  assert.equal(estado.sesion.estado, 'abierta');
+  assert.equal((await tablero())['Ana Gómez'], 'conectado');
+
+  const salida = await alumno('/api/examen/salir', {}, cookieAna);
+  assert.match(cookieDe(salida), new RegExp(`^${NOMBRE_COOKIE_ESTUDIANTE}=;`));
+  assert.equal((await tablero())['Ana Gómez'], 'desconectado');
+
+  // La tablet queda libre para otro código.
+  const luis = await alumno('/api/examen/entrar', { codigo: '2024002', sesionId: sesion.id });
+  assert.equal(luis.status, 200);
+
+  const segunda = await alumno('/api/examen/entrar', { codigo: '2024001', sesionId: sesion.id });
+  assert.equal((await segunda.json()).nuevo, false);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM intentos WHERE codigo_estudiante = ?').get('2024001').n, 1);
+  assert.equal((await tablero())['Ana Gómez'], 'conectado');
+});

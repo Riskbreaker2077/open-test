@@ -57,7 +57,7 @@ test('crea la evaluación en borrador con los valores por defecto', async () => 
   assert.equal(sesion.estado, 'borrador');
   assert.equal(sesion.n_preguntas, 20);
   assert.equal(sesion.duracion_minutos, 60);
-  assert.equal(sesion.segundos_minimos_pregunta, 60);
+  assert.equal(sesion.segundos_minimos_pregunta, 45);
   assert.equal(sesion.nivel_feedback, 'aciertos');
 });
 

@@ -171,6 +171,26 @@ async function resolverSesiones(estudiante, sesiones) {
   mostrarEleccion(estudiante, sesiones);
 }
 
+// Sin salida, quien entró con un código ajeno o a la evaluación equivocada
+// quedaba atrapado: recargar lo devolvía aquí mismo por la cookie (041).
+async function volverAlInicio() {
+  detenerSondeo();
+  try {
+    await fetch('/api/examen/salir', { method: 'POST' });
+  } catch {
+    // Sin conexión igual volvemos; el servidor decidirá al próximo código.
+  }
+  limpiarAviso(avisoCodigo);
+  limpiarAviso(avisoElegir);
+  campoCodigo.value = '';
+  mostrarPaso(pasoCodigo);
+  campoCodigo.focus();
+}
+
+for (const boton of document.querySelectorAll('.volver-inicio')) {
+  boton.addEventListener('click', volverAlInicio);
+}
+
 formularioCodigo.addEventListener('submit', async (evento) => {
   evento.preventDefault();
   limpiarAviso(avisoCodigo);

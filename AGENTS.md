@@ -30,15 +30,17 @@
 
 **La 039 y la 040 están implementadas (23/09/2026).** La 039 separa en `base.css` el estilo de la opción elegida (fondo dorado y ✓) del resaltado por encima, que ahora solo existe con ratón: en tablets el hover se quedaba pegado y parecía haber dos opciones marcadas. La 040 cambia el resultado del estudiante en `aciertos`/`completo` a una rejilla de puntos verde/rojo/gris; cada punto abre la pregunta en una vista de pergamino (`#pregunta-N`, botón Volver y atrás del navegador), y el puntaje perfecto sale en dorado animado en cualquier nivel con un mensaje de felicitación al azar, fijo por estudiante (hash de su entrega, sin columna nueva). Convive con la 038 (aviso de anulación, sin celebración). `npm test` ahora también corre `public/**/*.test.js`. 478 tests en verde. Publicadas como **1.4.0**.
 
+**La 041 está implementada (27/09/2026).** La sala de espera del portal no tenía salida: quien entraba con un código ajeno o a la evaluación equivocada quedaba atrapado, porque recargar lo devolvía ahí por la cookie. Ahora la espera, la lista de evaluaciones y los demás mensajes del portal tienen **Volver al inicio**, que llama a `/api/examen/salir` (033) y deja el paso del código listo; el cuadro del tablero queda en rojo y el mismo código reanuda su intento. Además, el tiempo mínimo por pregunta por defecto baja de 60 a 45 s. 479 tests en verde.
+
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · 035 · 036 · 037 · 038 · 039 · **040** | — | Verificación en tablet real de 039 y 040 (ver `roadmap.md → Siguiente`) |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · 035 · 036 · 037 · 038 · 039 · 040 · **041** | — | Verificación en tablet real de 039, 040 y 041 (ver `roadmap.md → Siguiente`) |
 
 ### Para retomar, en este orden
 
 1. Lee `RESTART.md`: contiene el estado operativo de la última sesión.
 2. Lee `spec/constitution/roadmap.md`: el encargo original está completo; lo que sigue sale de `Backlog / ideas` si se decide continuar.
-3. `npm install && npm test` — deben pasar los 478.
+3. `npm install && npm test` — deben pasar los 479.
 4. `npm start` y entra a `http://localhost:3000/` para ver el portal del estudiante, y a `/docente/` para el panel.
 
 ## Protocolo de restart entre sesiones
