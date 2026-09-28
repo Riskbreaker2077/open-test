@@ -283,7 +283,9 @@ function baseVersion5(ruta) {
       "motivo_entrega    TEXT CHECK (motivo_entrega IN\n"
       + "                      ('manual', 'tiempo', 'ultima_pregunta', 'forzada_docente')),",
     )
-    .replace(/\n  anulado_en        TEXT,/, '');
+    .replace(/\n  anulado_en        TEXT,/, '')
+    .replace(SIN_043.columna, '\n  descargado_en               TEXT\n);')
+    .replace(SIN_043.tabla, '');
   assert.doesNotMatch(esquema, /anulada_docente|anulado_en/, 'la base de partida no tiene lo nuevo');
 
   const db = new Database(ruta);
@@ -315,6 +317,41 @@ function baseVersion5(ruta) {
   `).run();
   db.close();
 }
+
+/** Lo que añadió la migración v7 (043), para partir de una base anterior. */
+const SIN_043 = {
+  columna: /,\n  -- Código de la evaluación en el portal[^\n]*\n[^\n]*\n  codigo_portal               TEXT\n\);/,
+  tabla: /-- Envíos de resultados al portal[\s\S]*?CREATE TABLE IF NOT EXISTS envios_portal \([\s\S]*?\n\);\n/,
+};
+
+test('la migración v7 añade el código del portal y los envíos sin tocar lo que había', () => {
+  const { ruta, limpiar } = carpetaTemporal();
+  try {
+    const esquema = readFileSync(new URL('./schema.sql', import.meta.url), 'utf8')
+      .replace(SIN_043.columna, '\n  descargado_en               TEXT\n);')
+      .replace(SIN_043.tabla, '');
+    assert.doesNotMatch(esquema, /codigo_portal|envios_portal/, 'la base de partida no tiene lo nuevo');
+    const vieja = new Database(ruta);
+    vieja.exec(esquema);
+    vieja.prepare("INSERT INTO config VALUES ('esquema_version', '6')").run();
+    vieja.prepare("INSERT INTO bancos (nombre, creado_en) VALUES ('Ciencias', '2026-01-01')").run();
+    vieja.prepare(`
+      INSERT INTO sesiones (nombre, banco_id, cursos, estado, creado_en)
+      VALUES ('Parcial', 1, '10A', 'cerrada', '2026-01-01')
+    `).run();
+    vieja.close();
+
+    const db = abrirBd(ruta);
+    assert.equal(versionDe(db), ULTIMA_VERSION);
+    const sesion = db.prepare('SELECT * FROM sesiones').get();
+    assert.equal(sesion.nombre, 'Parcial');
+    assert.equal(sesion.codigo_portal, null, 'nada se envía por migrar');
+    assert.equal(db.prepare('SELECT count(*) AS t FROM envios_portal').get().t, 0);
+    cerrarBd(db);
+  } finally {
+    limpiar();
+  }
+});
 
 test('la migración v6 rehace intentos sin perder el examen ya aplicado', () => {
   const { ruta, limpiar } = carpetaTemporal();

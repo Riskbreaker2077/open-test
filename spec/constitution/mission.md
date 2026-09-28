@@ -22,7 +22,7 @@ Por debajo de las tres, el **motor de personalización**: a partir de una semill
 
 - **Integridad por diseño** — dos estudiantes de la misma sesión no ven la misma prueba en el mismo orden. No se combate la copia vigilando: se combate haciendo que copiar no dé información útil.
 - **Cada quien ve solo lo suyo** — el estudiante no alcanza el panel del docente ni sabe que existe; la pantalla proyectada no muestra nada que no pueda ver toda la clase. La separación de las tres superficies es una regla, no una convención.
-- **El aula no tiene internet** — todo funciona sin conexión externa, sin excepciones y sin degradarse. Cualquier dependencia de red en tiempo de examen es un fallo, no una molestia.
+- **El aula no tiene internet** — todo funciona sin conexión externa, sin excepciones y sin degradarse. Cualquier dependencia de red en tiempo de examen es un fallo, no una molestia. Enviar resultados al portal (043) es opcional, manual y posterior al examen.
 - **Simple para el docente** — instalar, importar dos archivos, proyectar el QR. Cada opción de configuración que se añade tiene que ganarse su sitio.
 - **Los datos son del docente** — todo vive en un archivo SQLite que puede copiar a una memoria USB, y sale en CSV y JSON abiertos. Sin lock-in.
 - **Robusto ante el caos del aula** — una tablet que se apaga, se queda sin batería, pierde el wifi o se recarga por accidente retoma el examen exactamente donde iba, con las mismas preguntas y sin perder respuestas.
@@ -30,7 +30,7 @@ Por debajo de las tres, el **motor de personalización**: a partir de una semill
 ## Qué NO es
 
 - **No es un LMS.** No gestiona cursos, materiales, tareas ni calendarios. Aplica exámenes de opción múltiple y punto.
-- **No es un servicio en la nube.** No hay multi-institución, ni sincronización, ni servidor remoto.
+- **No es un servicio en la nube.** No hay multi-institución, ni sincronización, ni servidor remoto. La única salida de datos por red es el envío manual de resultados de una evaluación cerrada al portal de estudiantes, cuando el docente lo pide (043); nunca durante un examen.
 - **No es una app nativa.** Se usa desde el navegador de la tablet; no se instala nada en las tablets.
 - **No es multiusuario.** Hay una contraseña de docente para el equipo, no cuentas por profesor. Si el portátil lo comparten varios, comparten la contraseña.
 - **No hace proctoring.** No vigila por cámara, no bloquea la tablet, no detecta ventanas. La integridad viene de la personalización de la prueba.

@@ -176,6 +176,18 @@ Después de cerrar, entre a **Descargar resultados**. Puede elegir todos los cur
 
 Excel puede convertir códigos como `00123` en `123`. Al importar la planilla a otro sistema, marque la columna `codigo` como **Texto**.
 
+### Enviar los resultados al portal de estudiantes
+
+Si el colegio usa el portal de estudiantes, OpenTest puede llevarle los resultados sin que usted descargue y suba el archivo. Solo se conecta a internet cuando usted lo pide, y nunca con una evaluación en curso o en pausa.
+
+1. **Una sola vez:** en el portal, entre a Configuración → Agentes (MCP) y cree una credencial con el permiso **Enviar resultados desde OpenTest**. Copie la clave (empieza por `mcp_`).
+2. En OpenTest, abra **Enviar al portal**, escriba la dirección del portal, pegue la clave y pulse **Guardar vinculación**. La clave no se vuelve a mostrar.
+3. En la misma página, escriba en cada evaluación cerrada el **código de la evaluación en el portal** (aparece en la evaluación del módulo, por ejemplo `STJ / EVA / 10 / EC / 3 / M1`).
+4. Cuando el portátil tenga internet, pulse **Enviar ahora**. Cada evaluación queda **Enviada** o muestra por qué no se pudo; lo que falle sigue pendiente para el siguiente intento.
+5. En el portal, apruebe la propuesta en **Agentes → Propuestas**. Nada se publica sin su aprobación.
+
+Si anula o devuelve una prueba después de enviar, la evaluación vuelve a quedar pendiente: envíela otra vez.
+
 ## 7. Ver qué falló más el grupo
 
 En **Estadísticas**, elija el banco de preguntas y luego una evaluación cerrada concreta o **todas las sesiones cerradas** que hayan usado ese banco, para acumular varios grupos o periodos. Dos tablas, de lo más fallado a lo menos fallado: por pregunta y por competencia. Sirve para decidir qué repasar en clase o qué pregunta del banco conviene revisar.

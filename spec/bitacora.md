@@ -671,3 +671,22 @@ si traía un anulado con aciertos: su validación comparaba `aciertos = 0` contr
 la evidencia pregunta por pregunta. Se corrige del lado del portal (su feature
 029) leyendo `anulado`, sin tocar el exportador de OpenTest ni su
 `formato_version: 3`.
+
+## 28/09/2026 — 043: enviar resultados al portal
+
+El usuario aprobó la propuesta de conectar OpenTest con el portal de
+estudiantes y la enmienda de la constitución que exigía. La enmienda es
+estrecha: la única red saliente es el envío de una evaluación cerrada al
+portal, solo al pulsar «Enviar ahora» y nunca con un examen en marcha.
+
+Se descartó enviar al detectar red: el docente debe saber cuándo salen del
+portátil datos de menores. Se descartó también engancharse a cada acción
+(cerrar, anular, devolver, cambiar el código) para marcar pendientes: el estado
+se deriva de una huella de los intentos, así que nada puede olvidarse de
+marcarlo.
+
+El recorrido de punta a punta contra el portal real encontró que los códigos
+de evaluación del portal llevan espacios y barras (`STJ / EVA / 10 / …`): la
+validación de OpenTest los rechazaba y la ruta del portal los habría partido.
+Se corrigieron las specs de ambos lados y el código viaja como parámetro de
+consulta.

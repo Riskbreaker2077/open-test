@@ -126,7 +126,24 @@ CREATE TABLE IF NOT EXISTS sesiones (
   -- archivos (detalle/resumen/json/excel). NULL = aún no se descargó. Mientras
   -- sea NULL, `borrarSesion` rechaza la petición para no destruir la única
   -- copia de la evidencia sin que el docente la tenga fuera.
-  descargado_en               TEXT
+  descargado_en               TEXT,
+  -- Código de la evaluación en el portal de estudiantes (043). NULL = no se
+  -- envía. Se puede fijar o cambiar también después de cerrar.
+  codigo_portal               TEXT
+);
+
+-- Envíos de resultados al portal de estudiantes (043). Una fila por evaluación
+-- enviada al menos una vez. `huella` resume el estado de sus intentos en el
+-- último envío exitoso: si cambia (una anulación, otro código), la evaluación
+-- vuelve a quedar pendiente. La dirección y la clave del portal viven en
+-- `config` (portal_url, portal_clave); la clave nunca sale por la API.
+CREATE TABLE IF NOT EXISTS envios_portal (
+  sesion_id          INTEGER PRIMARY KEY REFERENCES sesiones (id) ON DELETE CASCADE,
+  huella             TEXT,
+  enviado_en         TEXT,
+  ultimo_intento_en  TEXT,
+  ultimo_error       TEXT,
+  destino            TEXT
 );
 
 -- Pueden coexistir varias sesiones abiertas: 10A en Ciencias mientras 10B

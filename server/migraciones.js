@@ -216,6 +216,23 @@ const MIGRACIONES = [
       }
     },
   },
+  {
+    version: 7,
+    descripcion: 'Envío de resultados al portal de estudiantes (043)',
+    aplicar(db) {
+      anadirColumna(db, 'sesiones', 'codigo_portal', 'TEXT');
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS envios_portal (
+          sesion_id          INTEGER PRIMARY KEY REFERENCES sesiones (id) ON DELETE CASCADE,
+          huella             TEXT,
+          enviado_en         TEXT,
+          ultimo_intento_en  TEXT,
+          ultimo_error       TEXT,
+          destino            TEXT
+        );
+      `);
+    },
+  },
 ];
 
 export const ULTIMA_VERSION = MIGRACIONES.at(-1)?.version ?? 0;
