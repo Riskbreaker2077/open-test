@@ -2,27 +2,22 @@
 
 ## Última actualización y rama activa
 
-- 28/09/2026 — rama `claude/open-test-cancel-exam-59vutp`. `main` tiene la 1.4.2 (042); la 043 está solo en la rama, sin versión nueva.
-- **El tag `v1.4.2` no existe todavía**: el proxy de git de la nube rechaza tags. Crearlo desde el equipo del usuario: `git tag v1.4.2 c3120d1 && git push origin v1.4.2`.
+- 28/09/2026 — `main` tiene la 1.5.0 (043, envío de resultados al portal). Tags `v1.4.2` y `v1.5.0` publicados con su instalador en Releases.
+- La 1.5.0 necesita el portal con su feature 030 (desplegada el 28/09/2026).
 
 ## Feature/tarea en curso
 
-- Ninguna. 043 implementada y probada de punta a punta contra el portal en local.
+- Ninguna. Falta la prueba real de la 043 contra el portal en producción desde el equipo del docente.
 
 ## Qué se hizo en esta sesión
 
-1. 042: anular con triple clic y cuadro flotante (publicada en `main` como 1.4.2, falta el tag).
-2. 043: envío de resultados al portal (página **Enviar al portal**, migración v7, enmienda constitucional aprobada por el usuario). Contraparte: feature 030 del portal.
-
-## Estado
-
-- `npm test`: 496 en verde; `red.test.js` falla en la nube por las interfaces de Docker (igual sin estos cambios). `npm run lint` limpio.
+1. Tag `v1.4.2` (042: anular con triple clic) subido desde el equipo del usuario; el workflow publicó el instalador.
+2. 043 validada en el equipo del usuario (`npm test` 497 en verde, incluido `red.test.js`; `npm run lint` limpio), versión 1.5.0, fusión a `main` y tag `v1.5.0`.
 
 ## Siguiente tarea
 
-1. Decidir con el usuario la publicación de la 043 (1.5.0) y el despliegue de la 030 del portal; son una pareja: OpenTest 1.5.0 necesita el portal con la 030.
-2. Probar en el equipo del docente contra el portal en producción.
-3. En el aula: 039–042 pendientes de verificación física.
+1. Prueba real: credencial con solo «Enviar resultados desde OpenTest» en el portal, instalar 1.5.0 en el PC del aula, «Enviar ahora» y aprobar la propuesta en Agentes → Propuestas; luego una anulación con triple clic que llegue como anulada.
+2. En el aula: 039–042 pendientes de verificación física.
 
 ## Bloqueos / decisiones pendientes
 
