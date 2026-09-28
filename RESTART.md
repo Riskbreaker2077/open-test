@@ -20,7 +20,8 @@
 
 ## Siguiente tarea
 
-1. Fusionar a `main` y publicar versión (1.4.2) si el usuario lo aprueba.
+1. Versión ya subida a 1.4.2 en `package.json` y aprobada por el usuario. Falta fusionar a `main` y `git tag v1.4.2 && git push origin main v1.4.2` (el entorno de la sesión bloqueó el despliegue).
+2. Spec 043 (envío al portal) escrita como propuesta: espera aprobación del usuario y de la enmienda constitucional.
 2. En el aula: legibilidad del cuadro flotante en el proyector; 039, 040 y 041 en tablet real.
 
 ## Bloqueos / decisiones pendientes
