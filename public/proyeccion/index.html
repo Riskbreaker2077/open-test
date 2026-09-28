@@ -48,6 +48,17 @@
 
     <p class="error" id="error" role="alert" hidden></p>
   </main>
+
+  <dialog id="confirmar-anulacion" class="dialogo-anulacion" aria-labelledby="confirmar-anulacion-titulo">
+    <form method="dialog">
+      <p class="dialogo-titulo" id="confirmar-anulacion-titulo"></p>
+      <p class="dialogo-detalle" id="confirmar-anulacion-detalle"></p>
+      <div class="dialogo-botones">
+        <button class="boton boton--secundario" value="cancelar" autofocus>Cancelar</button>
+        <button class="boton" id="confirmar-anulacion-aceptar" value="aceptar"></button>
+      </div>
+    </form>
+  </dialog>
   <script type="module" src="/proyeccion/proyeccion.js"></script>
 </body>
 </html>

@@ -2,6 +2,10 @@
 
 **Estado:** implementado ✅ _(pendiente de verificación en el aula)_
 
+> **Actualización (042, 28/09/2026).** El gesto pasó de doble clic a **triple clic**
+> y la confirmación, de `window.confirm` a un cuadro flotante propio. El resto de
+> esta spec sigue vigente. Ver [042](../042-anular-con-triple-clic/spec.md).
+
 ## Qué hace
 
 En el tablero de asistencia de la pantalla de proyección (031), el docente hace **doble clic sobre el cuadro de un estudiante** y anula su prueba.

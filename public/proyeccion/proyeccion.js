@@ -1,3 +1,5 @@
+import { crearContadorDeClics } from './triple-clic.js';
+
 const parametros = new URLSearchParams(window.location.search);
 const sesionId = Number(parametros.get('sesion'));
 
@@ -12,6 +14,10 @@ const elementos = {
   controles: document.getElementById('controles'),
   error: document.getElementById('error'),
   tablero: document.getElementById('tablero'),
+  dialogo: document.getElementById('confirmar-anulacion'),
+  dialogoTitulo: document.getElementById('confirmar-anulacion-titulo'),
+  dialogoDetalle: document.getElementById('confirmar-anulacion-detalle'),
+  dialogoAceptar: document.getElementById('confirmar-anulacion-aceptar'),
 };
 
 const ETIQUETAS = {
@@ -112,10 +118,30 @@ const ESTADOS_ASISTENCIA = {
 
 const MARCAS = { entregado: '✓ ', anulado: '⊘ ' };
 
+const registrarClic = crearContadorDeClics();
+
 /**
- * Anula o revierte la prueba del estudiante del cuadro (038). Va por doble
- * clic y no por un botón: un botón por cuadro llenaría de controles una
- * pantalla pensada para leerse desde el fondo del aula.
+ * Abre el cuadro flotante de confirmación (042) y resuelve `true` solo si el
+ * docente pulsa el botón de aceptar. Cancelar, Esc o un clic fuera lo cierran.
+ */
+function confirmarEnCuadro({ titulo, detalle, aceptar, peligro }) {
+  const { dialogo } = elementos;
+  elementos.dialogoTitulo.textContent = titulo;
+  elementos.dialogoDetalle.textContent = detalle;
+  elementos.dialogoAceptar.textContent = aceptar;
+  elementos.dialogoAceptar.classList.toggle('dialogo-aceptar--peligro', peligro);
+  dialogo.returnValue = '';
+  return new Promise((resolver) => {
+    dialogo.addEventListener('close', () => resolver(dialogo.returnValue === 'aceptar'), { once: true });
+    dialogo.showModal();
+  });
+}
+
+/**
+ * Anula o revierte la prueba del estudiante del cuadro (038). Va por triple
+ * clic (042) y no por un botón: un botón por cuadro llenaría de controles una
+ * pantalla pensada para leerse desde el fondo del aula, y el doble clic se
+ * disparaba sin querer.
  */
 async function alternarAnulacion(estudiante) {
   if (!estudiante.intentoId) {
@@ -123,10 +149,20 @@ async function alternarAnulacion(estudiante) {
     return;
   }
   const anulada = estudiante.estado === 'anulado';
-  const pregunta = anulada
-    ? `¿Devolverle la prueba a ${estudiante.nombreCompleto}? Recupera sus respuestas y sigue presentando.`
-    : `¿Anular la prueba de ${estudiante.nombreCompleto}? Su nota queda en cero y no verá retroalimentación.`;
-  if (!window.confirm(pregunta)) return;
+  const confirmado = await confirmarEnCuadro(anulada
+    ? {
+      titulo: `¿Devolverle la prueba a ${estudiante.nombreCompleto}?`,
+      detalle: 'Recupera sus respuestas y su nota, y sigue presentando si la evaluación continúa.',
+      aceptar: 'Devolver la prueba',
+      peligro: false,
+    }
+    : {
+      titulo: `¿Anular la prueba de ${estudiante.nombreCompleto}?`,
+      detalle: 'Su prueba termina ahora, queda en cero y no verá retroalimentación.',
+      aceptar: 'Anular la prueba',
+      peligro: true,
+    });
+  if (!confirmado) return;
 
   try {
     await api(`/api/docente/intentos/${estudiante.intentoId}/anular`, {
@@ -143,7 +179,10 @@ function cuadroEstudiante(estudiante, conCurso) {
   const cuadro = document.createElement('li');
   cuadro.className = `cuadro cuadro--${estudiante.estado}`;
   cuadro.title = `${estudiante.nombre}: ${ESTADOS_ASISTENCIA[estudiante.estado] ?? estudiante.estado}`;
-  cuadro.addEventListener('dblclick', () => alternarAnulacion(estudiante));
+  const clave = estudiante.intentoId ?? `${estudiante.nombreCompleto}|${estudiante.curso}`;
+  cuadro.addEventListener('click', (evento) => {
+    if (registrarClic(clave, evento.timeStamp)) alternarAnulacion(estudiante);
+  });
   const nombre = document.createElement('span');
   nombre.className = 'cuadro-nombre';
   nombre.textContent = `${MARCAS[estudiante.estado] ?? ''}${estudiante.nombre}`;

@@ -2,29 +2,26 @@
 
 ## Última actualización y rama activa
 
-- 27/09/2026 — `main`, publicado como **1.4.1** (tag `v1.4.1`: el workflow compila y publica `OpenTest-Setup.exe`).
+- 28/09/2026 — rama `claude/open-test-cancel-exam-59vutp` (sin fusionar a `main`; sin versión nueva publicada).
 
 ## Feature/tarea en curso
 
-- Ninguna. 041 implementada; quedan sus verificaciones y las de 039/040 en tablet real.
+- Ninguna. 042 implementada; queda verla en el proyector.
 
 ## Qué se hizo en esta sesión
 
-1. El usuario pidió dos cambios: que el estudiante que espera el inicio de una prueba pueda devolverse, y que el tiempo mínimo por pregunta por defecto sea 45 s.
-2. 041: botón **Volver al inicio** en la espera del portal, en la lista de evaluaciones y en los demás mensajes (`public/index.html`, `public/portal.js`). Reutiliza `POST /api/examen/salir` de la 033; el servidor no cambió. El intento no se borra: el cuadro del tablero queda rojo y el mismo código lo reanuda.
-3. `POR_DEFECTO.segundos_minimos_pregunta` y el formulario de sesiones: 60 → 45 s. `tech-stack.md` y el criterio de la 004 al día.
+1. 042: anular desde la proyección pasa de doble clic a **triple clic** sobre el nombre, con un cuadro flotante (`<dialog>`) en vez de `window.confirm`. Solo cliente (`public/proyeccion/`). Exportación intacta, `formato_version: 3`.
+2. Se detectó que el portal de estudiantes rechazaba ZIPs con anulados; se corrige en el portal (feature 029 allá), no aquí.
 
 ## Estado
 
-- `npm test`: 479 en verde. `npm run lint`: 97 archivos, limpio.
-- Recorrido en Chrome sin cabeza (DevTools) contra un servidor en memoria: espera → Volver → paso del código vacío y con foco; recargar ya no regresa a la espera; otro código entra en la misma tablet.
+- `npm test`: 486 en verde. `npm run lint`: 99 archivos, limpio.
+- Recorrido en Chromium sin cabeza: doble clic no abre nada; triple clic abre el cuadro; Esc cancela; confirmar anula y el cuadro se pone negro; triple clic sobre el anulado ofrece devolver la prueba; sobre quien no ha entrado, avisa.
 
 ## Siguiente tarea
 
-1. Comprobar que el workflow de la 1.4.1 terminó y el instalador quedó en Releases y en `instalador/`.
-2. En tablet real: 039 (una sola opción marcada), 040 (puntos y pergamino) y 041 (Volver al inicio desde la espera).
-
-- Los puntos del resultado (040) se agrandaron y centraron. Ojo: el pedido pudo referirse a portal-estudiantes (ver bitácora); confirmar con el usuario.
+1. Fusionar a `main` y publicar versión (1.4.2) si el usuario lo aprueba.
+2. En el aula: legibilidad del cuadro flotante en el proyector; 039, 040 y 041 en tablet real.
 
 ## Bloqueos / decisiones pendientes
 

@@ -165,6 +165,8 @@ Abra **Monitorear evaluación** en otra pestaña. La tabla se actualiza sola y m
 
 Si una tablet se bloqueó o un estudiante se retiró, use **Forzar entrega** junto a su nombre y confirme. Para terminar el examen de todo el grupo, pulse **Cerrar evaluación**; el aviso indica cuántos siguen presentando antes de confirmar.
 
+**Anular la prueba de un estudiante** (por ejemplo, si lo encuentra copiando o con el celular): en la pantalla de proyección, haga **tres clics seguidos sobre su nombre** en el tablero de asistencia. Aparece un cuadro con su nombre completo; pulse **Anular la prueba**. Su prueba termina, queda en cero, no recibe retroalimentación y su cuadro se pone negro con ⊘. En la descarga de resultados sale con `anulado = SÍ`. Si se equivocó, repita los tres clics sobre el mismo nombre y pulse **Devolver la prueba**: recupera sus respuestas y su nota.
+
 ## 6. Descargar resultados
 
 Después de cerrar, entre a **Descargar resultados**. Puede elegir todos los cursos o uno solo:

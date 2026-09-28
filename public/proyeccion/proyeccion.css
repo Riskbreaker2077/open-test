@@ -220,7 +220,7 @@ body {
 
 .cuadro {
   cursor: pointer;
-  /* El doble clic para anular no debe seleccionar el nombre de paso. */
+  /* El triple clic para anular (042) no debe seleccionar el nombre de paso. */
   user-select: none;
 }
 
@@ -322,6 +322,60 @@ body {
 
 .error[hidden] {
   display: none;
+}
+
+/* Cuadro flotante para anular o devolver una prueba (042). Grande y centrado:
+   se lee en el proyector, a diferencia del confirm del navegador. */
+.dialogo-anulacion {
+  width: min(90vw, 44rem);
+  padding: clamp(1.25rem, 3.5vmin, 2.5rem);
+  color: var(--tinta);
+  border: 0;
+  border-top: 6px solid var(--dorado-500);
+  border-radius: clamp(1rem, 2.5vmin, 1.75rem);
+  background: var(--papel-calido);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 45%);
+}
+
+.dialogo-anulacion::backdrop {
+  background: rgb(11 38 59 / 72%);
+}
+
+.dialogo-titulo {
+  margin: 0 0 0.5em;
+  font-weight: 800;
+  font-size: clamp(1.35rem, 3.6vmin, 2.4rem);
+  line-height: 1.2;
+  color: var(--azul-950);
+}
+
+.dialogo-detalle {
+  margin: 0 0 1.5em;
+  font-size: clamp(1rem, 2.4vmin, 1.5rem);
+  color: var(--tinta-suave);
+}
+
+.dialogo-botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.dialogo-botones .boton {
+  min-height: clamp(3rem, 6vmin, 4rem);
+  font-size: clamp(1rem, 2.2vmin, 1.5rem);
+}
+
+/* Devolver la prueba no es una sanción: botón azul. Anular sí: rojo. */
+#confirmar-anulacion-aceptar {
+  border-color: var(--azul-900);
+  background: var(--azul-900);
+}
+
+#confirmar-anulacion-aceptar.dialogo-aceptar--peligro {
+  border-color: var(--rojo-600);
+  background: var(--rojo-600);
 }
 
 @media (max-aspect-ratio: 4 / 3) {

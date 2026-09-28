@@ -32,15 +32,17 @@
 
 **La 041 está implementada (27/09/2026).** La sala de espera del portal no tenía salida: quien entraba con un código ajeno o a la evaluación equivocada quedaba atrapado, porque recargar lo devolvía ahí por la cookie. Ahora la espera, la lista de evaluaciones y los demás mensajes del portal tienen **Volver al inicio**, que llama a `/api/examen/salir` (033) y deja el paso del código listo; el cuadro del tablero queda en rojo y el mismo código reanuda su intento. Además, el tiempo mínimo por pregunta por defecto baja de 60 a 45 s, y los puntos del resultado de la 040 son más grandes y van centrados. 479 tests en verde. Publicada como **1.4.1**.
 
+**La 042 está implementada (28/09/2026).** Anular una prueba desde la proyección (038) pasa de doble clic a **triple clic** sobre el nombre del estudiante, y la confirmación deja `window.confirm` por un cuadro flotante propio (`<dialog>`), grande y centrado, con Anular/Cancelar o Devolver la prueba. El contador de clics (`public/proyeccion/triple-clic.js`) cuenta por estudiante y no por nodo, porque el tablero se repinta. Solo cliente; exportación intacta y todavía en `formato_version: 3`. Pedida junto con la integración del portal de estudiantes, que desde su feature 029 importa el anulado como anulación. 486 tests en verde.
+
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · 035 · 036 · 037 · 038 · 039 · 040 · **041** | — | Verificación en tablet real de 039, 040 y 041 (ver `roadmap.md → Siguiente`) |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · 035 · 036 · 037 · 038 · 039 · 040 · 041 · **042** | — | Verificación en tablet real de 039, 040, 041 y en proyector de la 042 (ver `roadmap.md → Siguiente`) |
 
 ### Para retomar, en este orden
 
 1. Lee `RESTART.md`: contiene el estado operativo de la última sesión.
 2. Lee `spec/constitution/roadmap.md`: el encargo original está completo; lo que sigue sale de `Backlog / ideas` si se decide continuar.
-3. `npm install && npm test` — deben pasar los 479.
+3. `npm install && npm test` — deben pasar los 486.
 4. `npm start` y entra a `http://localhost:3000/` para ver el portal del estudiante, y a `/docente/` para el panel.
 
 ## Protocolo de restart entre sesiones

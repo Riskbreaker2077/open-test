@@ -652,3 +652,22 @@ el mismo intento.
 
 El mínimo por pregunta por defecto baja de 60 a 45 s (decisión del docente);
 las evaluaciones ya creadas conservan el suyo.
+
+## 28/09/2026 — 042: anular con triple clic
+
+El docente pidió que la anulación se hiciera con **tres clics sobre el nombre**
+del estudiante y un cuadro flotante de confirmación, que la prueba anulada no
+recibiera retroalimentación y que saliera anulada en la exportación, sin subir
+la versión del contrato, y que el portal de estudiantes la entendiera. Casi todo
+eso ya existía desde la 038 (con doble clic y `window.confirm`), así que la 042
+se limitó al gesto y al cuadro: `public/proyeccion/triple-clic.js` cuenta los
+clics por estudiante (el tablero se reconstruye al cambiar la asistencia, así
+que contar por nodo o con `event.detail` perdería la serie) y un `<dialog>`
+reemplaza al `confirm`. Decidido con el usuario: el triple clic **reemplaza** al
+doble, porque no pueden convivir.
+
+Al revisar la integración se encontró que el portal **rechazaba el ZIP entero**
+si traía un anulado con aciertos: su validación comparaba `aciertos = 0` contra
+la evidencia pregunta por pregunta. Se corrige del lado del portal (su feature
+029) leyendo `anulado`, sin tocar el exportador de OpenTest ni su
+`formato_version: 3`.
