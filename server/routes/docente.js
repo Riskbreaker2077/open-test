@@ -35,6 +35,14 @@ import {
   revertirAnulacion,
 } from '../services/intentos.js';
 import { estadoDeSesion } from '../services/monitoreo.js';
+import {
+  desvincularPortal,
+  enviarPendientes,
+  estadoVinculo,
+  fijarCodigoPortal,
+  listarEnvios,
+  vincularPortal,
+} from '../services/envios-portal.js';
 import { estaConectado } from '../presencia.js';
 import {
   armarExportacion,
@@ -360,6 +368,37 @@ export function rutasDocente(db) {
     responder(res, () => ({
       sesion: actualizarNivelFeedback(db, Number(req.params.id), req.body?.nivel_feedback),
     }));
+  });
+
+  // --- Envío al portal de estudiantes (043) ------------------------------
+  // Única salida de red de OpenTest: solo con «Enviar ahora» y nunca con un
+  // examen en marcha (ver `services/envios-portal.js`).
+  router.get('/portal', (req, res) => {
+    responder(res, () => ({ vinculo: estadoVinculo(db), envios: listarEnvios(db) }));
+  });
+
+  router.put('/portal/vinculo', (req, res) => {
+    responder(res, () => ({ vinculo: vincularPortal(db, req.body ?? {}) }));
+  });
+
+  router.delete('/portal/vinculo', (req, res) => {
+    responder(res, () => ({ vinculo: desvincularPortal(db) }));
+  });
+
+  router.patch('/sesiones/:id/codigo-portal', (req, res) => {
+    responder(res, () => {
+      fijarCodigoPortal(db, Number(req.params.id), req.body?.codigo);
+      return { envios: listarEnvios(db) };
+    });
+  });
+
+  router.post('/portal/enviar', async (req, res) => {
+    try {
+      const resultado = await enviarPendientes(db);
+      res.json({ ok: true, ...resultado, envios: listarEnvios(db) });
+    } catch (err) {
+      res.status(err.estado ?? 500).json({ ok: false, mensaje: err.message });
+    }
   });
 
   router.get('/sesiones/:id/export/:tipo', (req, res) => {
