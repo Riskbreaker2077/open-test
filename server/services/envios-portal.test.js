@@ -12,6 +12,7 @@ import {
   desvincularPortal,
   enviarPendientes,
   estadoVinculo,
+  evaluacionesDisponibles,
   fijarCodigoPortal,
   listarEnvios,
   normalizarUrlPortal,
@@ -19,6 +20,7 @@ import {
 } from './envios-portal.js';
 
 const CLAVE = `mcp_${'a'.repeat(16)}.${'b'.repeat(43)}`;
+const DESTINO = { codigo: 'EV-1', modulo: 'Módulo 1', asignatura: 'Sociales', periodo: 'P1', cursos: ['10A'] };
 
 function preparar({ cerrar = true } = {}) {
   const db = abrirBd(':memory:');
@@ -31,19 +33,22 @@ function preparar({ cerrar = true } = {}) {
   return { db, sesionId: sesion.id, intentoId: intento.id };
 }
 
-/** Un portal falso: registra cada petición y responde lo que se le indique. */
-function portalFalso({ destino = 200, envio = 201, sinRed = false } = {}) {
+/** Un portal falso (feature 030): registra cada petición y responde lo que se le indique. */
+function portalFalso({ destino = 200, envio = 201, listado = 200, sinRed = false } = {}) {
   const peticiones = [];
   const fetchFn = async (url, opciones = {}) => {
     peticiones.push({ url, metodo: opciones.method ?? 'GET', cabeceras: opciones.headers, cuerpo: opciones.body });
     if (sinRed) throw new TypeError('fetch failed');
     const esEnvio = url.includes('/api/opentest/envios');
-    const estado = esEnvio ? envio : destino;
+    const esListado = url.endsWith('/api/opentest/evaluaciones');
+    const estado = esEnvio ? envio : esListado ? listado : destino;
     const cuerpo = estado >= 400
       ? { ok: false, mensaje: 'Error del portal' }
       : esEnvio
         ? { ok: true, estado: 'PROPUESTA_CREADA', propuestaId: 'p1' }
-        : { ok: true, destino: { codigo: 'EV-1', modulo: 'Módulo 1', asignatura: 'Sociales', periodo: 'P1', cursos: ['10A'] } };
+        : esListado
+          ? { ok: true, evaluaciones: [DESTINO, { ...DESTINO, codigo: 'EV-2', modulo: 'Módulo 2' }] }
+          : { ok: true, destino: DESTINO };
     return new Response(JSON.stringify(cuerpo), { status: estado, headers: { 'content-type': 'application/json' } });
   };
   return { peticiones, fetchFn };
@@ -78,6 +83,22 @@ test('sin código no hay nada pendiente; con código y intentos, sí', () => {
   assert.throws(() => fijarCodigoPortal(db, sesionId, 'x'.repeat(101)), /100 caracteres/);
   fijarCodigoPortal(db, sesionId, '');
   assert.equal(listarEnvios(db)[0].estado, 'sin_codigo');
+  cerrarBd(db);
+});
+
+test('buscar evaluaciones disponibles trae la lista del portal', async () => {
+  const { db } = preparar();
+  vincularPortal(db, { url: 'https://p.test', clave: CLAVE });
+  const portal = portalFalso();
+  const evaluaciones = await evaluacionesDisponibles(db, { fetchFn: portal.fetchFn });
+  assert.deepEqual(evaluaciones.map((e) => e.codigo), ['EV-1', 'EV-2']);
+  assert.equal(portal.peticiones[0].cabeceras.authorization, `Bearer ${CLAVE}`);
+  cerrarBd(db);
+});
+
+test('sin vincular, buscar evaluaciones disponibles no llama a nada', async () => {
+  const { db } = preparar();
+  await assert.rejects(evaluacionesDisponibles(db), /vincula/);
   cerrarBd(db);
 });
 

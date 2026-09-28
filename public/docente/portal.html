@@ -33,7 +33,7 @@
           <input id="clave" type="password" required placeholder="mcp_…" autocomplete="off" spellcheck="false">
         </label>
         <p class="apunte">
-          Créala en el portal: Configuración → Agentes (MCP), con el permiso
+          Créala en el portal: Configuración → Agentes (MCP), marcando solo el permiso
           «Enviar resultados desde OpenTest». Se guarda en este equipo y no se vuelve a mostrar.
         </p>
         <p class="aviso" id="error-vinculo" role="alert" hidden></p>
@@ -45,12 +45,14 @@
     <section class="tarjeta">
       <h2>2. Evaluaciones cerradas</h2>
       <p class="apunte">
-        Escribe en cada una el <strong>código de la evaluación en el portal</strong> (aparece en la
-        evaluación del módulo). Sin código, la evaluación no se envía.
+        Elige para cada una la <strong>evaluación del portal</strong> que debe recibirla. Sin
+        elegir una, la evaluación no se envía.
       </p>
+      <p class="aviso" id="error-evaluaciones" role="alert" hidden></p>
+      <button class="boton boton--secundario" id="buscar-evaluaciones" type="button">Buscar evaluaciones disponibles</button>
       <p class="apunte" id="vacio" hidden>Todavía no hay evaluaciones cerradas.</p>
       <table class="tabla" id="listado" hidden>
-        <thead><tr><th>Evaluación</th><th>Código en el portal</th><th>Estado</th></tr></thead>
+        <thead><tr><th>Evaluación</th><th>Evaluación en el portal</th><th>Estado</th></tr></thead>
         <tbody id="filas"></tbody>
       </table>
       <p class="aviso" id="error-envio" role="alert" hidden></p>

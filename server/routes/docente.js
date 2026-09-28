@@ -39,6 +39,7 @@ import {
   desvincularPortal,
   enviarPendientes,
   estadoVinculo,
+  evaluacionesDisponibles,
   fijarCodigoPortal,
   listarEnvios,
   vincularPortal,
@@ -383,6 +384,14 @@ export function rutasDocente(db) {
 
   router.delete('/portal/vinculo', (req, res) => {
     responder(res, () => ({ vinculo: desvincularPortal(db) }));
+  });
+
+  router.get('/portal/evaluaciones-disponibles', async (req, res) => {
+    try {
+      res.json({ ok: true, evaluaciones: await evaluacionesDisponibles(db) });
+    } catch (err) {
+      res.status(err.estado ?? 500).json({ ok: false, mensaje: err.message });
+    }
   });
 
   router.patch('/sesiones/:id/codigo-portal', (req, res) => {

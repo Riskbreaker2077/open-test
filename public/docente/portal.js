@@ -7,6 +7,8 @@ const elementos = {
   vinculado: document.getElementById('vinculado'),
   desvincular: document.getElementById('desvincular'),
   errorVinculo: document.getElementById('error-vinculo'),
+  buscarEvaluaciones: document.getElementById('buscar-evaluaciones'),
+  errorEvaluaciones: document.getElementById('error-evaluaciones'),
   listado: document.getElementById('listado'),
   filas: document.getElementById('filas'),
   vacio: document.getElementById('vacio'),
@@ -15,6 +17,9 @@ const elementos = {
   exitoEnvio: document.getElementById('exito-envio'),
 };
 
+let evaluacionesPortal = [];
+let ultimosEnvios = [];
+
 const fecha = (iso) => new Date(iso).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
 
 function mostrar(elemento, texto) {
@@ -22,9 +27,13 @@ function mostrar(elemento, texto) {
   elemento.hidden = !texto;
 }
 
+function etiquetaDe(evaluacion) {
+  return `${evaluacion.periodo} · ${evaluacion.asignatura} · ${evaluacion.modulo} (${evaluacion.codigo})`;
+}
+
 function textoEstado(envio) {
   switch (envio.estado) {
-    case 'sin_codigo': return 'Sin código: no se envía.';
+    case 'sin_codigo': return 'Sin evaluación elegida: no se envía.';
     case 'sin_intentos': return 'Nadie presentó esta evaluación.';
     case 'enviado': {
       const destino = envio.destino ? ` → ${envio.destino.asignatura}, ${envio.destino.modulo}` : '';
@@ -49,37 +58,55 @@ function pintarVinculo(vinculo) {
   elementos.clave.placeholder = vinculo.vinculado ? 'Pega una clave nueva solo si la cambiaste' : 'mcp_…';
 }
 
+async function elegirCodigo(sesionId, select) {
+  const respuesta = await api(`/api/docente/sesiones/${sesionId}/codigo-portal`, {
+    method: 'PATCH', body: JSON.stringify({ codigo: select.value }),
+  });
+  if (!respuesta.ok) {
+    mostrar(elementos.errorEnvio, respuesta.mensaje);
+    return;
+  }
+  mostrar(elementos.errorEnvio, '');
+  pintarEnvios(respuesta.envios);
+}
+
 function filaEnvio(envio) {
   const fila = document.createElement('tr');
   const nombre = document.createElement('td');
   nombre.textContent = `${envio.nombre} (${envio.cursos})`;
 
-  const celdaCodigo = document.createElement('td');
-  const codigo = document.createElement('input');
-  codigo.value = envio.codigoPortal ?? '';
-  codigo.placeholder = 'Código del portal';
-  codigo.setAttribute('aria-label', `Código en el portal para ${envio.nombre}`);
-  codigo.className = 'entrada-codigo';
-  codigo.addEventListener('change', async () => {
-    const respuesta = await api(`/api/docente/sesiones/${envio.id}/codigo-portal`, {
-      method: 'PATCH', body: JSON.stringify({ codigo: codigo.value }),
-    });
-    if (!respuesta.ok) {
-      mostrar(elementos.errorEnvio, respuesta.mensaje);
-      return;
-    }
-    mostrar(elementos.errorEnvio, '');
-    pintarEnvios(respuesta.envios);
-  });
-  celdaCodigo.append(codigo);
+  const celdaDestino = document.createElement('td');
+  const select = document.createElement('select');
+  select.setAttribute('aria-label', `Evaluación en el portal para ${envio.nombre}`);
+  const vacia = document.createElement('option');
+  vacia.value = '';
+  vacia.textContent = evaluacionesPortal.length > 0 ? 'Sin elegir' : 'Busca evaluaciones disponibles primero';
+  select.append(vacia);
+  for (const evaluacion of evaluacionesPortal) {
+    const opcion = document.createElement('option');
+    opcion.value = evaluacion.codigo;
+    opcion.textContent = etiquetaDe(evaluacion);
+    if (envio.codigoPortal === evaluacion.codigo) opcion.selected = true;
+    select.append(opcion);
+  }
+  if (envio.codigoPortal && !evaluacionesPortal.some((fila2) => fila2.codigo === envio.codigoPortal)) {
+    const actual = document.createElement('option');
+    actual.value = envio.codigoPortal;
+    actual.textContent = `${envio.codigoPortal} (elegida antes)`;
+    actual.selected = true;
+    select.append(actual);
+  }
+  select.addEventListener('change', () => elegirCodigo(envio.id, select));
+  celdaDestino.append(select);
 
   const estado = document.createElement('td');
   estado.textContent = textoEstado(envio);
-  fila.append(nombre, celdaCodigo, estado);
+  fila.append(nombre, celdaDestino, estado);
   return fila;
 }
 
 function pintarEnvios(envios) {
+  ultimosEnvios = envios;
   elementos.vacio.hidden = envios.length > 0;
   elementos.listado.hidden = envios.length === 0;
   elementos.filas.replaceChildren(...envios.map(filaEnvio));
@@ -111,6 +138,26 @@ elementos.desvincular.addEventListener('click', async () => {
   if (!window.confirm('¿Desvincular OpenTest del portal? Tendrás que pegar la clave otra vez para enviar.')) return;
   const respuesta = await api('/api/docente/portal/vinculo', { method: 'DELETE' });
   pintarVinculo(respuesta.vinculo);
+});
+
+elementos.buscarEvaluaciones.addEventListener('click', async () => {
+  elementos.buscarEvaluaciones.disabled = true;
+  elementos.buscarEvaluaciones.textContent = 'Buscando…';
+  mostrar(elementos.errorEvaluaciones, '');
+  try {
+    const respuesta = await api('/api/docente/portal/evaluaciones-disponibles');
+    if (!respuesta.ok) {
+      mostrar(elementos.errorEvaluaciones, respuesta.mensaje);
+    } else {
+      evaluacionesPortal = respuesta.evaluaciones;
+      pintarEnvios(ultimosEnvios);
+    }
+  } catch {
+    mostrar(elementos.errorEvaluaciones, 'OpenTest no respondió. Revisa que siga abierto.');
+  } finally {
+    elementos.buscarEvaluaciones.disabled = false;
+    elementos.buscarEvaluaciones.textContent = 'Buscar evaluaciones disponibles';
+  }
 });
 
 elementos.enviar.addEventListener('click', async () => {

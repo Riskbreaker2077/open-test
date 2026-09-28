@@ -4,6 +4,17 @@
 enmienda de la constitución. Pendiente de publicar versión y de probarlo en el
 equipo del docente contra el portal en producción.
 
+> **Nota (044, 28/09/2026).** Al preparar la 044 se investigó este documento
+> contra un checkout local desactualizado de `portal-estudiantes` (sin
+> `git fetch`) y se concluyó, por un momento y de forma equivocada, que este
+> recorrido nunca pudo haber ocurrido. No era cierto: `origin/main` del
+> portal sí tiene, como feature 030 («Recepción directa desde OpenTest»),
+> exactamente las rutas y el permiso que este documento describe. La 043
+> estaba bien diseñada. La 044 solo le agrega a la 030 del portal el listado
+> de evaluaciones disponibles, para que el docente ya no escriba el código a
+> mano. Ver `spec/bitacora.md` (28/09/2026) para el relato completo de la
+> confusión y su corrección.
+
 ## Qué hace
 
 Evita el paso manual «descargar el ZIP → abrir el portal → subirlo». Cuando el

@@ -10,6 +10,7 @@ import { guardarBanco } from '../services/bancos.js';
 import { preguntasDeEjemplo } from '../fixtures-preguntas.js';
 
 const CLAVE = `mcp_${'a'.repeat(16)}.${'b'.repeat(43)}`;
+const DESTINO = { codigo: 'STJ / EVA / 1', modulo: 'Módulo 1', asignatura: 'Sociales', periodo: 'P1', cursos: ['10A'] };
 
 let db;
 let servidor;
@@ -111,7 +112,8 @@ test('la API del panel nunca devuelve la clave del portal', async () => {
   assert.equal(sinSesion.status, 401);
 });
 
-test('«Enviar ahora» entrega el ZIP a un portal real por HTTP y lo marca enviado', async () => {
+/** Un portal real y mínimo por HTTP plano (feature 030 del portal). */
+function portalFalso() {
   const recibidas = [];
   const portal = createServer((req, res) => {
     const partes = [];
@@ -119,16 +121,46 @@ test('«Enviar ahora» entrega el ZIP a un portal real por HTTP y lo marca envia
     req.on('end', () => {
       recibidas.push({ metodo: req.method, url: req.url, auth: req.headers.authorization, bytes: Buffer.concat(partes).length });
       res.setHeader('content-type', 'application/json');
-      res.end(JSON.stringify(req.method === 'GET'
-        ? { ok: true, destino: { codigo: 'EV-1', modulo: 'Módulo 1', asignatura: 'Sociales', periodo: 'P1', cursos: ['10A'] } }
-        : { ok: true, estado: 'PROPUESTA_CREADA', propuestaId: 'p1' }));
+      const url = new URL(req.url, 'http://localhost');
+      if (req.method === 'GET' && !url.searchParams.has('codigo')) {
+        res.end(JSON.stringify({ ok: true, evaluaciones: [DESTINO] }));
+      } else if (req.method === 'GET') {
+        res.end(JSON.stringify({ ok: true, destino: DESTINO }));
+      } else {
+        res.end(JSON.stringify({ ok: true, estado: 'PROPUESTA_CREADA', propuestaId: 'p1' }));
+      }
     });
   }).listen(0, '127.0.0.1');
+  return { portal, recibidas };
+}
+
+test('«Buscar evaluaciones disponibles» trae la lista del portal', async () => {
+  const { portal, recibidas } = portalFalso();
+  await new Promise((listo) => portal.once('listening', listo));
+  try {
+    await docente('PUT', '/api/docente/portal/vinculo', { url: `http://127.0.0.1:${portal.address().port}`, clave: CLAVE });
+    const respuesta = await docente('GET', '/api/docente/portal/evaluaciones-disponibles');
+    assert.equal(respuesta.ok, true);
+    assert.deepEqual(respuesta.evaluaciones, [DESTINO]);
+    assert.equal(recibidas[0].auth, `Bearer ${CLAVE}`);
+  } finally {
+    await new Promise((listo) => portal.close(listo));
+  }
+});
+
+test('sin vincular, «Buscar evaluaciones disponibles» no llama a nada', async () => {
+  const respuesta = await docente('GET', '/api/docente/portal/evaluaciones-disponibles');
+  assert.equal(respuesta.ok, false);
+  assert.match(respuesta.mensaje, /vincula/);
+});
+
+test('«Enviar ahora» entrega el ZIP a un portal real por HTTP y lo marca enviado', async () => {
+  const { portal, recibidas } = portalFalso();
   await new Promise((listo) => portal.once('listening', listo));
   try {
     await presentarExamenCompleto();
     await docente('PUT', '/api/docente/portal/vinculo', { url: `http://127.0.0.1:${portal.address().port}`, clave: CLAVE });
-    const conCodigo = await docente('PATCH', `/api/docente/sesiones/${sesionId}/codigo-portal`, { codigo: 'STJ / EVA / 1' });
+    const conCodigo = await docente('PATCH', `/api/docente/sesiones/${sesionId}/codigo-portal`, { codigo: DESTINO.codigo });
     assert.equal(conCodigo.envios[0].estado, 'pendiente');
 
     const envio = await docente('POST', '/api/docente/portal/enviar');

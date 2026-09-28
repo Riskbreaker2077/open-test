@@ -180,9 +180,9 @@ Excel puede convertir códigos como `00123` en `123`. Al importar la planilla a 
 
 Si el colegio usa el portal de estudiantes, OpenTest puede llevarle los resultados sin que usted descargue y suba el archivo. Solo se conecta a internet cuando usted lo pide, y nunca con una evaluación en curso o en pausa.
 
-1. **Una sola vez:** en el portal, entre a Configuración → Agentes (MCP) y cree una credencial con el permiso **Enviar resultados desde OpenTest**. Copie la clave (empieza por `mcp_`).
+1. **Una sola vez:** en el portal, entre a Configuración → Agentes (MCP) y cree una credencial marcando **solo** el permiso **Enviar resultados desde OpenTest** (no lo combine con otros). Copie la clave (empieza por `mcp_`).
 2. En OpenTest, abra **Enviar al portal**, escriba la dirección del portal, pegue la clave y pulse **Guardar vinculación**. La clave no se vuelve a mostrar.
-3. En la misma página, escriba en cada evaluación cerrada el **código de la evaluación en el portal** (aparece en la evaluación del módulo, por ejemplo `STJ / EVA / 10 / EC / 3 / M1`).
+3. En la misma página, pulse **Buscar evaluaciones disponibles** y elija, para cada evaluación cerrada, la evaluación del portal que debe recibirla (periodo, asignatura y módulo).
 4. Cuando el portátil tenga internet, pulse **Enviar ahora**. Cada evaluación queda **Enviada** o muestra por qué no se pudo; lo que falle sigue pendiente para el siguiente intento.
 5. En el portal, apruebe la propuesta en **Agentes → Propuestas**. Nada se publica sin su aprobación.
 

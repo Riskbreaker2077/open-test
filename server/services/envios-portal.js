@@ -1,10 +1,19 @@
 /**
- * Envío de resultados al portal de estudiantes (043).
+ * Envío de resultados al portal de estudiantes (043; la 044 agrega el
+ * listado de evaluaciones disponibles).
  *
  * Es la única salida de red de OpenTest y la constitución la acota: solo
- * cuando el docente pulsa «Enviar ahora», nunca con un examen en curso o en
- * pausa y nunca en segundo plano. Nada de este módulo se ejecuta solo: lo
- * llaman las rutas del panel.
+ * cuando el docente pulsa «Buscar evaluaciones disponibles» o «Enviar
+ * ahora», nunca con un examen en curso o en pausa y nunca en segundo plano.
+ * Nada de este módulo se ejecuta solo: lo llaman las rutas del panel.
+ *
+ * El portal expone la contraparte de esto en su feature 030: una credencial
+ * con el permiso «Enviar resultados desde OpenTest» (`opentest:enviar`,
+ * que no combina con ningún otro y no sirve en su servidor MCP), y dos
+ * rutas REST simples: `GET /api/opentest/evaluaciones` (con `codigo` para
+ * confirmar un destino, sin él para listar todos los configurados con
+ * proveedor OpenTest) y `POST /api/opentest/envios?evaluacion={codigo}`
+ * con el ZIP como cuerpo.
  */
 import { createHash } from 'node:crypto';
 import { armarExportacion, aReproduccionZip } from '../exporters/resultados.js';
@@ -83,6 +92,42 @@ export function fijarCodigoPortal(db, sesionId, codigo) {
   return obtenerSesion(db, sesionId);
 }
 
+/** Traduce un fallo del portal o de la red a algo que el docente entienda. */
+function mensajeDeFallo(respuesta, cuerpo) {
+  if (!respuesta) return 'Sin conexión con el portal. Revisa que el portátil tenga internet.';
+  if (respuesta.status === 401) return 'El portal no reconoce la clave: pudo ser revocada. Vincula OpenTest con una clave nueva.';
+  if (respuesta.status === 403) return 'La clave no tiene el permiso «Enviar resultados desde OpenTest».';
+  if (respuesta.status === 404) return 'El código no corresponde a una evaluación OpenTest del portal.';
+  if (respuesta.status === 429) return 'El portal pidió esperar un momento. Intenta de nuevo en un minuto.';
+  return cuerpo?.mensaje ?? `El portal respondió con un error (${respuesta.status}).`;
+}
+
+async function pedir(fetchFn, url, opciones) {
+  try {
+    const respuesta = await fetchFn(url, { ...opciones, signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS) });
+    const cuerpo = await respuesta.json().catch(() => null);
+    return { respuesta, cuerpo };
+  } catch {
+    return { respuesta: null, cuerpo: null };
+  }
+}
+
+/**
+ * Trae del portal la lista de evaluaciones configuradas allí con proveedor
+ * OpenTest, para que el docente elija en vez de escribir un código a mano
+ * (044). Solo se llama al pulsar el botón del panel.
+ */
+export async function evaluacionesDisponibles(db, { fetchFn = globalThis.fetch } = {}) {
+  const vinculo = estadoVinculo(db);
+  if (!vinculo.vinculado) throw error('Primero vincula OpenTest con el portal.', 409);
+  const clave = leerConfig(db, CLAVE_CLAVE);
+  const { respuesta, cuerpo } = await pedir(fetchFn, `${vinculo.url}/api/opentest/evaluaciones`, {
+    headers: { authorization: `Bearer ${clave}` },
+  });
+  if (!respuesta?.ok) throw error(mensajeDeFallo(respuesta, cuerpo));
+  return cuerpo.evaluaciones ?? [];
+}
+
 /**
  * Resume lo que se enviaría: el código de destino y el estado de cada intento.
  * Una anulación, una reversión o un código distinto cambian la huella, y con
@@ -128,26 +173,6 @@ export function listarEnvios(db) {
       destino: fila.destino ? JSON.parse(fila.destino) : null,
     };
   });
-}
-
-/** Traduce un fallo del portal o de la red a algo que el docente entienda. */
-function mensajeDeFallo(respuesta, cuerpo) {
-  if (!respuesta) return 'Sin conexión con el portal. Revisa que el portátil tenga internet.';
-  if (respuesta.status === 401) return 'El portal no reconoce la clave: pudo ser revocada. Vincula OpenTest con una clave nueva.';
-  if (respuesta.status === 403) return 'La clave no tiene el permiso «Enviar resultados desde OpenTest».';
-  if (respuesta.status === 404) return 'El código no corresponde a una evaluación OpenTest del portal.';
-  if (respuesta.status === 429) return 'El portal pidió esperar un momento. Intenta de nuevo en un minuto.';
-  return cuerpo?.mensaje ?? `El portal respondió con un error (${respuesta.status}).`;
-}
-
-async function pedir(fetchFn, url, opciones) {
-  try {
-    const respuesta = await fetchFn(url, { ...opciones, signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS) });
-    const cuerpo = await respuesta.json().catch(() => null);
-    return { respuesta, cuerpo };
-  } catch {
-    return { respuesta: null, cuerpo: null };
-  }
 }
 
 function registrar(db, sesionId, campos) {

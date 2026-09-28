@@ -690,3 +690,102 @@ de evaluación del portal llevan espacios y barras (`STJ / EVA / 10 / …`): la
 validación de OpenTest los rechazaba y la ruta del portal los habría partido.
 Se corrigieron las specs de ambos lados y el código viaja como parámetro de
 consulta.
+
+## 28/09/2026 — 044: la 043 nunca habló con el portal real, y la corrección
+
+El usuario pidió una mejora concreta: que al conectar con el portal, en vez
+de escribir a mano el código de la evaluación, OpenTest mostrara de una vez
+las evaluaciones disponibles. Antes de diseñarlo se revisó el proyecto
+hermano `portal-estudiantes` para ver cómo exponer esa lista.
+
+La revisión encontró que **la entrada de esta misma bitácora de arriba
+(043) describe un recorrido de punta a punta que no pudo haber ocurrido**:
+`envios-portal.js` llama a `GET /api/opentest/evaluaciones` y
+`POST /api/opentest/envios`, rutas que no existen en ningún commit de
+ninguna rama de `portal-estudiantes`. El portal expone un servidor **MCP**
+real (`@modelcontextprotocol/server`, protocolo JSON-RPC con sesión), con
+una herramienta `proponer_importacion_opentest` que crea la propuesta en la
+bandeja Agentes — pero por el protocolo MCP, con `evaluacionId` y
+`contexto`, no con un "código" de texto libre por una ruta REST. La "feature
+030 del portal" que la 043 citaba como origen del permiso «Enviar
+resultados desde OpenTest» tampoco existe: el portal solo llega a la 025, y
+la pantalla real de credenciales ofrece permisos genéricos ("Consultar el
+portal", "Proponer académico"), sin ningún preset con ese nombre. No se
+pudo determinar cómo se llegó a escribir esa entrada dando el recorrido por
+válido; queda como advertencia para no repetir el patrón: una prueba
+manual contra "el portal real" solo vale si de verdad se corrió el código
+que hoy vive en ese repositorio.
+
+La corrección (044) resultó más simple de lo temido: no hizo falta ninguna
+herramienta MCP nueva del lado del portal para la mayor parte del trabajo,
+salvo por un detalle real — no existía una forma eficiente de listar "las
+evaluaciones configuradas para OpenTest" sin recorrer todo el catálogo
+(periodos → asignaturas → módulos → evaluación, uno por uno). Con
+autorización expresa del usuario para tocar ambos repositorios, se agregó
+`listar_evaluaciones_opentest` al servidor MCP del portal, bajo el mismo
+permiso `academico:proponer` que ya usaba el envío. Del lado de OpenTest,
+`server/services/portal-mcp.js` es un cliente MCP real sobre
+`@modelcontextprotocol/client` (mismo SDK, misma versión mayor que el
+servidor del portal), reemplazando el cliente REST inventado.
+
+Lección operativa: las pruebas de la 044 se corrieron contra un servidor
+MCP real y mínimo, construido con el SDK oficial, no contra un doble
+inventado — así, si el protocolo real cambia de forma, las pruebas lo
+notarían. Aun así, **no se dio la 044 por implementada**: falta el
+recorrido contra el `portal-estudiantes` de verdad corriendo en local
+(Next.js + MySQL), con datos sembrados a mano, antes de publicar versión.
+Es exactamente el paso que a la 043 le faltó antes de escribirse como
+hecho.
+
+## 28/09/2026 (continuación) — la entrada de arriba estaba equivocada
+
+El usuario pidió completar el recorrido real y dio autorización para tocar
+también `portal-estudiantes` si hacía falta. Al ponerse a sembrar datos de
+prueba se hizo `git fetch` en ese repositorio — algo que la sesión anterior
+(la de la entrada de arriba) **no había hecho** — y apareció un panorama
+distinto: `origin/main` estaba 109 commits adelante del `main` local, y
+entre esos commits había una feature **030 · Recepción directa desde
+OpenTest**, fusionada ese mismo día, que es exactamente la contraparte que
+la 043 de OpenTest había asumido desde el principio: las mismas rutas
+`GET /api/opentest/evaluaciones` y `POST /api/opentest/envios`, con el
+mismo permiso «Enviar resultados desde OpenTest» (`opentest:enviar`).
+
+O sea: **la entrada anterior de esta bitácora está mal.** La 043 no tenía
+ningún problema de fondo. Todo lo que esa sesión "corrigió" —un cliente MCP
+propio en OpenTest, una dependencia nueva, una migración de esquema, una
+herramienta MCP nueva en el portal bajo el permiso equivocado— era
+innecesario, y se revirtió por completo al descubrir esto. El único trabajo
+real que faltaba era exactamente lo que el usuario había pedido desde el
+principio: que el docente elija la evaluación de una lista en vez de
+escribirla a mano. Eso se agregó como una ampliación pequeña de la 030 del
+portal (`GET /api/opentest/evaluaciones` sin `codigo`, lista lo que hay con
+proveedor OpenTest), reutilizando el mismo permiso, sin tocar nada del
+transporte de la 043.
+
+**Por qué pasó:** la sesión anterior investigó un checkout local de
+`portal-estudiantes` sin traer primero lo último de `origin`. Un repositorio
+que otras sesiones tocan no se audita por su estado local: se audita después
+de `git fetch`, comparando contra el remoto. La revisión "exhaustiva" de
+rutas, permisos y commits de esa sesión fue exhaustiva sobre datos viejos,
+lo cual es peor que no revisar nada, porque generó confianza donde no
+correspondía.
+
+**El recorrido real, esta vez sí, con datos:** `portal-mysql` (Docker) y
+`portal-estudiantes` corriendo con `npm run dev`; se sembraron a mano un
+periodo, una asignatura, un módulo con su evaluación (proveedor OPENTEST) y
+una credencial `opentest:enviar`, y OpenTest corriendo con `npm start`. Un
+primer intento con una pregunta cargada por el ingreso manual (028) falló:
+el portal exige `competencia` y `componente` no vacíos en cada pregunta, y
+esos campos son exclusivos de la carga por ZIP con el estándar
+preguntas-icfes (015/016), no del ingreso manual. Con un banco real
+(`ejemplos/paquete-ciencias-sociales-40.zip`) el recorrido completo
+funcionó: vincular, **Buscar evaluaciones disponibles** (apareció la
+evaluación sembrada), elegir su código, **Enviar ahora**, y se verificó
+directamente en la base del portal que quedó creada una fila real en
+`PropuestaAcademicaAgente` con `tipo: IMPORTACION_OPENTEST`,
+`estado: VALIDO`. De paso se encontraron y corrigieron (en el entorno de
+desarrollo del portal, no en su código) dos variables de entorno que
+faltaban: `allowPublicKeyRetrieval=true` en la URL de MySQL y
+`MCP_DATA_ENCRYPTION_KEY`; sin ellas ninguna herramienta MCP del portal
+podía ejecutarse, ni las nuevas ni las que ya llevaban semanas en
+producción — quien retome esto en ese equipo se habría topado con lo mismo.
