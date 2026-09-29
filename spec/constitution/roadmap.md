@@ -57,7 +57,7 @@ _Orden y estado de las features. Cada entrada apunta a su carpeta en `../feature
 
 ## Siguiente 🔜
 
-El roadmap del encargo original quedó completo con la validación física del 14/09/2026; lo posterior (028–047) son mejoras pedidas tras usarlo en el aula. Falta publicar la versión que reúne 044–047 (ver `AGENTS.md → Dónde estamos`) y, en tablet real: confirmar la 039 (una sola opción marcada), recorrer la 040 con imágenes, tablas y un grupo de emparejamiento, el botón Volver al inicio de la 041, el triple clic de la 042 en el proyector y el portal de la 045 en una tablet (entregar, volver, y que la prueba ya no aparezca). Lo que sigue después de eso, si el usuario lo decide, sale de `Backlog / ideas`.
+El roadmap del encargo original quedó completo con la validación física del 14/09/2026; lo posterior (028–047) son mejoras pedidas tras usarlo en el aula. 044–047 se publicaron como 1.6.0. Falta, en tablet real: confirmar la 039 (una sola opción marcada), recorrer la 040 con imágenes, tablas y un grupo de emparejamiento, el botón Volver al inicio de la 041, el triple clic de la 042 en el proyector y el portal de la 045 en una tablet (entregar, volver, y que la prueba ya no aparezca). Lo que sigue después de eso, si el usuario lo decide, sale de `Backlog / ideas`.
 
 ## Pendientes 📋
 

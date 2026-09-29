@@ -2,10 +2,9 @@
 
 ## Última actualización y rama activa
 
-- 29/09/2026 — `main` tiene la 1.5.0 publicada (043) y, sin versión todavía,
-  la 044 (elegir la evaluación del portal de una lista) más la 045, la 046 y
-  la 047 de esta sesión. Commits locales; **sin push ni tag**: falta que el
-  usuario lo confirme.
+- 29/09/2026 — `main` publicada como **1.6.0** (tag `v1.6.0`): reúne la 044
+  (elegir la evaluación del portal de una lista) y la 045, la 046 y la 047 de
+  esta sesión. El workflow `instalador.yml` compila y commitea el instalador.
 
 ## Feature/tarea en curso
 
@@ -39,9 +38,8 @@
 
 ## Siguiente tarea
 
-1. El usuario decide si publica una versión (¿1.6.0?, porque trae la
-   migración v8): `npm version`, commit, `git push`,
-   `git tag vX.Y.Z && git push origin vX.Y.Z`.
+1. Confirmar que el workflow de `v1.6.0` terminó en verde y hacer
+   `git pull` para traer el commit del instalador.
 2. En tablet real: la 045 (entregar → Volver al inicio → el código ya no
    muestra la prueba), más las pendientes 039–042.
 3. En `portal-estudiantes`: sigue pendiente decidir si se fusiona la rama
