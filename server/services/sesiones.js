@@ -278,8 +278,8 @@ export function borrarSesion(db, id) {
 }
 
 /**
- * Lo que el estudiante ve en su portal: sesiones activas de su curso y las
- * cerradas en las que ya entregó, para que pueda volver a consultar la nota.
+ * Lo que el estudiante ve en su portal: sesiones activas de su curso que
+ * todavía no ha entregado. Las ya presentadas no vuelven a aparecer (045).
  */
 export function sesionesDisponiblesPara(db, estudiante) {
   const marcadores = ESTADOS_VISIBLES.map(() => '?').join(', ');
@@ -290,7 +290,7 @@ export function sesionesDisponiblesPara(db, estudiante) {
              b.nombre AS banco
       FROM sesiones s
       JOIN bancos b ON b.id = s.banco_id
-      WHERE s.estado IN (${marcadores}) OR EXISTS (
+      WHERE s.estado IN (${marcadores}) AND NOT EXISTS (
         SELECT 1 FROM intentos i
         WHERE i.sesion_id = s.id AND i.codigo_estudiante = ? AND i.entregado_en IS NOT NULL
       )

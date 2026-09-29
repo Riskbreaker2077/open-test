@@ -25,8 +25,10 @@ export function iniciarOReanudarIntento(db, sesion, estudiante) {
       .get(sesion.id, estudiante.codigo);
 
     if (existente) {
+      // Lo presentado no se vuelve a abrir desde el portal (045).
+      if (existente.entregado_en) throw error('Ya entregaste esta prueba.', 409);
       const motivo = puedeEntrar(sesion, estudiante);
-      if (motivo && !existente.entregado_en) throw error(motivo, 409);
+      if (motivo) throw error(motivo, 409);
       db.prepare('UPDATE intentos SET token = ? WHERE id = ?').run(token, existente.id);
       return { intento: { ...existente, token }, nuevo: false };
     }

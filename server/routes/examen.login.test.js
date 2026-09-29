@@ -7,6 +7,7 @@ import { _reiniciarLimitador } from './auth.js';
 import { NOMBRE_COOKIE_ESTUDIANTE } from './examen.js';
 import { guardarBanco } from '../services/bancos.js';
 import { preguntasDeEjemplo } from '../fixtures-preguntas.js';
+import { anularIntento, forzarEntrega } from '../services/intentos.js';
 
 let db;
 let servidor;
@@ -137,23 +138,39 @@ test('reanudar con el código devuelve el mismo intento', async () => {
   assert.equal(segunda.estado.intentoId, primera.estado.intentoId);
 });
 
-test('tras entregar y cerrar puede volver a entrar con su código para ver el resultado', async () => {
+test('lo ya entregado no se lista ni se puede reabrir, ni abierto ni cerrado (045)', async () => {
   const sesion = await sesionAbierta();
   const entrada = await alumno('/api/examen/entrar', { codigo: '2024001', sesionId: sesion.id });
   const cookie = cookieDe(entrada).split(';')[0];
   await docente(`/api/docente/sesiones/${sesion.id}/comenzar`, {});
-  await fetch(`${base}/api/examen/entregar`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', cookie },
-    body: JSON.stringify({ motivo: 'manual' }),
-  });
-  await docente(`/api/docente/sesiones/${sesion.id}/cerrar`, {});
+  forzarEntrega(db, (await (await fetch(`${base}/api/examen/estado`, { headers: { cookie } })).json()).estado.intentoId);
 
-  const lista = await (await alumno('/api/examen/sesiones', { codigo: '2024001' })).json();
-  assert.deepEqual(lista.sesiones.map((item) => item.id), [sesion.id]);
+  // Justo al entregar, el resultado sigue disponible con la cookie de la entrega.
+  const resultado = await fetch(`${base}/api/examen/resultado`, { headers: { cookie } });
+  assert.equal(resultado.status, 200);
+
+  const tokenAntes = db.prepare('SELECT token FROM intentos WHERE codigo_estudiante = ?').get('2024001').token;
+  for (const cerrar of [false, true]) {
+    if (cerrar) await docente(`/api/docente/sesiones/${sesion.id}/cerrar`, {});
+    const lista = await (await alumno('/api/examen/sesiones', { codigo: '2024001' })).json();
+    assert.deepEqual(lista.sesiones, []);
+    const regreso = await alumno('/api/examen/entrar', { codigo: '2024001', sesionId: sesion.id });
+    assert.equal(regreso.status, 409);
+    assert.equal((await regreso.json()).mensaje, 'Ya entregaste esta prueba.');
+  }
+  const tokenDespues = db.prepare('SELECT token FROM intentos WHERE codigo_estudiante = ?').get('2024001').token;
+  assert.equal(tokenDespues, tokenAntes, 'el intento rechazado no recibe token nuevo');
+});
+
+test('una prueba anulada tampoco se puede reabrir (045)', async () => {
+  const sesion = await sesionAbierta();
+  const entrada = await (await alumno('/api/examen/entrar', { codigo: '2024001', sesionId: sesion.id })).json();
+  await docente(`/api/docente/sesiones/${sesion.id}/comenzar`, {});
+  anularIntento(db, entrada.estado.intentoId);
+
   const regreso = await alumno('/api/examen/entrar', { codigo: '2024001', sesionId: sesion.id });
-  assert.equal(regreso.status, 200);
-  assert.equal((await regreso.json()).estado.entregado, true);
+  assert.equal(regreso.status, 409);
+  assert.equal((await regreso.json()).mensaje, 'Ya entregaste esta prueba.');
 });
 
 test('el estado se consulta con la cookie y refleja la sesión', async () => {

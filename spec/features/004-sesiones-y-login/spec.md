@@ -26,7 +26,7 @@ La sesión es lo que convierte un banco de preguntas y una lista de estudiantes 
 - [x] Al entrar por primera vez se crea su intento con una semilla propia y se le devuelve un token que la tablet guarda.
 - [x] Si recarga la página o se le apaga la tablet, volver a entrar con su código lo devuelve a **su mismo intento**, no a uno nuevo.
 - [x] El token se renueva en cada entrada: la última tablet en la que se identificó es la única que sigue valiendo.
-- [ ] Un estudiante que ya entregó no puede volver a entrar: ve su resultado, no un examen nuevo. _(el intento se marca como entregado y el estado lo refleja; la pantalla de resultado llega en la feature 007.)_
+- [ ] Un estudiante que ya entregó no puede volver a entrar: ve su resultado, no un examen nuevo. _(el intento se marca como entregado y el estado lo refleja; la pantalla de resultado llega en la feature 007.)_ _Revisado por la 045: lo ya entregado no se lista ni se reabre desde el portal; el resultado se ve solo al entregar._
 - [x] Dos estudiantes distintos nunca reciben el mismo token.
 - [x] El código se recorta de espacios antes de comparar, y espacios sobrantes no impiden entrar.
 

@@ -219,6 +219,12 @@ formularioCodigo.addEventListener('submit', async (evento) => {
 
 async function iniciar() {
   const estado = await consultarEstado();
+  // Una prueba ya entregada no se reabre al volver al portal: su resultado se
+  // ve solo al entregar (045). La cookie puede ser de otro estudiante.
+  if (estado?.entregado) {
+    await volverAlInicio();
+    return;
+  }
   if (estado) {
     renderEstado(estado);
     return;

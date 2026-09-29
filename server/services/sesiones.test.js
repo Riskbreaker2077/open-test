@@ -266,7 +266,7 @@ test('el estudiante solo ve lo abierto y convocado para su curso', () => {
   cerrarBd(db);
 });
 
-test('una sesión cerrada solo permanece para quien ya entregó', () => {
+test('lo que el estudiante ya entregó no vuelve a aparecer, abierto o cerrado (045)', () => {
   const db = preparar();
   const sesion = crearSesion(db, base);
   abrirSesion(db, sesion.id);
@@ -275,13 +275,17 @@ test('una sesión cerrada solo permanece para quien ya entregó', () => {
       (sesion_id, codigo_estudiante, semilla, token, iniciado_en, entregado_en, motivo_entrega, aciertos, puntaje)
     VALUES (?, '2024001', 's', 't', '2026-01-01', '2026-01-02', 'manual', 0, 0)
   `).run(sesion.id);
-  cerrarSesion(db, sesion.id);
 
+  assert.deepEqual(sesionesDisponiblesPara(db, { codigo: '2024001', curso: '10A' }), []);
   assert.deepEqual(
-    sesionesDisponiblesPara(db, { codigo: '2024001', curso: '10A' }).map((s) => s.id),
+    sesionesDisponiblesPara(db, { codigo: '2024003', curso: '10A' }).map((s) => s.id),
     [sesion.id],
+    'un compañero que no ha entregado sí la ve',
   );
-  assert.deepEqual(sesionesDisponiblesPara(db, { codigo: '2024002', curso: '10B' }), []);
+
+  cerrarSesion(db, sesion.id);
+  assert.deepEqual(sesionesDisponiblesPara(db, { codigo: '2024001', curso: '10A' }), []);
+  assert.deepEqual(sesionesDisponiblesPara(db, { codigo: '2024003', curso: '10A' }), []);
   cerrarBd(db);
 });
 
