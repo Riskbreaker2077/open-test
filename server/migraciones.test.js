@@ -318,6 +318,9 @@ function baseVersion5(ruta) {
   db.close();
 }
 
+/** Lo que añadió la migración v8 (046), para partir de una base anterior. */
+const SIN_046 = /,\n  -- Cuándo se mandó a la papelera[^\n]*\n[^\n]*\n  en_papelera_en              TEXT\n\);/;
+
 /** Lo que añadió la migración v7 (043), para partir de una base anterior. */
 const SIN_043 = {
   columna: /,\n  -- Código de la evaluación en el portal[^\n]*\n[^\n]*\n  codigo_portal               TEXT\n\);/,
@@ -328,6 +331,7 @@ test('la migración v7 añade el código del portal y los envíos sin tocar lo q
   const { ruta, limpiar } = carpetaTemporal();
   try {
     const esquema = readFileSync(new URL('./schema.sql', import.meta.url), 'utf8')
+      .replace(SIN_046, '\n);')
       .replace(SIN_043.columna, '\n  descargado_en               TEXT\n);')
       .replace(SIN_043.tabla, '');
     assert.doesNotMatch(esquema, /codigo_portal|envios_portal/, 'la base de partida no tiene lo nuevo');
@@ -347,6 +351,32 @@ test('la migración v7 añade el código del portal y los envíos sin tocar lo q
     assert.equal(sesion.nombre, 'Parcial');
     assert.equal(sesion.codigo_portal, null, 'nada se envía por migrar');
     assert.equal(db.prepare('SELECT count(*) AS t FROM envios_portal').get().t, 0);
+    cerrarBd(db);
+  } finally {
+    limpiar();
+  }
+});
+
+test('la migración v8 añade la papelera sin mandar nada a ella', () => {
+  const { ruta, limpiar } = carpetaTemporal();
+  try {
+    const esquema = readFileSync(new URL('./schema.sql', import.meta.url), 'utf8').replace(SIN_046, '\n);');
+    assert.doesNotMatch(esquema, /en_papelera_en/, 'la base de partida no tiene lo nuevo');
+    const vieja = new Database(ruta);
+    vieja.exec(esquema);
+    vieja.prepare("INSERT INTO config VALUES ('esquema_version', '7')").run();
+    vieja.prepare("INSERT INTO bancos (nombre, creado_en) VALUES ('Ciencias', '2026-01-01')").run();
+    vieja.prepare(`
+      INSERT INTO sesiones (nombre, banco_id, cursos, estado, creado_en, codigo_portal)
+      VALUES ('Parcial', 1, '10A', 'cerrada', '2026-01-01', 'EV-1')
+    `).run();
+    vieja.close();
+
+    const db = abrirBd(ruta);
+    assert.equal(versionDe(db), ULTIMA_VERSION);
+    const sesion = db.prepare('SELECT * FROM sesiones').get();
+    assert.equal(sesion.codigo_portal, 'EV-1');
+    assert.equal(sesion.en_papelera_en, null, 'nada va a la papelera por migrar');
     cerrarBd(db);
   } finally {
     limpiar();

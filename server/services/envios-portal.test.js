@@ -5,7 +5,7 @@ import { guardarBanco } from './bancos.js';
 import { preguntaDeEjemplo } from '../fixtures-preguntas.js';
 import { guardarEstudiantes } from './estudiantes.js';
 import { anularIntento, iniciarOReanudarIntento, revertirAnulacion } from './intentos.js';
-import { abrirSesion, cerrarSesion, comenzarSesion, crearSesion, obtenerSesion } from './sesiones.js';
+import { abrirSesion, borrarSesion, cerrarSesion, comenzarSesion, crearSesion, obtenerSesion } from './sesiones.js';
 import { aReproduccionZip, armarExportacion } from '../exporters/resultados.js';
 import { leerZip } from '../importers/paquete-zip.js';
 import {
@@ -187,5 +187,17 @@ test('sin vincular, o con un examen en curso o en pausa, no se abre ninguna cone
   comenzarSesion(db, otra.id);
   await assert.rejects(enviarPendientes(db, { fetchFn: portal.fetchFn }), /en curso o en pausa/);
   assert.equal(portal.peticiones.length, 0);
+  cerrarBd(db);
+});
+
+test('lo que está en la papelera no aparece ni se envía (046)', async () => {
+  const { db, sesionId } = preparar();
+  vincularPortal(db, { url: 'https://p.test', clave: CLAVE });
+  fijarCodigoPortal(db, sesionId, 'EV-1');
+  borrarSesion(db, sesionId);
+  assert.deepEqual(listarEnvios(db), []);
+  const { peticiones, fetchFn } = portalFalso();
+  await enviarPendientes(db, { fetchFn });
+  assert.equal(peticiones.filter((p) => p.url.includes('/envios')).length, 0);
   cerrarBd(db);
 });

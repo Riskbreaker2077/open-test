@@ -15,7 +15,7 @@ const redondear = (valor) => Number(valor.toFixed(1));
 
 export function sesionesCerradasDeBanco(db, bancoId) {
   return db.prepare(`
-    SELECT id, nombre, cursos FROM sesiones WHERE banco_id = ? AND estado = 'cerrada' ORDER BY id DESC
+    SELECT id, nombre, cursos FROM sesiones WHERE banco_id = ? AND estado = 'cerrada' AND en_papelera_en IS NULL ORDER BY id DESC
   `).all(bancoId).map((sesion) => ({ id: sesion.id, nombre: sesion.nombre, cursos: cursosDe(sesion) }));
 }
 

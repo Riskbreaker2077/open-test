@@ -330,7 +330,7 @@ test('descargar escribe descargado_en la primera vez y la deja igual las siguien
   assert.equal(segundaMarca, primeraMarca, 'descargas siguientes no mueven la marca');
 });
 
-test('DELETE borra una evaluación con intentos sin exigir descarga previa', async () => {
+test('DELETE manda a la papelera una evaluación con intentos, y se restaura o se elimina (046)', async () => {
   const { sesion } = await post('/api/docente/sesiones', NUEVA);
   await post(`/api/docente/sesiones/${sesion.id}/abrir`);
   await fetch(`${base}/api/examen/entrar`, {
@@ -338,11 +338,30 @@ test('DELETE borra una evaluación con intentos sin exigir descarga previa', asy
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ codigo: '2024001', sesionId: sesion.id }),
   });
-  await post(`/api/docente/sesiones/${sesion.id}/cerrar`);
-  assert.equal(db.prepare('SELECT descargado_en FROM sesiones WHERE id = ?').get(sesion.id).descargado_en, null);
 
+  const abierta = await llamar(`/api/docente/sesiones/${sesion.id}`, { method: 'DELETE' });
+  assert.equal(abierta.status, 409, 'con estudiantes dentro no se borra');
+
+  await post(`/api/docente/sesiones/${sesion.id}/cerrar`);
   const respuesta = await llamar(`/api/docente/sesiones/${sesion.id}`, { method: 'DELETE' });
   assert.equal(respuesta.status, 200);
+  assert.equal((await respuesta.json()).sesion.enPapelera, true);
+  assert.equal(db.prepare('SELECT count(*) AS t FROM intentos WHERE sesion_id = ?').get(sesion.id).t, 1);
+
+  const lista = await (await llamar('/api/docente/sesiones')).json();
+  assert.deepEqual(lista.sesiones, []);
+  assert.equal((await llamar(`/api/docente/sesiones/${sesion.id}/export/zip`)).status, 404);
+  const { papelera } = await (await llamar('/api/docente/papelera')).json();
+  assert.deepEqual(papelera.map((fila) => fila.id), [sesion.id]);
+  assert.ok(papelera[0].se_elimina_en);
+
+  const restaurada = await post(`/api/docente/papelera/${sesion.id}/restaurar`);
+  assert.equal(restaurada.ok, true);
+  assert.equal((await (await llamar('/api/docente/sesiones')).json()).sesiones.length, 1);
+
+  await llamar(`/api/docente/sesiones/${sesion.id}`, { method: 'DELETE' });
+  const eliminada = await llamar(`/api/docente/papelera/${sesion.id}`, { method: 'DELETE' });
+  assert.equal(eliminada.status, 200);
   assert.equal(db.prepare('SELECT count(*) AS t FROM sesiones WHERE id = ?').get(sesion.id).t, 0);
   assert.equal(db.prepare('SELECT count(*) AS t FROM intentos WHERE sesion_id = ?').get(sesion.id).t, 0);
 });
@@ -358,6 +377,9 @@ test('todas las rutas de evaluaciones exigen contraseña', async () => {
     ['/api/docente/sesiones/1/pausar', 'POST'],
     ['/api/docente/sesiones/1/reanudar', 'POST'],
     ['/api/docente/sesiones/1/cerrar', 'POST'],
+    ['/api/docente/papelera', 'GET'],
+    ['/api/docente/papelera/1/restaurar', 'POST'],
+    ['/api/docente/papelera/1', 'DELETE'],
     ['/api/docente/sesiones/1/monitoreo', 'GET'],
     ['/api/docente/intentos/1/forzar-entrega', 'POST'],
     ['/api/docente/sesiones/1/export/excel', 'GET'],

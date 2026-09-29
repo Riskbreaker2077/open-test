@@ -18,11 +18,14 @@ import {
   cerrarSesion,
   comenzarSesion,
   crearSesion,
+  eliminarDePapelera,
+  listarPapelera,
   listarSesiones,
   obtenerSesion,
   pausarSesion,
   POR_DEFECTO,
   reanudarSesion,
+  restaurarSesion,
   actualizarSesion,
   actualizarNivelFeedback,
 } from '../services/sesiones.js';
@@ -500,8 +503,21 @@ export function rutasDocente(db) {
     }
   });
 
+  // Con intentos, borrar la manda a la papelera; sin intentos, se borra en el acto (046).
   router.delete('/sesiones/:id', (req, res) => {
     responder(res, () => ({ sesion: borrarSesion(db, Number(req.params.id)) }));
+  });
+
+  router.get('/papelera', (req, res) => {
+    responder(res, () => ({ papelera: listarPapelera(db) }));
+  });
+
+  router.post('/papelera/:id/restaurar', (req, res) => {
+    responder(res, () => ({ sesion: restaurarSesion(db, Number(req.params.id)) }));
+  });
+
+  router.delete('/papelera/:id', (req, res) => {
+    responder(res, () => ({ sesion: eliminarDePapelera(db, Number(req.params.id)) }));
   });
 
   return router;

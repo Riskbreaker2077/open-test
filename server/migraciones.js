@@ -233,6 +233,13 @@ const MIGRACIONES = [
       `);
     },
   },
+  {
+    version: 8,
+    descripcion: 'Papelera de evaluaciones (046)',
+    aplicar(db) {
+      anadirColumna(db, 'sesiones', 'en_papelera_en', 'TEXT');
+    },
+  },
 ];
 
 export const ULTIMA_VERSION = MIGRACIONES.at(-1)?.version ?? 0;

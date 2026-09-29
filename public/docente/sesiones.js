@@ -10,6 +10,9 @@ const error = document.getElementById('error');
 const solapamiento = document.getElementById('solapamiento');
 const listado = document.getElementById('listado');
 const vacio = document.getElementById('vacio');
+const papelera = document.getElementById('papelera');
+const listadoPapelera = document.getElementById('listado-papelera');
+const irPapelera = document.getElementById('ir-papelera');
 
 const CAMPOS = ['nombre', 'n_preguntas', 'duracion_minutos', 'segundos_minimos_pregunta'];
 
@@ -220,12 +223,12 @@ function acciones(sesion) {
     grupo.append(resultados, selector);
 
     if (sesion.dentro > 0) {
+      // Con intentos no se borra en el acto: va a la papelera 30 días (046).
       grupo.append(botonBorrar(sesion, {
         habilitado: true,
         motivo: null,
-        confirmar: sesion.descargado_en
-          ? `¿Borrar "${sesion.nombre}" y todos los intentos? Ya no podrás consultar los resultados.`
-          : `¿Borrar "${sesion.nombre}" y todos los intentos? Todavía no has descargado sus resultados: se perderán para siempre.`,
+        confirmar: `¿Borrar "${sesion.nombre}"? Irá a la papelera con todos sus resultados; ` +
+          'podrás restaurarla durante 30 días y después se eliminará sola.',
       }));
     } else {
       grupo.append(botonBorrar(sesion, {
@@ -272,6 +275,47 @@ async function recargar() {
   }
 
   listado.replaceChildren(thead, tbody);
+  await recargarPapelera();
+}
+
+const fecha = (iso) => new Date(iso).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' });
+
+async function recargarPapelera() {
+  const { papelera: filas = [] } = await api('/api/docente/papelera');
+  papelera.hidden = filas.length === 0;
+  irPapelera.hidden = filas.length === 0;
+  irPapelera.textContent = `Papelera (${filas.length})`;
+
+  const thead = document.createElement('thead');
+  thead.innerHTML = '<tr><th>Evaluación</th><th>Cursos</th><th>Intentos</th><th>Se elimina sola</th><th>Acciones</th></tr>';
+  const tbody = document.createElement('tbody');
+  for (const fila of filas) {
+    const tr = document.createElement('tr');
+    for (const valor of [fila.nombre, fila.cursos.replaceAll(',', ', '), fila.intentos, `el ${fecha(fila.se_elimina_en)}`]) {
+      const td = document.createElement('td');
+      td.textContent = valor;
+      tr.append(td);
+    }
+    const td = document.createElement('td');
+    const grupo = document.createElement('div');
+    grupo.append(
+      accion('Restaurar', async () => {
+        const respuesta = await api(`/api/docente/papelera/${fila.id}/restaurar`, { method: 'POST' });
+        if (!respuesta.ok) window.alert(respuesta.mensaje);
+        await recargar();
+      }),
+      accion('Borrar ya', async () => {
+        if (!window.confirm(`¿Eliminar "${fila.nombre}" para siempre? Sus resultados no se podrán recuperar.`)) return;
+        const respuesta = await api(`/api/docente/papelera/${fila.id}`, { method: 'DELETE' });
+        if (!respuesta.ok) window.alert(respuesta.mensaje);
+        await recargar();
+      }),
+    );
+    td.append(grupo);
+    tr.append(td);
+    tbody.append(tr);
+  }
+  listadoPapelera.replaceChildren(thead, tbody);
 }
 
 await cargarOpciones();

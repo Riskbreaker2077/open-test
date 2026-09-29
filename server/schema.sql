@@ -129,7 +129,10 @@ CREATE TABLE IF NOT EXISTS sesiones (
   descargado_en               TEXT,
   -- Código de la evaluación en el portal de estudiantes (043). NULL = no se
   -- envía. Se puede fijar o cambiar también después de cerrar.
-  codigo_portal               TEXT
+  codigo_portal               TEXT,
+  -- Cuándo se mandó a la papelera (046). NULL = no está en la papelera. Se
+  -- restaura intacta o se elimina sola a los 30 días.
+  en_papelera_en              TEXT
 );
 
 -- Envíos de resultados al portal de estudiantes (043). Una fila por evaluación

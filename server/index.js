@@ -4,6 +4,7 @@ import { abrirBd, cerrarBd, RUTA_BD_POR_DEFECTO } from './db.js';
 import { esModoRecuperacion, recuperarContrasena } from './recuperacion.js';
 import { hostnameEsAmigable, urlsDeIntranet } from './red.js';
 import { abrirNavegador, siguientePuertoLibre, yaEstaAbierto } from './arranque.js';
+import { vaciarPapeleraVencida } from './services/sesiones.js';
 
 // Modo de recuperación: restablece la contraseña del panel desde la consola
 // del propio equipo y no arranca el servidor. Exige acceso físico, que es
@@ -29,6 +30,10 @@ if (await yaEstaAbierto(solicitado)) {
 const puerto = await siguientePuertoLibre(solicitado);
 
 const db = abrirBd();
+// Lo que lleva más de 30 días en la papelera se elimina al arrancar y una vez
+// al día mientras OpenTest siga abierto (046).
+vaciarPapeleraVencida(db);
+setInterval(() => vaciarPapeleraVencida(db), 24 * 60 * 60 * 1000).unref();
 const app = crearApp(db);
 // El panel apaga el servidor con este botón: sin ventana, no hay otra forma (034).
 app.locals.apagar = apagar;

@@ -79,9 +79,21 @@
     </section>
 
     <section class="tarjeta">
-      <h2>Evaluaciones creadas</h2>
+      <div class="titulo-con-enlace">
+        <h2>Evaluaciones creadas</h2>
+        <a class="boton boton--secundario boton--pequeno" id="ir-papelera" href="#papelera" hidden>Papelera</a>
+      </div>
       <p id="vacio" hidden class="apunte">Todavía no has creado ninguna.</p>
       <table class="tabla" id="listado"></table>
+    </section>
+
+    <section class="tarjeta" id="papelera" hidden>
+      <h2>Papelera</h2>
+      <p class="apunte">
+        Las evaluaciones borradas esperan aquí 30 días, con todos sus resultados, por si hace falta
+        restaurarlas. Después OpenTest las elimina solo.
+      </p>
+      <table class="tabla" id="listado-papelera"></table>
     </section>
   </main>
 

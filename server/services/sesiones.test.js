@@ -14,15 +14,21 @@ import {
   convoca,
   crearSesion,
   cursosDe,
+  DIAS_PAPELERA,
+  eliminarDePapelera,
+  listarPapelera,
   listarSesiones,
   obtenerSesion,
   pausarSesion,
   POR_DEFECTO,
   puedeEntrar,
   reanudarSesion,
+  restaurarSesion,
   sesionesDisponiblesPara,
   tiempoRestante,
+  vaciarPapeleraVencida,
 } from './sesiones.js';
+import { borrarBanco } from './bancos.js';
 
 function preparar(nPreguntas = 25) {
   const db = abrirBd(':memory:');
@@ -307,24 +313,10 @@ test('puedeEntrar explica por qué no en cada caso', () => {
   cerrarBd(db);
 });
 
-test('una sesión con intentos se borra aunque no se hayan descargado los resultados', () => {
-  const db = preparar();
-  const borrador = crearSesion(db, base);
-  assert.doesNotThrow(() => borrarSesion(db, borrador.id));
-
+/** Una sesión cerrada con un intento que tiene una pregunta respondida. */
+function cerradaConIntento(db) {
   const sesion = crearSesion(db, base);
-  db.prepare(
-    "INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en) VALUES (?, '2024001', 's', 't', '2026-01-01')",
-  ).run(sesion.id);
-
-  assert.doesNotThrow(() => borrarSesion(db, sesion.id));
-  assert.equal(db.prepare('SELECT count(*) AS t FROM sesiones WHERE id = ?').get(sesion.id).t, 0);
-  cerrarBd(db);
-});
-
-test('borrar una sesión con intentos descarga cascada a intentos, intento_preguntas y respuestas', () => {
-  const db = preparar();
-  const sesion = crearSesion(db, base);
+  abrirSesion(db, sesion.id);
   const intento = db.prepare(
     "INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en) VALUES (?, '2024001', 's', 't', '2026-01-01')",
   ).run(sesion.id).lastInsertRowid;
@@ -334,13 +326,87 @@ test('borrar una sesión con intentos descarga cascada a intentos, intento_pregu
   db.prepare(
     "INSERT INTO respuestas (intento_pregunta_id, opcion_id, segundos_en_pantalla, respondido_en) VALUES (?, 1, 0, '2026-01-01')",
   ).run(ip);
+  cerrarSesion(db, sesion.id);
+  return { sesion, intento, ip };
+}
 
+const cuenta = (db, sql, ...args) => db.prepare(`SELECT count(*) AS t FROM ${sql}`).get(...args).t;
+
+test('borrar una sesión con intentos la manda a la papelera sin perder nada (046)', () => {
+  const db = preparar();
+  const { sesion, intento, ip } = cerradaConIntento(db);
+
+  const borrada = borrarSesion(db, sesion.id, new Date('2026-09-01T10:00:00Z'));
+  assert.equal(borrada.enPapelera, true);
+  assert.equal(cuenta(db, 'sesiones WHERE id = ?', sesion.id), 1);
+  assert.equal(cuenta(db, 'intentos WHERE id = ?', intento), 1);
+  assert.equal(cuenta(db, 'respuestas WHERE intento_pregunta_id = ?', ip), 1);
+
+  assert.deepEqual(listarSesiones(db), [], 'desaparece de las evaluaciones');
+  assert.throws(() => obtenerSesion(db, sesion.id), /no existe/);
+  const [enPapelera] = listarPapelera(db);
+  assert.equal(enPapelera.id, sesion.id);
+  assert.equal(enPapelera.intentos, 1);
+  assert.equal(enPapelera.se_elimina_en, '2026-10-01T10:00:00.000Z');
+
+  restaurarSesion(db, sesion.id);
+  assert.equal(listarSesiones(db).length, 1, 'vuelve tal como estaba');
+  assert.equal(obtenerSesion(db, sesion.id).estado, 'cerrada');
+  assert.deepEqual(listarPapelera(db), []);
+  cerrarBd(db);
+});
+
+test('sin intentos se borra en el acto; con intentos y abierta no se deja borrar (046)', () => {
+  const db = preparar();
+  const borrador = crearSesion(db, base);
+  assert.equal(borrarSesion(db, borrador.id).enPapelera, false);
+  assert.equal(cuenta(db, 'sesiones WHERE id = ?', borrador.id), 0);
+
+  const abierta = crearSesion(db, base);
+  abrirSesion(db, abierta.id);
+  db.prepare(
+    "INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en) VALUES (?, '2024001', 's', 't', '2026-01-01')",
+  ).run(abierta.id);
+  assert.throws(() => borrarSesion(db, abierta.id), (err) => err.estado === 409 && /Cierra la evaluación/.test(err.message));
+  cerrarBd(db);
+});
+
+test('eliminar desde la papelera borra en cascada intentos, preguntas y respuestas (046)', () => {
+  const db = preparar();
+  const { sesion, intento, ip } = cerradaConIntento(db);
+  assert.throws(() => eliminarDePapelera(db, sesion.id), /no está en la papelera/, 'solo lo que ya está en la papelera');
   borrarSesion(db, sesion.id);
 
-  assert.equal(db.prepare('SELECT count(*) AS t FROM sesiones WHERE id = ?').get(sesion.id).t, 0);
-  assert.equal(db.prepare('SELECT count(*) AS t FROM intentos WHERE sesion_id = ?').get(sesion.id).t, 0);
-  assert.equal(db.prepare('SELECT count(*) AS t FROM intento_preguntas WHERE intento_id = ?').get(intento).t, 0);
-  assert.equal(db.prepare('SELECT count(*) AS t FROM respuestas WHERE intento_pregunta_id = ?').get(ip).t, 0);
+  eliminarDePapelera(db, sesion.id);
+
+  assert.equal(cuenta(db, 'sesiones WHERE id = ?', sesion.id), 0);
+  assert.equal(cuenta(db, 'intentos WHERE sesion_id = ?', sesion.id), 0);
+  assert.equal(cuenta(db, 'intento_preguntas WHERE intento_id = ?', intento), 0);
+  assert.equal(cuenta(db, 'respuestas WHERE intento_pregunta_id = ?', ip), 0);
+  cerrarBd(db);
+});
+
+test('la papelera se vacía sola a los 30 días, no antes (046)', () => {
+  const db = preparar();
+  const { sesion } = cerradaConIntento(db);
+  const borrada = new Date('2026-09-01T10:00:00Z');
+  borrarSesion(db, sesion.id, borrada);
+  const dia = 24 * 60 * 60 * 1000;
+
+  assert.equal(DIAS_PAPELERA, 30);
+  assert.equal(vaciarPapeleraVencida(db, new Date(borrada.getTime() + 30 * dia - 1000)), 0);
+  assert.equal(listarPapelera(db).length, 1);
+  assert.equal(vaciarPapeleraVencida(db, new Date(borrada.getTime() + 30 * dia)), 1);
+  assert.equal(cuenta(db, 'sesiones'), 0);
+  assert.equal(cuenta(db, 'intentos'), 0);
+  cerrarBd(db);
+});
+
+test('un banco usado por una evaluación en la papelera sigue sin poder borrarse (046)', () => {
+  const db = preparar();
+  const { sesion } = cerradaConIntento(db);
+  borrarSesion(db, sesion.id);
+  assert.throws(() => borrarBanco(db, 1), /1 evaluación\(es\) \(1 en la papelera\)/);
   cerrarBd(db);
 });
 

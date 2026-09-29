@@ -116,7 +116,11 @@ export function pruebaDelIntento(db, intentoId) {
 
 export function intentoPorToken(db, token) {
   if (typeof token !== 'string' || token === '') return null;
-  return db.prepare('SELECT * FROM intentos WHERE token = ?').get(token) ?? null;
+  // Una cookie vieja no abre nada de una evaluación que está en la papelera (046).
+  return db.prepare(`
+    SELECT i.* FROM intentos i JOIN sesiones s ON s.id = i.sesion_id
+    WHERE i.token = ? AND s.en_papelera_en IS NULL
+  `).get(token) ?? null;
 }
 
 export function entregado(intento) {

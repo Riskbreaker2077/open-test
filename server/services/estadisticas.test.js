@@ -6,7 +6,7 @@ import { guardarBanco, obtenerBanco } from './bancos.js';
 import { preguntaDeEjemplo } from '../fixtures-preguntas.js';
 import { guardarEstudiantes } from './estudiantes.js';
 import { iniciarOReanudarIntento } from './intentos.js';
-import { abrirSesion, cerrarSesion, crearSesion } from './sesiones.js';
+import { abrirSesion, borrarSesion, cerrarSesion, crearSesion } from './sesiones.js';
 import { estadisticasDeBanco, sesionesCerradasDeBanco } from './estadisticas.js';
 
 function crearBanco(db, preguntas) {
@@ -259,5 +259,20 @@ test('10 sesiones cerradas de 40 estudiantes × 20 preguntas (8000 filas) bajo 2
   const duracion = performance.now() - inicio;
   assert.equal(preguntas.length, 20);
   assert.ok(duracion < 2000, `tardó ${duracion.toFixed(1)} ms`);
+  cerrarBd(db);
+});
+
+test('una sesión en la papelera no entra en las estadísticas (046)', () => {
+  const db = abrirBd(':memory:');
+  const banco = crearBanco(db, [preguntaDeEjemplo()]);
+  crearEstudiantes(db, ['e1']);
+  const sesionId = crearSesionAbierta(db, banco.id, 1);
+  const intento = entrar(db, sesionId, 'e1');
+  responderTodas(db, intento.id, ['acertar']);
+  cerrarSesion(db, sesionId);
+  borrarSesion(db, sesionId);
+
+  assert.deepEqual(sesionesCerradasDeBanco(db, banco.id), []);
+  assert.deepEqual(estadisticasDeBanco(db, banco.id, {}), { preguntas: [], competencias: [] });
   cerrarBd(db);
 });

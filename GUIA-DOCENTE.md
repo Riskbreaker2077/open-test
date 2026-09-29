@@ -188,6 +188,18 @@ Si el colegio usa el portal de estudiantes, OpenTest puede llevarle los resultad
 
 Si anula o devuelve una prueba después de enviar, la evaluación vuelve a quedar pendiente: envíela otra vez.
 
+Cuando una evaluación queda **Enviada**, la misma página le sugiere quitarla del portátil con **Mover a la papelera**: sus resultados ya están en el portal y el equipo guarda datos de estudiantes. Es solo una sugerencia; nada se borra sin que usted pulse el botón.
+
+### La papelera
+
+Borrar una evaluación que tiene intentos no la elimina en el acto: la manda a la **papelera** de la página **Evaluaciones** (botón **Papelera (N)** junto a la lista). Allí espera **30 días** con todos sus resultados:
+
+- **Restaurar** la devuelve tal como estaba, con notas, anulaciones y estado de envío.
+- **Borrar ya** la elimina para siempre, después de confirmar.
+- Pasados los 30 días, OpenTest la elimina solo, al abrirse o durante el día si sigue abierto.
+
+Mientras está en la papelera, la evaluación no aparece en Monitoreo, Resultados, Estadísticas ni Enviar al portal, y su banco de preguntas no se puede borrar. Una evaluación sin intentos (por ejemplo, un borrador) se borra en el acto.
+
 ## 7. Ver qué falló más el grupo
 
 En **Estadísticas**, elija el banco de preguntas y luego una evaluación cerrada concreta o **todas las sesiones cerradas** que hayan usado ese banco, para acumular varios grupos o periodos. Dos tablas, de lo más fallado a lo menos fallado: por pregunta y por competencia. Sirve para decidir qué repasar en clase o qué pregunta del banco conviene revisar.

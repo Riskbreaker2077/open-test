@@ -288,3 +288,9 @@ fieldset.campo { padding: 0; margin-bottom: 1rem; border: 0; }
 /* Código del portal por evaluación (043): un campo dentro de una fila de tabla. */
 .entrada-codigo { width: 100%; min-width: 9rem; min-height: var(--toque); padding: 0.5rem 0.7rem; color: var(--tinta); border: 1px solid #cdd8da; border-radius: var(--radio-control); background: var(--papel); }
 .entrada-codigo:focus { border-color: var(--azul-800); box-shadow: 0 0 0 3px rgb(27 69 95 / 12%); }
+
+/* Sugerencia de mover a la papelera lo ya enviado al portal (046). */
+.sugerencia { border-color: var(--dorado-500); background: var(--papel-calido); }
+.sugerencia__lista { display: grid; padding: 0; margin: 0; gap: 0.6rem; list-style: none; }
+.sugerencia__lista li { display: flex; padding: 0.6rem 0.8rem; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border: 1px solid var(--borde); border-radius: var(--radio-control); background: var(--papel); }
+.titulo-con-enlace { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }

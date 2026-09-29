@@ -307,14 +307,19 @@ export function borrarBanco(db, bancoId) {
   const banco = db.prepare('SELECT * FROM bancos WHERE id = ?').get(bancoId);
   if (!banco) throw Object.assign(new Error('Ese banco no existe.'), { estado: 404 });
 
-  const sesiones = db
-    .prepare('SELECT count(*) AS total FROM sesiones WHERE banco_id = ?')
-    .get(bancoId).total;
+  // Las que están en la papelera (046) también cuentan: se pueden restaurar.
+  const { total: sesiones, enPapelera } = db
+    .prepare(`
+      SELECT count(*) AS total, count(en_papelera_en) AS enPapelera
+      FROM sesiones WHERE banco_id = ?
+    `)
+    .get(bancoId);
 
   if (sesiones > 0) {
+    const papelera = enPapelera > 0 ? ` (${enPapelera} en la papelera)` : '';
     throw Object.assign(
       new Error(
-        `No se puede borrar "${banco.nombre}": se ha usado en ${sesiones} evaluación(es) y ` +
+        `No se puede borrar "${banco.nombre}": se ha usado en ${sesiones} evaluación(es)${papelera} y ` +
           'sus resultados deben seguir siendo auditables.',
       ),
       { estado: 409 },

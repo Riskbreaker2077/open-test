@@ -88,7 +88,7 @@ export function crearSesion(db, datos) {
 }
 
 export function obtenerSesion(db, id) {
-  const sesion = db.prepare('SELECT * FROM sesiones WHERE id = ?').get(id);
+  const sesion = db.prepare('SELECT * FROM sesiones WHERE id = ? AND en_papelera_en IS NULL').get(id);
   if (!sesion) throw error('Esa evaluación no existe.', 404);
   return sesion;
 }
@@ -262,19 +262,81 @@ export function listarSesiones(db) {
              (SELECT count(*) FROM preguntas p WHERE p.banco_id = s.banco_id) AS preguntas_banco
       FROM sesiones s
       JOIN bancos b ON b.id = s.banco_id
+      WHERE s.en_papelera_en IS NULL
       ORDER BY s.creado_en DESC
     `)
     .all();
 }
 
-/** Una evaluación con intentos puede borrarse sólo después de que se hayan descargado
- *  sus resultados al menos una vez: hasta entonces, borrar destruiría la única
- *  copia de la evidencia sin que el docente la tenga fuera de la base. */
-export function borrarSesion(db, id) {
+/** Días que una evaluación borrada espera en la papelera antes de eliminarse sola (046). */
+export const DIAS_PAPELERA = 30;
+const MS_DIA = 24 * 60 * 60 * 1000;
+
+const iso = (ahora) => (ahora instanceof Date ? ahora : new Date(ahora)).toISOString();
+
+/**
+ * Borrar una evaluación con intentos la manda a la papelera (046): los
+ * resultados son lo único que no se puede volver a generar. Sin intentos no
+ * hay nada que proteger y se borra en el acto.
+ */
+export function borrarSesion(db, id, ahora = new Date()) {
   const sesion = obtenerSesion(db, id);
-  // El docente decide cuándo borrar: ya no se exige descargar antes (033).
+  const { total } = db.prepare('SELECT count(*) AS total FROM intentos WHERE sesion_id = ?').get(id);
+
+  if (total === 0) {
+    db.prepare('DELETE FROM sesiones WHERE id = ?').run(id);
+    return { ...sesion, enPapelera: false };
+  }
+  if (ESTADOS_VISIBLES.includes(sesion.estado)) {
+    throw error('Cierra la evaluación antes de borrarla.', 409);
+  }
+  db.prepare('UPDATE sesiones SET en_papelera_en = ? WHERE id = ?').run(iso(ahora), id);
+  return { ...sesion, enPapelera: true };
+}
+
+function enPapelera(db, id) {
+  const sesion = db.prepare('SELECT * FROM sesiones WHERE id = ? AND en_papelera_en IS NOT NULL').get(id);
+  if (!sesion) throw error('Esa evaluación no está en la papelera.', 404);
+  return sesion;
+}
+
+export function listarPapelera(db) {
+  return db
+    .prepare(`
+      SELECT s.id, s.nombre, s.cursos, s.en_papelera_en, b.nombre AS banco,
+             (SELECT count(*) FROM intentos i WHERE i.sesion_id = s.id) AS intentos
+      FROM sesiones s
+      JOIN bancos b ON b.id = s.banco_id
+      WHERE s.en_papelera_en IS NOT NULL
+      ORDER BY s.en_papelera_en DESC
+    `)
+    .all()
+    .map((fila) => ({
+      ...fila,
+      se_elimina_en: new Date(Date.parse(fila.en_papelera_en) + DIAS_PAPELERA * MS_DIA).toISOString(),
+    }));
+}
+
+/** La devuelve tal como estaba: nada de lo que cuelga de ella se tocó al borrarla. */
+export function restaurarSesion(db, id) {
+  enPapelera(db, id);
+  db.prepare('UPDATE sesiones SET en_papelera_en = NULL WHERE id = ?').run(id);
+  return obtenerSesion(db, id);
+}
+
+/** Eliminación definitiva desde la papelera, en cascada. */
+export function eliminarDePapelera(db, id) {
+  const sesion = enPapelera(db, id);
   db.prepare('DELETE FROM sesiones WHERE id = ?').run(id);
   return sesion;
+}
+
+/** Elimina lo que lleva más de `DIAS_PAPELERA` en la papelera. Devuelve cuántas. */
+export function vaciarPapeleraVencida(db, ahora = new Date()) {
+  const limite = new Date(Date.parse(iso(ahora)) - DIAS_PAPELERA * MS_DIA).toISOString();
+  return db
+    .prepare('DELETE FROM sesiones WHERE en_papelera_en IS NOT NULL AND en_papelera_en <= ?')
+    .run(limite).changes;
 }
 
 /**
@@ -290,7 +352,7 @@ export function sesionesDisponiblesPara(db, estudiante) {
              b.nombre AS banco
       FROM sesiones s
       JOIN bancos b ON b.id = s.banco_id
-      WHERE s.estado IN (${marcadores}) AND NOT EXISTS (
+      WHERE s.estado IN (${marcadores}) AND s.en_papelera_en IS NULL AND NOT EXISTS (
         SELECT 1 FROM intentos i
         WHERE i.sesion_id = s.id AND i.codigo_estudiante = ? AND i.entregado_en IS NOT NULL
       )

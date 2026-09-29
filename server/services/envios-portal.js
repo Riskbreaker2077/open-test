@@ -152,7 +152,7 @@ export function listarEnvios(db) {
            (SELECT count(*) FROM intentos i WHERE i.sesion_id = s.id) AS intentos,
            e.huella, e.enviado_en, e.ultimo_intento_en, e.ultimo_error, e.destino
     FROM sesiones s LEFT JOIN envios_portal e ON e.sesion_id = s.id
-    WHERE s.estado = 'cerrada'
+    WHERE s.estado = 'cerrada' AND s.en_papelera_en IS NULL
     ORDER BY s.id DESC
   `).all();
   return sesiones.map((fila) => {

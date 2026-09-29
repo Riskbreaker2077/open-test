@@ -15,6 +15,8 @@ const elementos = {
   enviar: document.getElementById('enviar'),
   errorEnvio: document.getElementById('error-envio'),
   exitoEnvio: document.getElementById('exito-envio'),
+  sugerencia: document.getElementById('sugerencia'),
+  sugerenciaLista: document.getElementById('sugerencia-lista'),
 };
 
 let evaluacionesPortal = [];
@@ -105,8 +107,34 @@ function filaEnvio(envio) {
   return fila;
 }
 
+// Lo enviado ya está a salvo en el portal: se sugiere quitarlo de este equipo,
+// que guarda datos de estudiantes y se mueve de aula en aula (046).
+function pintarSugerencia(envios) {
+  const enviadas = envios.filter((envio) => envio.estado === 'enviado');
+  elementos.sugerencia.hidden = enviadas.length === 0;
+  elementos.sugerenciaLista.replaceChildren(...enviadas.map((envio) => {
+    const item = document.createElement('li');
+    const nombre = document.createElement('span');
+    nombre.textContent = `${envio.nombre} (${envio.cursos})`;
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'boton boton--secundario boton--pequeno';
+    boton.textContent = 'Mover a la papelera';
+    boton.addEventListener('click', async () => {
+      if (!window.confirm(`¿Mover "${envio.nombre}" a la papelera? Podrás restaurarla durante 30 días.`)) return;
+      boton.disabled = true;
+      const respuesta = await api(`/api/docente/sesiones/${envio.id}`, { method: 'DELETE' });
+      if (!respuesta.ok) window.alert(respuesta.mensaje);
+      await cargar();
+    });
+    item.append(nombre, boton);
+    return item;
+  }));
+}
+
 function pintarEnvios(envios) {
   ultimosEnvios = envios;
+  pintarSugerencia(envios);
   elementos.vacio.hidden = envios.length > 0;
   elementos.listado.hidden = envios.length === 0;
   elementos.filas.replaceChildren(...envios.map(filaEnvio));
