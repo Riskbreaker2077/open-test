@@ -366,6 +366,43 @@ test('DELETE manda a la papelera una evaluación con intentos, y se restaura o s
   assert.equal(db.prepare('SELECT count(*) AS t FROM intentos WHERE sesion_id = ?').get(sesion.id).t, 0);
 });
 
+test('el estado del panel resume lo que está en marcha y lo pendiente (047)', async () => {
+  const vacio = await (await llamar('/api/docente/estado')).json();
+  assert.deepEqual(vacio.activas, []);
+  assert.equal(vacio.sinEnviar, 0);
+  assert.equal(vacio.enPapelera, 0);
+
+  const entrar = (sesionId) => fetch(`${base}/api/examen/entrar`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ codigo: '2024001', sesionId }),
+  });
+  const cerradas = [];
+  for (const nombre of ['Cerrada 1', 'Cerrada 2']) {
+    const { sesion } = await post('/api/docente/sesiones', { ...NUEVA, nombre });
+    await post(`/api/docente/sesiones/${sesion.id}/abrir`);
+    await entrar(sesion.id);
+    await post(`/api/docente/sesiones/${sesion.id}/cerrar`);
+    cerradas.push(sesion);
+  }
+  await llamar(`/api/docente/sesiones/${cerradas[1].id}`, { method: 'DELETE' });
+  const { sesion: activa } = await post('/api/docente/sesiones', { ...NUEVA, nombre: 'En marcha' });
+  await post(`/api/docente/sesiones/${activa.id}/abrir`);
+  await entrar(activa.id);
+  await post(`/api/docente/sesiones/${activa.id}/comenzar`);
+  await post('/api/docente/sesiones', { ...NUEVA, nombre: 'Borrador' });
+
+  const estado = await (await llamar('/api/docente/estado')).json();
+  assert.equal(estado.evaluaciones, 3, 'la papelera no cuenta');
+  assert.deepEqual(estado.activas, [{
+    id: activa.id, nombre: 'En marcha', cursos: activa.cursos, estado: 'en_curso', dentro: 1, entregados: 0,
+  }]);
+  assert.equal(estado.sinEnviar, 1);
+  assert.equal(estado.enPapelera, 1);
+  assert.ok(estado.estudiantes > 0);
+  assert.equal(estado.bancos, 1);
+});
+
 test('todas las rutas de evaluaciones exigen contraseña', async () => {
   const rutas = [
     ['/api/docente/sesiones', 'GET'],

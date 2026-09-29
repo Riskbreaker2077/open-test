@@ -19,6 +19,7 @@ import {
   comenzarSesion,
   crearSesion,
   eliminarDePapelera,
+  ESTADOS_VISIBLES,
   listarPapelera,
   listarSesiones,
   obtenerSesion,
@@ -90,7 +91,33 @@ export function rutasDocente(db) {
   };
 
   router.get('/estado', (req, res) => {
-    res.json({ ok: true, estudiantes: contarEstudiantes(db), bancos: contarBancos(db) });
+    // Lo que el panel de inicio necesita para orientar al docente (047).
+    const sesiones = listarSesiones(db);
+    const activas = sesiones
+      .filter((sesion) => ESTADOS_VISIBLES.includes(sesion.estado))
+      .map((sesion) => {
+        const { dentro, entregados } = contarIntentos(db, sesion.id);
+        return {
+          id: sesion.id,
+          nombre: sesion.nombre,
+          cursos: sesion.cursos,
+          estado: sesion.estado,
+          dentro,
+          entregados: entregados ?? 0,
+        };
+      });
+    const sinEnviar = listarEnvios(db).filter(
+      (envio) => envio.intentos > 0 && ['pendiente', 'sin_codigo'].includes(envio.estado),
+    ).length;
+    res.json({
+      ok: true,
+      estudiantes: contarEstudiantes(db),
+      bancos: contarBancos(db),
+      evaluaciones: sesiones.length,
+      activas,
+      sinEnviar,
+      enPapelera: listarPapelera(db).length,
+    });
   });
 
   // Paso 1: validar. No toca la base; devuelve qué pasaría y qué está mal.

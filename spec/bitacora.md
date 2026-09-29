@@ -789,3 +789,37 @@ faltaban: `allowPublicKeyRetrieval=true` en la URL de MySQL y
 `MCP_DATA_ENCRYPTION_KEY`; sin ellas ninguna herramienta MCP del portal
 podía ejecutarse, ni las nuevas ni las que ya llevaban semanas en
 producción — quien retome esto en ese equipo se habría topado con lo mismo.
+
+## 29/09/2026 — 045, 046 y 047: privacidad del portal, papelera y panel nuevo
+
+El usuario pidió tres cosas a la vez: rediseñar el panel del docente, que los
+estudiantes dejen de ver pruebas ya presentadas, y que tras enviar al portal
+OpenTest sugiera borrar los datos locales, con una papelera de un mes. Tres
+preguntas cerraron el alcance: el panel es la página de inicio `/docente/`,
+el resultado se ve **solo al entregar**, y **todo** borrado de una evaluación
+con intentos pasa por la papelera, no solo el que sigue a un envío.
+
+**045.** Lo curioso es que la constitución ya lo prohibía
+(`tech-stack.md`: "un estudiante que ya entregó no puede volver a entrar"),
+pero la 004/013 habían implementado lo contrario a propósito, con un test que
+lo fijaba ("tras entregar y cerrar puede volver a entrar con su código para
+ver el resultado"). Se reemplazó ese test y se dejó una nota de revisión en
+las dos specs. El detalle fino fue el portal: con la cookie de la entrega aún
+viva, abrir `/` llevaba directo al resultado. Ahora `iniciar()` la descarta,
+y el resultado solo se ve en el flujo de entrega.
+
+**046.** La papelera es una columna (`en_papelera_en`), no una tabla aparte:
+restaurar es poner NULL y todo lo que cuelga de la evaluación sigue en su
+sitio. El filtro se puso en los puntos de entrada (`obtenerSesion`,
+`listarSesiones`, `listarEnvios`, estadísticas, `intentoPorToken`) en vez de
+en cada consulta. Los conteos de `borrarBanco` siguen contando lo que está en
+la papelera, a propósito, y el mensaje lo dice. Se agregó un guard nuevo: una
+evaluación con intentos que sigue abierta no se puede borrar (409).
+
+**047.** El panel pasó de siete tarjetas iguales a Ahora, Pendientes y
+Preparar → Aplicar → Después. La pintura vive en `inicio.js` para no cargar
+el sondeo en las demás páginas que importan `panel.js`.
+
+Verificación: 509 tests y lint en verde. Los recorridos se hicieron en
+Chrome sin cabeza (CDP con `WebSocket` nativo de Node 24, sin dependencias)
+contra un servidor en memoria sembrado como en los tests. Sin push ni tag.

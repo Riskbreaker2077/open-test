@@ -21,16 +21,6 @@ if (salir) {
   });
 }
 
-const resumen = document.getElementById('resumen');
-if (resumen) {
-  api('/api/docente/estado').then(({ estudiantes }) => {
-    resumen.textContent =
-      estudiantes === 0
-        ? 'Todavía no has cargado ningún estudiante. Empieza por ahí.'
-        : `Tienes ${estudiantes} estudiante(s) cargados.`;
-  });
-}
-
 // OpenTest corre sin ventana de consola (034): este botón es su interruptor.
 const apagar = document.getElementById('apagar');
 if (apagar) {

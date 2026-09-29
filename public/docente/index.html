@@ -19,44 +19,69 @@
     </span>
   </header>
 
-  <main class="contenedor">
+  <main class="contenedor panel-inicio">
     <p class="sobretitulo">Gestión de evaluaciones</p>
     <h1>Panel del docente</h1>
 
-    <nav class="accesos">
-      <a class="acceso" href="/docente/estudiantes.html">
-        <strong>Estudiantes</strong>
-        Cargar la lista del colegio y consultarla por curso.
-      </a>
-      <a class="acceso" href="/docente/bancos.html">
-        <strong>Bancos de preguntas</strong>
-        Cargar los paquetes de preguntas de los que saldrá cada prueba.
-      </a>
-      <a class="acceso" href="/docente/sesiones.html">
-        <strong>Evaluaciones</strong>
-        Convocar una prueba para un curso y abrirla el día del examen.
-      </a>
-      <a class="acceso" href="/docente/monitoreo.html">
-        <strong>Monitorear evaluación</strong>
-        Ver quién entró, por dónde va y quién ya entregó.
-      </a>
-      <a class="acceso" href="/docente/resultados.html">
-        <strong>Descargar resultados</strong>
-        Obtener el resumen, el detalle o el archivo completo.
-      </a>
-      <a class="acceso" href="/docente/portal.html">
-        <strong>Enviar al portal</strong>
-        Llevar los resultados al portal de estudiantes cuando haya internet.
-      </a>
-      <a class="acceso" href="/docente/estadisticas.html">
-        <strong>Estadísticas</strong>
-        Ver qué preguntas y competencias falla más el grupo, para revisar el banco.
-      </a>
-    </nav>
+    <section class="ahora" id="ahora" aria-labelledby="titulo-ahora" aria-live="polite">
+      <p class="ahora__etiqueta" id="titulo-ahora">Ahora</p>
+      <div id="ahora-contenido">
+        <p class="ahora__vacio">Cargando…</p>
+      </div>
+    </section>
 
-    <p class="apunte" id="resumen"></p>
+    <section class="pendientes" id="pendientes" aria-label="Pendientes" hidden>
+      <ul id="pendientes-lista"></ul>
+    </section>
+
+    <div class="pasos">
+      <section class="paso" aria-labelledby="paso-1">
+        <h2 class="paso__titulo" id="paso-1"><span class="paso__numero">1</span> Preparar</h2>
+        <a class="acceso-fila" href="/docente/estudiantes.html">
+          <strong>Estudiantes <span class="acceso-fila__dato" data-dato="estudiantes"></span></strong>
+          <span>Cargar la lista del colegio y consultarla por curso.</span>
+        </a>
+        <a class="acceso-fila" href="/docente/bancos.html">
+          <strong>Bancos de preguntas <span class="acceso-fila__dato" data-dato="bancos"></span></strong>
+          <span>Cargar los paquetes de los que saldrá cada prueba.</span>
+        </a>
+        <a class="acceso-fila" href="/docente/sesiones.html">
+          <strong>Evaluaciones <span class="acceso-fila__dato" data-dato="evaluaciones"></span></strong>
+          <span>Convocar una prueba para un curso y abrirla el día del examen.</span>
+        </a>
+      </section>
+
+      <section class="paso" aria-labelledby="paso-2">
+        <h2 class="paso__titulo" id="paso-2"><span class="paso__numero">2</span> Aplicar</h2>
+        <a class="acceso-fila" href="/docente/monitoreo.html">
+          <strong>Monitorear</strong>
+          <span>Ver quién entró, por dónde va y quién ya entregó.</span>
+        </a>
+        <p class="paso__nota">
+          Para proyectar el código QR y el tablero de asistencia, usa <strong>Proyectar</strong>
+          en la evaluación en marcha.
+        </p>
+      </section>
+
+      <section class="paso" aria-labelledby="paso-3">
+        <h2 class="paso__titulo" id="paso-3"><span class="paso__numero">3</span> Después</h2>
+        <a class="acceso-fila" href="/docente/resultados.html">
+          <strong>Descargar resultados</strong>
+          <span>El Excel con resumen y detalle, o el archivo completo.</span>
+        </a>
+        <a class="acceso-fila" href="/docente/portal.html">
+          <strong>Enviar al portal</strong>
+          <span>Llevar los resultados al portal de estudiantes cuando haya internet.</span>
+        </a>
+        <a class="acceso-fila" href="/docente/estadisticas.html">
+          <strong>Estadísticas</strong>
+          <span>Qué preguntas y competencias falla más el grupo.</span>
+        </a>
+      </section>
+    </div>
   </main>
 
   <script type="module" src="/docente/panel.js"></script>
+  <script type="module" src="/docente/inicio.js"></script>
 </body>
 </html>
