@@ -12,7 +12,7 @@ Nombre del estudiante en el header del examen y "Saltar" que conserva la respues
 
 ## 30/09/2026 — 051
 
-Nota del estudiante (0,0–5,0, regla de tres) en la pantalla de resultado (`spec/features/051-*`). Commiteada en la rama, **sin publicar**: el usuario publica la versión (los tags no se pueden empujar desde la sesión web; ver 1.7.1).
+Nota del estudiante (0,0–5,0, regla de tres) en la pantalla de resultado (`spec/features/051-*`). Commiteada en la rama, publicada como **1.7.2** (incluye la 1.7.1); el tag depende de poder empujarlo (ver bitácora).
 
 ## Feature/tarea en curso
 
