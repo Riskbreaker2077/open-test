@@ -8,7 +8,7 @@
 
 ## 30/09/2026 — 050
 
-Nombre del estudiante en el header del examen y "Saltar" que conserva la respuesta (`spec/features/050-*`). Sin publicar versión aún; falta verificar en tablet.
+Nombre del estudiante en el header del examen y "Saltar" que conserva la respuesta (`spec/features/050-*`). Publicada como **1.7.1** (tag `v1.7.1`); falta verificar en tablet.
 
 ## Feature/tarea en curso
 
