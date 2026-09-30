@@ -6,6 +6,63 @@
   <link rel="icon" type="image/png" href="/assets/isotipo-opentest.png">
   <title>OpenTest — Estadísticas</title>
   <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="/docente/panel-shell.css">
+  <style>
+    .panel-estadisticas { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; gap: 0.6rem; }
+
+    /* Cabecera de una sola línea: título, qué se está viendo (alcance y
+       curso) y el selector de banco — antes eran tres bloques apilados que
+       se comían casi la mitad de la pantalla. */
+    .alcance-actual { margin-left: 0.9rem; overflow: hidden; color: var(--tinta-suave); font-size: 0.82rem; white-space: nowrap; text-overflow: ellipsis; }
+    .selector-banco { min-height: 2.4rem; max-width: 24rem; padding: 0 0.7rem; border: 1px solid var(--borde); border-radius: 999px; background: var(--papel); font: inherit; font-size: 0.85rem; }
+
+    .titulo-panel { margin: 0 0 0.45rem; color: var(--azul-900); font-family: system-ui, sans-serif; font-size: 0.85rem; font-weight: 700; }
+    .titulo-panel small { color: var(--tinta-suave); font-weight: 400; }
+
+    /* Resumen: cifras clave y cómo se reparten las preguntas por nivel de
+       acierto, en una sola franja baja. */
+    .resumen { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: stretch; gap: 0.5rem 1.1rem; padding: 0.5rem 0.9rem; border: 1px solid var(--borde); border-radius: var(--radio-control); background: var(--papel); }
+    .stat { display: flex; flex-direction: column; justify-content: center; padding-right: 1.1rem; border-right: 1px solid var(--borde); }
+    .stat__valor { color: var(--azul-900); font-family: Georgia, serif; font-size: 1.35rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .stat__etiqueta { color: var(--tinta-suave); font-size: 0.66rem; letter-spacing: 0.03em; text-transform: uppercase; }
+    .distribucion { display: flex; flex: 1 1 16rem; flex-direction: column; justify-content: center; gap: 0.3rem; min-width: 14rem; }
+    .distribucion__barra { display: flex; gap: 2px; height: 0.85rem; }
+    .distribucion__tramo { min-width: 4px; border-radius: 3px; }
+    .distribucion__leyenda { display: flex; flex-wrap: wrap; gap: 0.15rem 0.9rem; color: var(--tinta-suave); font-size: 0.74rem; }
+    .distribucion__leyenda b { color: var(--tinta); }
+    .punto { display: inline-block; width: 0.55rem; height: 0.55rem; margin-right: 0.3rem; border-radius: 50%; }
+
+    /* Dos paneles lado a lado, cada uno dueño de su propio alto. */
+    .paneles { display: flex; flex: 1 1 auto; min-height: 0; gap: 0.6rem; }
+    .panel-competencias { display: flex; flex: 1 1 36%; flex-direction: column; min-width: 0; min-height: 0; padding: 0.7rem 0.9rem; }
+    .panel-preguntas { flex: 1 1 64%; min-width: 0; padding: 0.7rem 0.9rem 0.4rem; }
+
+    /* Barra de acierto: color por tramo, y el número siempre al lado. */
+    .barra-pista { position: relative; height: 0.8rem; border-radius: 4px; background: var(--fondo); overflow: hidden; }
+    .barra-relleno { position: absolute; top: 0; left: 0; height: 100%; border-radius: 0 4px 4px 0; }
+
+    .fila-competencia { padding: 0.45rem 0; border-bottom: 1px solid var(--borde); }
+    .fila-competencia:last-child { border-bottom: 0; }
+    .fila-competencia__nombre { margin: 0 0 0.25rem; overflow: hidden; color: var(--azul-900); font-size: 0.82rem; font-weight: 700; line-height: 1.25; white-space: nowrap; text-overflow: ellipsis; }
+    .fila-competencia__grafico { display: flex; align-items: center; gap: 0.55rem; }
+    .fila-competencia__grafico .barra-pista { flex: 1 1 auto; }
+    .fila-competencia__valor { flex: 0 0 auto; min-width: 2.9rem; color: var(--tinta); font-size: 0.85rem; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+    .fila-competencia__meta { flex: 0 0 auto; min-width: 4.6rem; color: var(--tinta-suave); font-size: 0.72rem; text-align: right; }
+
+    /* Tabla de preguntas: filas de altura pareja (enunciado y competencia
+       recortados a una línea, texto completo en el `title`). */
+    .panel-preguntas .tabla th, .panel-preguntas .tabla td { padding-block: 0.4rem; }
+    .panel-preguntas .celda-titulo { max-width: none; }
+    .panel-preguntas .celda-titulo strong { overflow: hidden; font-size: 0.82rem; white-space: nowrap; text-overflow: ellipsis; }
+    .celda-acierto { display: flex; align-items: center; gap: 0.5rem; }
+    .celda-acierto .barra-pista { flex: 1 1 auto; }
+    .celda-acierto__valor { flex: 0 0 auto; min-width: 2.7rem; color: var(--tinta); font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+
+    @media (max-width: 60rem) {
+      .paneles { flex-direction: column; }
+      .panel-competencias, .panel-preguntas { flex: 1 1 auto; }
+    }
+  </style>
 </head>
 <body class="superficie-docente">
   <header class="barra">
@@ -13,25 +70,74 @@
     <div class="barra__acciones"><a class="boton boton--volver boton--pequeno" href="/docente/">← Volver al panel</a><button class="boton boton--secundario boton--pequeno" id="salir">Cerrar sesión</button></div>
   </header>
   <main class="contenedor">
-    <p class="sobretitulo">Revisar el banco</p>
-    <h1>Estadísticas por pregunta y por competencia</h1>
-    <section class="tarjeta" id="sin-bancos" hidden>
+    <div class="encabezado-pantalla">
+      <div><h1>Estadísticas</h1><span class="alcance-actual" id="alcance-actual"></span></div>
+      <div class="encabezado-pantalla__acciones">
+        <select id="banco" class="selector-banco" aria-label="Banco de preguntas"></select>
+        <button class="boton boton-engranaje" id="engranaje" type="button" aria-label="Alcance y curso" title="Alcance y curso"></button>
+      </div>
+    </div>
+
+    <section class="tarjeta contenido-centrado" id="sin-bancos" hidden>
       <p>Todavía no hay bancos de preguntas cargados.</p>
     </section>
-    <section class="tarjeta" id="panel" hidden>
-      <label class="campo"><span>Banco</span><select id="banco"></select></label>
-      <label class="campo"><span>Alcance</span><select id="alcance"></select></label>
-      <label class="campo"><span>Curso</span><select id="curso"></select></label>
+
+    <div class="panel-estadisticas" id="panel" hidden>
       <p class="apunte" id="sin-sesiones" hidden>Este banco todavía no tiene ninguna evaluación cerrada.</p>
-      <div id="tablas" hidden>
-        <h2>Por competencia</h2>
-        <table class="tabla" id="tabla-competencias"></table>
-        <h2>Por pregunta</h2>
-        <p class="apunte">De menor a mayor % de acierto: lo más fallado primero.</p>
-        <table class="tabla" id="tabla-preguntas"></table>
+
+      <div id="tablas" hidden class="panel-estadisticas">
+        <section class="resumen" aria-label="Resumen general">
+          <div class="stat"><span class="stat__valor" id="kpi-preguntas">0</span><span class="stat__etiqueta">Preguntas</span></div>
+          <div class="stat"><span class="stat__valor" id="kpi-promedio">0 %</span><span class="stat__etiqueta">Acierto promedio</span></div>
+          <div class="stat"><span class="stat__valor" id="kpi-saltada">0 %</span><span class="stat__etiqueta">Saltadas</span></div>
+          <div class="stat"><span class="stat__valor" id="kpi-segundos">—</span><span class="stat__etiqueta">Seg. por pregunta</span></div>
+          <div class="distribucion">
+            <div class="distribucion__barra" id="distribucion-barra" role="img" aria-label="Preguntas por nivel de acierto"></div>
+            <div class="distribucion__leyenda" id="distribucion-leyenda"></div>
+          </div>
+        </section>
+
+        <div class="paneles">
+          <section class="tarjeta panel-competencias">
+            <p class="titulo-panel">Acierto por competencia <small>— la más floja primero</small></p>
+            <div class="panel-lista" id="lista-competencias"></div>
+          </section>
+
+          <section class="tarjeta tarjeta--con-lista panel-preguntas">
+            <p class="titulo-panel">Por pregunta <small>— lo más fallado primero</small></p>
+            <div class="tabla-cabecera">
+              <table class="tabla">
+                <colgroup>
+                  <col style="width: 42%"><col style="width: 26%"><col style="width: 10%">
+                  <col style="width: 11%"><col style="width: 11%">
+                </colgroup>
+                <thead><tr><th>Pregunta</th><th>Acierto</th><th>Vistas</th><th>Saltada</th><th>Seg.</th></tr></thead>
+              </table>
+            </div>
+            <div class="panel-lista">
+              <table class="tabla">
+                <colgroup>
+                  <col style="width: 42%"><col style="width: 26%"><col style="width: 10%">
+                  <col style="width: 11%"><col style="width: 11%">
+                </colgroup>
+                <tbody id="tabla-preguntas"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
       </div>
-    </section>
+    </div>
   </main>
+
+  <dialog id="ajustes" class="ajustes">
+    <h2>Alcance y curso</h2>
+    <label class="campo"><span>Alcance</span><select id="alcance"></select></label>
+    <label class="campo"><span>Curso</span><select id="curso"></select></label>
+    <div class="ajustes__cierre">
+      <button class="boton boton--secundario" type="button" data-cerrar>Cerrar</button>
+    </div>
+  </dialog>
+
   <script type="module" src="/docente/estadisticas.js"></script>
 </body>
 </html>

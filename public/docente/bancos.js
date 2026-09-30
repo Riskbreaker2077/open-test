@@ -1,6 +1,9 @@
 import { api } from './panel.js';
 import { LETRAS, renderizarGrupo, renderizarPregunta } from '/shared/pregunta.js';
+import { crearIcono } from './iconos.js';
 
+const importarDialogo = document.getElementById('importar');
+const abrirImportar = document.getElementById('abrir-importar');
 const imagenes = document.getElementById('imagenes');
 const estadoImagenes = document.getElementById('estado-imagenes');
 const nombre = document.getElementById('nombre');
@@ -12,9 +15,12 @@ const resumenCarga = document.getElementById('resumen-carga');
 const avisos = document.getElementById('avisos');
 const muestra = document.getElementById('muestra');
 const confirmar = document.getElementById('confirmar');
-const cancelar = document.getElementById('cancelar');
 const listado = document.getElementById('listado');
+const listaCabecera = document.getElementById('lista-cabecera');
+const listaEnvoltura = document.getElementById('lista-envoltura');
 const vacio = document.getElementById('vacio');
+const vacioImportar = document.getElementById('vacio-importar');
+const seccionLista = document.getElementById('seccion-lista');
 const detalle = document.getElementById('detalle');
 const detalleTitulo = document.getElementById('detalle-titulo');
 const detallePreguntas = document.getElementById('detalle-preguntas');
@@ -40,11 +46,23 @@ let paquetePendiente = null;
 function limpiar() {
   errores.hidden = true;
   previsualizacion.hidden = true;
+  confirmar.hidden = true;
   avisos.hidden = true;
   listaErrores.replaceChildren();
   muestra.replaceChildren();
   paquetePendiente = null;
 }
+
+abrirImportar.addEventListener('click', () => importarDialogo.showModal());
+vacioImportar.addEventListener('click', () => importarDialogo.showModal());
+importarDialogo.addEventListener('close', () => {
+  limpiar();
+  paquete.value = '';
+  nombre.value = '';
+});
+importarDialogo.querySelectorAll('[data-cerrar]').forEach((el) => {
+  el.addEventListener('click', () => importarDialogo.close());
+});
 
 function mostrarPrevisualizacion(respuesta) {
   if (!nombre.value) nombre.value = respuesta.nombre;
@@ -68,6 +86,7 @@ function mostrarPrevisualizacion(respuesta) {
     ),
   );
   previsualizacion.hidden = false;
+  confirmar.hidden = false;
 }
 
 function mostrarErrores(lista) {
@@ -142,23 +161,19 @@ confirmar.addEventListener('click', async () => {
       mostrarErrores(respuesta.errores);
       return;
     }
-    limpiar();
-    paquete.value = '';
-    nombre.value = '';
+    importarDialogo.close(); // dispara 'close', que ya limpia el formulario
     await recargar();
   } finally {
     confirmar.disabled = false;
   }
 });
 
-cancelar.addEventListener('click', () => {
-  limpiar();
-  paquete.value = '';
-});
-
-cerrarDetalle.addEventListener('click', () => {
+function cerrarDetalleBanco() {
   detalle.hidden = true;
-});
+  seccionLista.hidden = false;
+}
+
+cerrarDetalle.addEventListener('click', cerrarDetalleBanco);
 
 // --- Nuevo banco vacío (028) -------------------------------------------
 
@@ -362,29 +377,20 @@ function accionesDePregunta(pregunta) {
   const contenedor = document.createElement('div');
   contenedor.className = 'acciones-fila';
 
-  const editar = document.createElement('button');
-  editar.className = 'boton boton--secundario boton--pequeno';
-  editar.type = 'button';
-  editar.textContent = 'Editar';
-  editar.addEventListener('click', () => abrirEditorPregunta(pregunta, editar));
+  contenedor.append(
+    botonIcono('editar', 'Editar', (ev) => abrirEditorPregunta(pregunta, ev.currentTarget)),
+    botonIcono('borrar', 'Eliminar', async () => {
+      if (!window.confirm('¿Eliminar esta pregunta del banco?')) return;
 
-  const eliminar = document.createElement('button');
-  eliminar.className = 'boton boton--secundario boton--pequeno';
-  eliminar.type = 'button';
-  eliminar.textContent = 'Eliminar';
-  eliminar.addEventListener('click', async () => {
-    if (!window.confirm('¿Eliminar esta pregunta del banco?')) return;
-
-    const respuesta = await api(`/api/docente/preguntas/${pregunta.id}`, { method: 'DELETE' });
-    if (!respuesta.ok) {
-      window.alert(respuesta.mensaje);
-      return;
-    }
-    await verBanco(bancoActualId);
-    await recargar();
-  });
-
-  contenedor.append(editar, eliminar);
+      const respuesta = await api(`/api/docente/preguntas/${pregunta.id}`, { method: 'DELETE' });
+      if (!respuesta.ok) {
+        window.alert(respuesta.mensaje);
+        return;
+      }
+      await verBanco(bancoActualId);
+      await recargar();
+    }, 'boton-fila--peligro'),
+  );
   return contenedor;
 }
 
@@ -436,6 +442,7 @@ async function verBanco(id) {
 
   const piezas = banco.preguntas.map((pregunta) => {
     const envoltorio = document.createElement('div');
+    envoltorio.className = 'pregunta-docente';
     envoltorio.append(
       renderizarPregunta(pregunta, {
         correcta: pregunta.opciones.findIndex((o) => o.es_correcta === 1),
@@ -447,65 +454,85 @@ async function verBanco(id) {
   });
   for (const grupo of banco.grupos ?? []) piezas.push(seccionDeGrupo(grupo));
   detallePreguntas.replaceChildren(...piezas);
+  seccionLista.hidden = true;
   detalle.hidden = false;
-  detalle.scrollIntoView({ block: 'start' });
+}
+
+function botonIcono(nombreIcono, titulo, alPulsar, claseExtra = '') {
+  const boton = document.createElement('button');
+  boton.type = 'button';
+  boton.className = `boton-fila ${claseExtra}`.trim();
+  boton.append(crearIcono(nombreIcono));
+  boton.title = titulo;
+  boton.setAttribute('aria-label', titulo);
+  boton.addEventListener('click', alPulsar);
+  return boton;
 }
 
 function acciones(banco) {
   const grupo = document.createElement('div');
+  grupo.className = 'acciones-fila';
 
-  const ver = document.createElement('button');
-  ver.className = 'boton boton--secundario boton--pequeno';
-  ver.textContent = 'Ver';
-  ver.addEventListener('click', () => verBanco(banco.id));
+  grupo.append(
+    botonIcono('ver', 'Ver', () => verBanco(banco.id)),
+    botonIcono('borrar', 'Borrar', async () => {
+      if (!window.confirm(`¿Borrar el banco "${banco.nombre}"?`)) return;
 
-  const borrar = document.createElement('button');
-  borrar.className = 'boton boton--secundario boton--pequeno';
-  borrar.textContent = 'Borrar';
-  borrar.addEventListener('click', async () => {
-    if (!window.confirm(`¿Borrar el banco "${banco.nombre}"?`)) return;
-
-    const respuesta = await api(`/api/docente/bancos/${banco.id}`, { method: 'DELETE' });
-    if (!respuesta.ok) {
-      window.alert(respuesta.mensaje);
-      return;
-    }
-    detalle.hidden = true;
-    await recargar();
-  });
-
-  grupo.append(ver, borrar);
+      const respuesta = await api(`/api/docente/bancos/${banco.id}`, { method: 'DELETE' });
+      if (!respuesta.ok) {
+        window.alert(respuesta.mensaje);
+        return;
+      }
+      cerrarDetalleBanco();
+      await recargar();
+    }, 'boton-fila--peligro'),
+  );
   return grupo;
+}
+
+// El nombre del banco identifica la fila (fuerte); cuándo se cargó es un
+// dato de consulta ocasional, tenue debajo — igual que en Evaluaciones.
+function celdaBanco(banco) {
+  const td = document.createElement('td');
+  const caja = document.createElement('div');
+  caja.className = 'celda-titulo';
+  const nombre = document.createElement('strong');
+  nombre.textContent = banco.nombre;
+  const meta = document.createElement('small');
+  meta.textContent = `Cargado el ${new Date(banco.creado_en).toLocaleDateString('es')}`;
+  caja.append(nombre, meta);
+  td.append(caja);
+  return td;
+}
+
+function celdaTexto(texto) {
+  const td = document.createElement('td');
+  td.className = 'texto-discreto';
+  td.textContent = texto;
+  return td;
 }
 
 async function recargar() {
   const { bancos } = await api('/api/docente/bancos');
-  vacio.hidden = bancos.length > 0;
+  const hayBancos = bancos.length > 0;
+  listaCabecera.hidden = !hayBancos;
+  listaEnvoltura.hidden = !hayBancos;
+  vacio.hidden = hayBancos;
 
-  const thead = document.createElement('thead');
-  thead.innerHTML =
-    '<tr><th>Banco</th><th>Preguntas</th><th>Cargado</th><th>Usado en</th><th></th></tr>';
-
-  const tbody = document.createElement('tbody');
-  for (const banco of bancos) {
+  const filas = bancos.map((banco) => {
     const tr = document.createElement('tr');
-    for (const valor of [
-      banco.nombre,
-      banco.preguntas,
-      new Date(banco.creado_en).toLocaleDateString('es'),
-      `${banco.sesiones} evaluación(es)`,
-    ]) {
-      const td = document.createElement('td');
-      td.textContent = valor;
-      tr.append(td);
-    }
-    const td = document.createElement('td');
-    td.append(acciones(banco));
-    tr.append(td);
-    tbody.append(tr);
-  }
+    const tdAcciones = document.createElement('td');
+    tdAcciones.append(acciones(banco));
+    tr.append(
+      celdaBanco(banco),
+      celdaTexto(`${banco.preguntas} preguntas`),
+      celdaTexto(`${banco.sesiones} evaluación(es)`),
+      tdAcciones,
+    );
+    return tr;
+  });
 
-  listado.replaceChildren(thead, tbody);
+  listado.replaceChildren(...filas);
 }
 
 recargar();

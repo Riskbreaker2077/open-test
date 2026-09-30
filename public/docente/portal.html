@@ -6,6 +6,24 @@
   <link rel="icon" type="image/png" href="/assets/isotipo-opentest.png">
   <title>OpenTest — Enviar al portal</title>
   <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="/docente/panel-shell.css">
+  <style>
+    .vinculo-chip { border: 0; cursor: pointer; font: inherit; font-size: 0.78rem; }
+    .mensajes { display: flex; flex: 0 0 auto; flex-direction: column; gap: 0.4rem; }
+    .mensajes .aviso, .mensajes .exito { margin: 0; padding: 0.5rem 0.8rem; font-size: 0.85rem; }
+
+    .tabla select { display: block; width: 100%; min-height: 2.4rem; padding: 0 0.5rem; border: 1px solid #cdd8da; border-radius: var(--radio-control); background: var(--papel); color: var(--tinta); font: inherit; font-size: 0.82rem; }
+    .celda-estado { display: grid; gap: 0.2rem; justify-items: start; min-width: 0; }
+    .celda-estado small { max-width: 100%; overflow: hidden; color: var(--tinta-suave); font-size: 0.76rem; white-space: nowrap; text-overflow: ellipsis; }
+
+    /* Lo ya enviado: una franja baja con las evaluaciones en fila, no una
+       tarjeta con tres párrafos. */
+    .quitar-enviadas { flex: 0 0 auto; max-height: 7rem; padding: 0.55rem 0.9rem; overflow: auto; }
+    .quitar-enviadas .sugerencia__lista { display: flex; flex-wrap: wrap; gap: 0.4rem 0.6rem; }
+    .quitar-enviadas__titulo { margin: 0 0 0.4rem; color: var(--azul-900); font-size: 0.85rem; font-weight: 700; }
+    .quitar-enviadas__titulo small { color: var(--tinta-suave); font-weight: 400; }
+    .quitar-enviadas .sugerencia__lista li { padding: 0.25rem 0.3rem 0.25rem 0.7rem; font-size: 0.82rem; }
+  </style>
 </head>
 <body class="superficie-docente">
   <header class="barra">
@@ -13,63 +31,78 @@
     <div class="barra__acciones"><a class="boton boton--volver boton--pequeno" href="/docente/">← Volver al panel</a><button class="boton boton--secundario boton--pequeno" id="salir">Cerrar sesión</button></div>
   </header>
   <main class="contenedor">
-    <p class="sobretitulo">Portal de estudiantes</p>
-    <h1>Enviar resultados al portal</h1>
+    <div class="encabezado-pantalla">
+      <div>
+        <h1>Enviar al portal</h1>
+        <button class="pastilla vinculo-chip pastilla--neutro" id="chip-vinculo" type="button" style="margin-left: 0.8rem;" title="Vincular con el portal">Sin vincular</button>
+      </div>
+      <div class="encabezado-pantalla__acciones">
+        <button class="boton boton--secundario" id="buscar-evaluaciones" type="button">Buscar en el portal</button>
+        <button class="boton" id="enviar" type="button">Enviar ahora</button>
+        <button class="boton boton-engranaje" id="engranaje" type="button" aria-label="Vinculación con el portal" title="Vinculación con el portal"></button>
+      </div>
+    </div>
+
+    <div class="mensajes">
+      <p class="aviso" id="error-evaluaciones" role="alert" hidden></p>
+      <p class="aviso" id="error-envio" role="alert" hidden></p>
+      <p class="exito" id="exito-envio" role="status" hidden></p>
+    </div>
+
+    <section class="tarjeta sugerencia quitar-enviadas" id="sugerencia" hidden>
+      <p class="quitar-enviadas__titulo">Ya están en el portal <small>— puedes quitarlas de este equipo; van a la papelera 30 días (Evaluaciones → papelera)</small></p>
+      <ul class="sugerencia__lista" id="sugerencia-lista"></ul>
+    </section>
+
+    <section class="tarjeta tarjeta--con-lista">
+      <div class="tabla-cabecera" id="lista-cabecera">
+        <table class="tabla">
+          <colgroup><col style="width: 36%"><col style="width: 38%"><col style="width: 26%"></colgroup>
+          <thead><tr><th>Evaluación cerrada</th><th>Evaluación en el portal</th><th>Estado</th></tr></thead>
+        </table>
+      </div>
+      <div class="panel-lista" id="lista-envoltura">
+        <table class="tabla">
+          <colgroup><col style="width: 36%"><col style="width: 38%"><col style="width: 26%"></colgroup>
+          <tbody id="filas"></tbody>
+        </table>
+      </div>
+      <div class="vacio-lista" id="vacio" hidden>
+        <strong>Todavía no hay evaluaciones cerradas</strong>
+        <p class="apunte">Cuando cierres una evaluación podrás elegir a cuál del portal enviarla.</p>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="ajustes" class="ajustes">
+    <h2>Vinculación con el portal</h2>
     <p class="apunte">
       OpenTest solo se conecta a internet cuando pulsas <strong>Enviar ahora</strong>, y nunca
       mientras haya una evaluación en curso o en pausa. El portal recibe el mismo archivo que
       descargas en Resultados y lo deja en tu bandeja de <strong>Agentes</strong> para que lo
       apruebes: nada se publica solo.
     </p>
-
-    <section class="tarjeta">
-      <h2>1. Vincular con el portal</h2>
-      <p class="exito" id="vinculado" hidden></p>
-      <form id="form-vinculo">
-        <label class="campo"><span>Dirección del portal</span>
-          <input id="url" type="url" required placeholder="https://portal.colegio.edu.co" autocomplete="off">
-        </label>
-        <label class="campo"><span>Clave de envío</span>
-          <input id="clave" type="password" required placeholder="mcp_…" autocomplete="off" spellcheck="false">
-        </label>
-        <p class="apunte">
-          Créala en el portal: Configuración → Agentes (MCP), marcando solo el permiso
-          «Enviar resultados desde OpenTest». Se guarda en este equipo y no se vuelve a mostrar.
-        </p>
-        <p class="aviso" id="error-vinculo" role="alert" hidden></p>
-        <button class="boton" type="submit">Guardar vinculación</button>
+    <p class="exito" id="vinculado" hidden></p>
+    <form id="form-vinculo">
+      <label class="campo"><span>Dirección del portal</span>
+        <input id="url" type="url" required placeholder="https://portal.colegio.edu.co" autocomplete="off">
+      </label>
+      <label class="campo"><span>Clave de envío</span>
+        <input id="clave" type="password" required placeholder="mcp_…" autocomplete="off" spellcheck="false">
+      </label>
+      <p class="apunte">
+        Créala en el portal: Configuración → Agentes (MCP), marcando solo el permiso
+        «Enviar resultados desde OpenTest». Se guarda en este equipo y no se vuelve a mostrar.
+      </p>
+      <p class="aviso" id="error-vinculo" role="alert" hidden></p>
+      <div class="ajustes__cierre" style="gap: 0.6rem;">
         <button class="boton boton--secundario" id="desvincular" type="button" hidden>Desvincular</button>
-      </form>
-    </section>
+        <button class="boton boton--secundario" type="button" data-cerrar>Cerrar</button>
+        <button class="boton" type="submit">Guardar vinculación</button>
+      </div>
+    </form>
+  </dialog>
 
-    <section class="tarjeta">
-      <h2>2. Evaluaciones cerradas</h2>
-      <p class="apunte">
-        Elige para cada una la <strong>evaluación del portal</strong> que debe recibirla. Sin
-        elegir una, la evaluación no se envía.
-      </p>
-      <p class="aviso" id="error-evaluaciones" role="alert" hidden></p>
-      <button class="boton boton--secundario" id="buscar-evaluaciones" type="button">Buscar evaluaciones disponibles</button>
-      <p class="apunte" id="vacio" hidden>Todavía no hay evaluaciones cerradas.</p>
-      <table class="tabla" id="listado" hidden>
-        <thead><tr><th>Evaluación</th><th>Evaluación en el portal</th><th>Estado</th></tr></thead>
-        <tbody id="filas"></tbody>
-      </table>
-      <p class="aviso" id="error-envio" role="alert" hidden></p>
-      <p class="exito" id="exito-envio" role="status" hidden></p>
-      <button class="boton" id="enviar" type="button">Enviar ahora</button>
-    </section>
-
-    <section class="tarjeta sugerencia" id="sugerencia" hidden>
-      <h2>Ya están en el portal: ¿quitarlas de este equipo?</h2>
-      <p class="apunte">
-        Sus resultados ya viajaron al portal. Si no las vas a volver a necesitar aquí, muévelas a
-        la papelera: quedan 30 días por si hace falta restaurarlas (en <a href="/docente/sesiones.html#papelera">Evaluaciones → Papelera</a>)
-        y después se eliminan solas. Los estudiantes y los bancos no se tocan.
-      </p>
-      <ul class="sugerencia__lista" id="sugerencia-lista"></ul>
-    </section>
-  </main>
   <script type="module" src="/docente/portal.js"></script>
 </body>
 </html>

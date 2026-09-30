@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" href="/assets/isotipo-opentest.png">
   <title>OpenTest — Bancos de preguntas</title>
   <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="/docente/panel-shell.css">
   <style>
     .encabezado-seccion {
       display: flex;
@@ -13,10 +14,10 @@
       justify-content: space-between;
       gap: 1rem;
       flex-wrap: wrap;
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
     }
     .encabezado-seccion h2 { margin: 0; }
-    .editor-pregunta {
+    .editor-pregunta, .importar-paquete {
       width: min(38rem, 94vw);
       max-height: 92vh;
       overflow: auto;
@@ -27,8 +28,8 @@
       box-shadow: var(--sombra);
       color: var(--tinta);
     }
-    .editor-pregunta::backdrop { background: rgb(11 38 59 / 35%); }
-    .editor-pregunta h2 { margin-top: 0; }
+    .editor-pregunta::backdrop, .importar-paquete::backdrop { background: rgb(11 38 59 / 35%); }
+    .editor-pregunta h2, .importar-paquete h2 { margin-top: 0; }
     .editor-pregunta textarea { resize: vertical; min-height: 3.5rem; }
     .editor-opcion {
       border: 1px solid var(--borde);
@@ -49,12 +50,9 @@
       justify-content: flex-end;
       margin-top: 1.25rem;
     }
-    .acciones-fila {
-      display: flex;
-      gap: 0.4rem;
-      justify-content: flex-end;
-      margin: 0.5rem 0 1.5rem;
-    }
+    .importar-paquete__grupo { padding-top: 0.9rem; margin-top: 0.9rem; border-top: 1px solid var(--borde); }
+    .pregunta-docente { padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--borde); }
+    .pregunta-docente:last-child { border-bottom: 0; }
   </style>
 </head>
 <body class="superficie-docente">
@@ -64,38 +62,74 @@
   </header>
 
   <main class="contenedor">
-    <p class="sobretitulo">Contenido de evaluación</p>
-    <h1>Bancos de preguntas</h1>
+    <div class="encabezado-pantalla">
+      <div><h1>Bancos de preguntas</h1></div>
+      <div class="encabezado-pantalla__acciones">
+        <button class="boton boton--secundario" id="abrir-importar" type="button">Importar paquete (.zip)</button>
+        <button class="boton" id="nuevo-banco" type="button">+ Nuevo banco vacío</button>
+      </div>
+    </div>
+    <div id="error-nuevo-banco" hidden class="aviso"></div>
 
-    <section class="tarjeta">
-      <h2>1. Sube las imágenes</h2>
-      <p>
-        Si alguna pregunta lleva imagen, súbela <strong>antes</strong> de cargar el paquete:
-        así comprobamos que todas existen y no te falla nada el día del examen.
-        (También puedes traerlas dentro del propio ZIP, en <code>imagenes/</code>.)
+    <section class="tarjeta tarjeta--con-lista" id="seccion-lista">
+      <div class="tabla-cabecera" id="lista-cabecera">
+        <table class="tabla">
+          <colgroup><col style="width: 44%"><col style="width: 16%"><col style="width: 20%"><col style="width: 20%"></colgroup>
+          <thead><tr><th>Banco</th><th>Preguntas</th><th>Usado en</th><th>Acciones</th></tr></thead>
+        </table>
+      </div>
+      <div class="panel-lista" id="lista-envoltura">
+        <table class="tabla">
+          <colgroup><col style="width: 44%"><col style="width: 16%"><col style="width: 20%"><col style="width: 20%"></colgroup>
+          <tbody id="listado"></tbody>
+        </table>
+      </div>
+      <div class="vacio-lista" id="vacio" hidden>
+        <strong>Todavía no has cargado ningún banco</strong>
+        <p class="apunte">Importa un paquete (.zip) o crea uno vacío para escribir las preguntas a mano.</p>
+        <button class="boton" id="vacio-importar" type="button">Importar paquete (.zip)</button>
+      </div>
+    </section>
+
+    <section class="tarjeta tarjeta--con-lista" id="detalle" hidden>
+      <div class="encabezado-seccion">
+        <h2 id="detalle-titulo"></h2>
+        <div class="acciones-fila">
+          <button class="boton" id="agregar-pregunta" type="button">+ Agregar pregunta</button>
+          <button class="boton boton--secundario boton--pequeno" id="cerrar-detalle">Cerrar</button>
+        </div>
+      </div>
+      <div class="panel-lista" id="detalle-preguntas"></div>
+    </section>
+  </main>
+
+  <dialog id="importar" class="importar-paquete">
+    <h2>Importar paquete (.zip)</h2>
+    <p class="apunte">
+      Estándar <strong>preguntas-icfes</strong>: metadata pedagógica por pregunta, contenido
+      en bloques (texto/imagen/tabla) y justificación por cada opción. Lo normal son 20 a 50
+      preguntas.
+    </p>
+
+    <div class="importar-paquete__grupo">
+      <h3>Imágenes (solo si alguna pregunta las usa)</h3>
+      <p class="apunte">
+        Súbelas antes del paquete para comprobar que todas existen. (También pueden ir dentro
+        del propio ZIP, en <code>imagenes/</code>.)
       </p>
       <label class="campo">
         <span>Imágenes (puedes elegir varias)</span>
         <input type="file" id="imagenes" accept=".png,.jpg,.jpeg,.webp" multiple>
       </label>
       <p class="apunte" id="estado-imagenes"></p>
-    </section>
+    </div>
 
-    <section class="tarjeta">
-      <p class="sobretitulo">Estándar preguntas-icfes</p>
-      <h2>2. Sube el paquete de preguntas</h2>
-      <p>
-        Un ZIP con <code>paquete.json</code> en la raíz y, si hace falta, una carpeta
-        <code>imagenes/</code>. Cada pregunta trae su competencia, componente, afirmación,
-        evidencia, estándar asociado, qué evalúa, y una justificación para cada una de
-        las cuatro opciones. Lo normal son 20 a 50 preguntas.
-      </p>
-
+    <div class="importar-paquete__grupo">
+      <h3>El paquete</h3>
       <label class="campo">
         <span>Nombre del banco</span>
         <input type="text" id="nombre" placeholder="Ciencias · Periodo 2">
       </label>
-
       <label class="campo">
         <span>Paquete completo (.zip)</span>
         <input type="file" id="paquete" accept=".zip,application/zip">
@@ -112,36 +146,14 @@
         <h3>Así lo verá el estudiante</h3>
         <p class="apunte">Revisa que la correcta sea la que esperas y que las justificaciones tengan sentido: eso no lo podemos comprobar por ti.</p>
         <div id="muestra"></div>
-        <button class="boton" id="confirmar">Confirmar e importar</button>
-        <button class="boton boton--secundario" id="cancelar">Cancelar</button>
       </div>
-    </section>
+    </div>
 
-    <section class="tarjeta">
-      <div class="encabezado-seccion">
-        <h2>Bancos cargados</h2>
-        <button class="boton" id="nuevo-banco" type="button">+ Nuevo banco vacío</button>
-      </div>
-      <p class="apunte">
-        Un banco vacío es para el docente que prefiere escribir sus preguntas una a una
-        en vez de preparar un ZIP. Ábrelo y usa "+ Agregar pregunta" en su detalle.
-      </p>
-      <div id="error-nuevo-banco" hidden class="aviso"></div>
-      <p id="vacio" hidden class="apunte">Todavía no has cargado ningún banco.</p>
-      <table class="tabla" id="listado"></table>
-    </section>
-
-    <section class="tarjeta" id="detalle" hidden>
-      <div class="encabezado-seccion">
-        <h2 id="detalle-titulo"></h2>
-        <div>
-          <button class="boton" id="agregar-pregunta" type="button">+ Agregar pregunta</button>
-          <button class="boton boton--secundario boton--pequeno" id="cerrar-detalle">Cerrar</button>
-        </div>
-      </div>
-      <div id="detalle-preguntas"></div>
-    </section>
-  </main>
+    <div class="editor-acciones">
+      <button class="boton" id="confirmar" hidden>Confirmar e importar</button>
+      <button class="boton boton--secundario" type="button" data-cerrar>Cerrar</button>
+    </div>
+  </dialog>
 
   <dialog id="editor-pregunta" class="editor-pregunta">
     <form id="formulario-pregunta" method="dialog">

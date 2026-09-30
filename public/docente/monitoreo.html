@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" href="/assets/isotipo-opentest.png">
   <title>OpenTest — Monitoreo</title>
   <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="/docente/panel-shell.css">
   <link rel="stylesheet" href="/docente/monitoreo.css">
 </head>
 <body class="superficie-docente">
@@ -14,41 +15,71 @@
     <div class="barra__acciones"><a class="boton boton--volver boton--pequeno" href="/docente/sesiones.html">← Volver a evaluaciones</a><button class="boton boton--secundario boton--pequeno" id="salir">Cerrar sesión</button></div>
   </header>
   <main class="contenedor">
-    <p class="sobretitulo">Seguimiento en tiempo real</p>
-    <section class="tarjeta" id="sin-sesiones" hidden>
+    <section class="tarjeta tarjeta--centrada" id="sin-sesiones" hidden>
       <h1>No hay evaluaciones activas</h1>
       <p>Abre o comienza una evaluación para verla aquí.</p>
       <a class="boton" href="/docente/sesiones.html">Crear o abrir una evaluación</a>
     </section>
 
-    <div id="panel" hidden>
-      <label class="campo selector-sesion">
-        <span>Evaluación que estás monitoreando</span>
-        <select id="sesion"></select>
-      </label>
-      <section class="tarjeta encabezado-monitoreo">
-        <div>
-          <h1 id="nombre"></h1>
-          <p id="parametros"></p>
-          <p>Dirección para las tablets: <strong id="direccion"></strong></p>
+    <div id="panel" class="panel-monitoreo" hidden>
+      <div class="encabezado-pantalla">
+        <div><h1>Monitoreo</h1></div>
+        <div class="encabezado-pantalla__acciones">
+          <select id="sesion" class="selector-compacta" aria-label="Evaluación que estás monitoreando"></select>
+          <button class="boton boton-engranaje" id="engranaje" type="button" aria-label="Detalles de la evaluación" title="Detalles"></button>
         </div>
-        <div class="acciones-monitoreo">
+      </div>
+
+      <div class="resumen-monitoreo">
+        <div class="celda-titulo resumen-monitoreo__nombre">
+          <strong id="nombre"></strong>
+        </div>
+        <span class="pastilla" id="estado-pastilla"></span>
+        <div class="resumen-monitoreo__contadores" aria-label="Resumen de estudiantes">
+          <div><strong id="convocados">0</strong><span>Convocados</span></div>
+          <div><strong id="dentro">0</strong><span>Dentro</span></div>
+          <div><strong id="entregados">0</strong><span>Entregados</span></div>
+          <div><strong id="sin-entrar">0</strong><span>Sin entrar</span></div>
+        </div>
+        <div class="resumen-monitoreo__acciones">
           <a class="boton boton--secundario" id="proyectar">Abrir proyección</a>
           <button class="boton" id="cerrar" type="button">Cerrar evaluación</button>
         </div>
-      </section>
-      <section class="contadores" aria-label="Resumen de estudiantes">
-        <div><strong id="convocados">0</strong><span>Convocados</span></div>
-        <div><strong id="dentro">0</strong><span>Dentro</span></div>
-        <div><strong id="entregados">0</strong><span>Entregados</span></div>
-        <div><strong id="sin-entrar">0</strong><span>Sin entrar</span></div>
-      </section>
+      </div>
       <p class="aviso" id="error" role="alert" hidden></p>
-      <section class="tarjeta tabla-monitor">
-        <table class="tabla" id="estudiantes"></table>
+
+      <section class="tarjeta tarjeta--con-lista">
+        <div class="tabla-cabecera">
+          <table class="tabla">
+            <colgroup>
+              <col style="width: 26%"><col style="width: 12%"><col style="width: 14%">
+              <col style="width: 16%"><col style="width: 20%"><col style="width: 12%">
+            </colgroup>
+            <thead><tr><th>Estudiante</th><th>Estado</th><th>Avance</th><th>Tiempo</th><th>Resultado</th><th></th></tr></thead>
+          </table>
+        </div>
+        <div class="panel-lista">
+          <table class="tabla">
+            <colgroup>
+              <col style="width: 26%"><col style="width: 12%"><col style="width: 14%">
+              <col style="width: 16%"><col style="width: 20%"><col style="width: 12%">
+            </colgroup>
+            <tbody id="estudiantes"></tbody>
+          </table>
+        </div>
       </section>
     </div>
   </main>
+
+  <dialog id="ajustes" class="ajustes">
+    <h2>Detalles de la evaluación</h2>
+    <p id="parametros"></p>
+    <p>Dirección para las tablets: <strong id="direccion"></strong></p>
+    <div class="ajustes__cierre">
+      <button class="boton boton--secundario" type="button" data-cerrar>Cerrar</button>
+    </div>
+  </dialog>
+
   <script type="module" src="/docente/monitoreo.js"></script>
 </body>
 </html>

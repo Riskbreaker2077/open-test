@@ -192,13 +192,13 @@ Cuando una evaluación queda **Enviada**, la misma página le sugiere quitarla d
 
 ### La papelera
 
-Borrar una evaluación que tiene intentos no la elimina en el acto: la manda a la **papelera** de la página **Evaluaciones** (botón **Papelera (N)** junto a la lista). Allí espera **30 días** con todos sus resultados:
+Borrar una evaluación no la elimina en el acto: la manda a la **papelera** de la página **Evaluaciones** (el ícono de papelera, con su contador, arriba a la derecha). Allí espera **30 días** con todos sus resultados:
 
 - **Restaurar** la devuelve tal como estaba, con notas, anulaciones y estado de envío.
 - **Borrar ya** la elimina para siempre, después de confirmar.
 - Pasados los 30 días, OpenTest la elimina solo, al abrirse o durante el día si sigue abierto.
 
-Mientras está en la papelera, la evaluación no aparece en Monitoreo, Resultados, Estadísticas ni Enviar al portal, y su banco de preguntas no se puede borrar. Una evaluación sin intentos (por ejemplo, un borrador) se borra en el acto.
+Mientras está en la papelera, la evaluación no aparece en Monitoreo, Resultados, Estadísticas ni Enviar al portal, y su banco de preguntas no se puede borrar. Esto vale también para un borrador o una evaluación sin intentos. Una evaluación abierta, en curso o en pausa hay que cerrarla antes de borrarla. Para corregir el nombre de una evaluación, use el ícono del lápiz de su fila.
 
 ## 7. Ver qué falló más el grupo
 

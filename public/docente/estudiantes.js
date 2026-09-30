@@ -1,4 +1,8 @@
-import { api } from './panel.js';
+import { api, iniciarEngranaje } from './panel.js';
+import { crearIcono } from './iconos.js';
+
+iniciarEngranaje();
+document.getElementById('engranaje').append(crearIcono('engranaje'));
 
 const archivo = document.getElementById('archivo');
 const errores = document.getElementById('errores');
@@ -48,6 +52,27 @@ function mostrarErrores(lista) {
   errores.hidden = false;
 }
 
+function filasDeTabla(columnas, filas, acciones) {
+  return filas.map((fila) => {
+    const tr = document.createElement('tr');
+    for (const columna of columnas) {
+      const td = document.createElement('td');
+      td.textContent = fila[columna.clave];
+      tr.append(td);
+    }
+    if (acciones) {
+      const td = document.createElement('td');
+      td.append(acciones(fila));
+      tr.append(td);
+    }
+    return tr;
+  });
+}
+
+// Solo para la previsualización del importador: una tabla completa
+// (cabecera + cuerpo juntos), corta y siempre visible dentro del diálogo.
+// La lista principal usa `filasDeTabla` directo sobre un `<tbody>` fijo
+// aparte (ver `tabla-cabecera` en el HTML).
 function tabla(destino, columnas, filas, acciones) {
   const thead = document.createElement('thead');
   const filaCabecera = document.createElement('tr');
@@ -60,21 +85,7 @@ function tabla(destino, columnas, filas, acciones) {
   thead.append(filaCabecera);
 
   const tbody = document.createElement('tbody');
-  for (const fila of filas) {
-    const tr = document.createElement('tr');
-    for (const columna of columnas) {
-      const td = document.createElement('td');
-      td.textContent = fila[columna.clave];
-      tr.append(td);
-    }
-    if (acciones) {
-      const td = document.createElement('td');
-      td.append(acciones(fila));
-      tr.append(td);
-    }
-    tbody.append(tr);
-  }
-
+  tbody.append(...filasDeTabla(columnas, filas, acciones));
   destino.replaceChildren(thead, tbody);
 }
 
@@ -251,15 +262,19 @@ function accionesDeFila(estudiante) {
   contenedor.className = 'acciones-fila';
 
   const editar = document.createElement('button');
-  editar.className = 'boton boton--secundario boton--pequeno';
+  editar.className = 'boton-fila';
   editar.type = 'button';
-  editar.textContent = 'Editar';
+  editar.append(crearIcono('editar'));
+  editar.title = 'Editar';
+  editar.setAttribute('aria-label', 'Editar');
   editar.addEventListener('click', () => abrirEditor(estudiante, editar));
 
   const eliminar = document.createElement('button');
-  eliminar.className = 'boton boton--secundario boton--pequeno';
+  eliminar.className = 'boton-fila boton-fila--peligro';
   eliminar.type = 'button';
-  eliminar.textContent = 'Eliminar';
+  eliminar.append(crearIcono('borrar'));
+  eliminar.title = 'Eliminar';
+  eliminar.setAttribute('aria-label', 'Eliminar');
   eliminar.addEventListener('click', async () => {
     const nombre = `${estudiante.nombres} ${estudiante.apellidos}`;
     if (!window.confirm(`¿Eliminar a ${nombre} de la lista?`)) return;
@@ -292,7 +307,7 @@ async function recargar() {
   filtroCurso.value = seleccionado;
 
   vacio.hidden = estudiantes.length > 0;
-  tabla(listado, COLUMNAS, estudiantes, accionesDeFila);
+  listado.replaceChildren(...filasDeTabla(COLUMNAS, estudiantes, accionesDeFila));
 }
 
 recargar();

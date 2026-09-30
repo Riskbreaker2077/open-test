@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" href="/assets/isotipo-opentest.png">
   <title>OpenTest — Estudiantes</title>
   <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="/docente/panel-shell.css">
   <style>
     .encabezado-seccion {
       display: flex;
@@ -42,12 +43,6 @@
       background: var(--fondo);
       color: var(--tinta-suave);
     }
-    .acciones-fila {
-      display: flex;
-      gap: 0.4rem;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
   </style>
 </head>
 <body class="superficie-docente">
@@ -57,11 +52,47 @@
   </header>
 
   <main class="contenedor">
-    <p class="sobretitulo">Directorio del aula</p>
-    <h1>Estudiantes</h1>
+    <div class="encabezado-pantalla">
+      <div>
+        <h1>Estudiantes</h1>
+      </div>
+      <button class="boton boton-engranaje" id="engranaje" type="button" aria-label="Ajustes de Estudiantes" title="Ajustes"></button>
+    </div>
 
-    <section class="tarjeta">
-      <h2>Cargar la lista</h2>
+    <section class="tarjeta tarjeta--con-lista">
+      <div class="encabezado-seccion">
+        <h2>Lista cargada</h2>
+        <button class="boton" id="nuevo" type="button">+ Nuevo estudiante</button>
+      </div>
+      <p id="vacio" hidden class="apunte">Todavía no hay estudiantes cargados.</p>
+      <div class="tabla-cabecera">
+        <table class="tabla">
+          <colgroup><col style="width: 16%"><col style="width: 27%"><col style="width: 27%"><col style="width: 16%"><col style="width: 14%"></colgroup>
+          <thead><tr><th>Código</th><th>Nombres</th><th>Apellidos</th><th>Curso</th><th>Acciones</th></tr></thead>
+        </table>
+      </div>
+      <div class="panel-lista">
+        <table class="tabla">
+          <colgroup><col style="width: 16%"><col style="width: 27%"><col style="width: 27%"><col style="width: 16%"><col style="width: 14%"></colgroup>
+          <tbody id="listado"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="ajustes" class="ajustes">
+    <h2>Ajustes — Estudiantes</h2>
+
+    <div class="ajustes__grupo">
+      <h3>Filtrar por curso</h3>
+      <label class="campo">
+        <span>Curso</span>
+        <select id="filtro-curso"><option value="">Todos</option></select>
+      </label>
+    </div>
+
+    <div class="ajustes__grupo">
+      <h3>Importar lista desde archivo</h3>
       <p>
         Un archivo CSV o JSON con las columnas
         <code>codigo</code>, <code>nombres</code>, <code>apellidos</code> y <code>curso</code>.
@@ -84,21 +115,12 @@
         <button class="boton" id="confirmar">Confirmar e importar</button>
         <button class="boton boton--secundario" id="cancelar">Cancelar</button>
       </div>
-    </section>
+    </div>
 
-    <section class="tarjeta">
-      <div class="encabezado-seccion">
-        <h2>Lista cargada</h2>
-        <button class="boton" id="nuevo" type="button">+ Nuevo estudiante</button>
-      </div>
-      <label class="campo">
-        <span>Curso</span>
-        <select id="filtro-curso"><option value="">Todos</option></select>
-      </label>
-      <p id="vacio" hidden class="apunte">Todavía no hay estudiantes cargados.</p>
-      <table class="tabla" id="listado"></table>
-    </section>
-  </main>
+    <div class="ajustes__cierre">
+      <button class="boton boton--secundario" type="button" data-cerrar>Cerrar</button>
+    </div>
+  </dialog>
 
   <dialog id="editor" class="editor-estudiante">
     <form id="formulario-estudiante" method="dialog">

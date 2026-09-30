@@ -2,46 +2,35 @@
 
 ## Última actualización y rama activa
 
-- 29/09/2026 — `main` publicada como **1.6.0** (tag `v1.6.0`): reúne la 044
-  (elegir la evaluación del portal de una lista) y la 045, la 046 y la 047 de
-  esta sesión. El workflow `instalador.yml` compila y commitea el instalador.
+- 29/09/2026 — `main` publicada como **1.7.0** (tag `v1.7.0`): rediseño del
+  panel del docente (048) y papelera universal + renombrar (049). El workflow
+  `instalador.yml` compila y commitea el instalador.
 
 ## Feature/tarea en curso
 
-- Ninguna. 045, 046 y 047 quedaron completas, con un commit por feature.
+- Ninguna. 048 y 049 completas y desplegadas.
 
 ## Qué se hizo en esta sesión
 
-1. `git pull --ff-only` trajo la 044 y el instalador 1.5.0 de `origin/main`.
-2. **045 · El portal solo muestra evaluaciones abiertas.** El portal listaba
-   y dejaba reabrir las evaluaciones cerradas que el estudiante ya había
-   presentado, con su nota y su retroalimentación. `sesionesDisponiblesPara`
-   pasó de `OR EXISTS` a `AND NOT EXISTS`, `iniciarOReanudarIntento` responde
-   409 "Ya entregaste esta prueba." (también si la prueba está anulada), y
-   `public/portal.js` descarta la cookie de un intento entregado. Así se
-   cumple lo que `tech-stack.md:146` ya decía.
-3. **046 · Papelera.** Migración **v8** (`sesiones.en_papelera_en`). Borrar
-   una evaluación con intentos la deja en la papelera, solo si está cerrada
-   (si no, 409). Sin intentos, se borra en el acto. `obtenerSesion`,
-   `listarSesiones`, `listarEnvios`, las estadísticas, `intentoPorToken` y el
-   portal ignoran lo que está en la papelera. La purga corre al arrancar y
-   cada 24 h en `server/index.js`. Rutas `/api/docente/papelera`. La interfaz
-   agrega la sección Papelera en Evaluaciones y la sugerencia **Mover a la
-   papelera** en Enviar al portal. `GUIA-DOCENTE.md` quedó al día.
-4. **047 · Panel de inicio.** Franja Ahora, pendientes y tres pasos, en
-   `public/docente/inicio.js`. `panel.js` perdió el viejo `#resumen`.
-   `/api/docente/estado` se amplió. Se revisaron capturas a 1280, 800 y
-   390 px, sin desborde.
-5. Los recorridos se hicieron con Chrome sin cabeza vía CDP y un servidor en
-   memoria. Los scripts quedaron en el scratchpad de la sesión, fuera del
-   repo.
+1. **048 · Panel del docente como app, sin scroll.** Las ocho pantallas de
+   `public/docente/` pasan a un marco fijo. El CSS compartido está en
+   `panel-shell.css`; los íconos de línea (Heroicons, MIT) en `iconos.js`.
+   Se rehízo varias veces con capturas del usuario sobre su instalación.
+2. **049 · Papelera universal y renombrar.** `borrarSesion` manda siempre a
+   la papelera (salvo abierta/en curso/pausada) y `PATCH
+   /api/docente/sesiones/:id/nombre` renombra en cualquier estado. Sin
+   migración.
+3. Para ver cambios sin desplegar: copiar `public/docente/*` (archivo a
+   archivo) a `C:\Users\Camil\AppData\Local\OpenTest\public\docente\`;
+   `OpenTest.exe` sirve esos archivos tal cual. Los cambios de `server/`
+   exigen copiar **el contenido** (`cp -r server/. destino/server/`) y
+   reiniciar OpenTest.
 
 ## Siguiente tarea
 
-1. Confirmar que el workflow de `v1.6.0` terminó en verde y hacer
+1. Confirmar que el workflow de `v1.7.0` terminó en verde y hacer
    `git pull` para traer el commit del instalador.
-2. En tablet real: la 045 (entregar → Volver al inicio → el código ya no
-   muestra la prueba), más las pendientes 039–042.
+2. En tablet real: 039, 040, 041, 045 y (en proyector) la 042.
 3. En `portal-estudiantes`: sigue pendiente decidir si se fusiona la rama
    `feature/044-listar-evaluaciones-disponibles`.
 

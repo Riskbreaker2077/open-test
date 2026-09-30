@@ -6,6 +6,24 @@
   <link rel="icon" type="image/png" href="/assets/isotipo-opentest.png">
   <title>OpenTest — Evaluaciones</title>
   <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="/docente/panel-shell.css">
+  <style>
+    .editor-sesion {
+      width: min(36rem, 94vw);
+      max-height: 92vh;
+      overflow: auto;
+      padding: clamp(1.25rem, 3vw, 1.85rem);
+      border: 1px solid var(--borde);
+      border-radius: var(--radio);
+      background: var(--papel);
+      box-shadow: var(--sombra);
+      color: var(--tinta);
+    }
+    .editor-sesion::backdrop { background: rgb(11 38 59 / 35%); }
+    .editor-sesion h2 { margin-top: 0; }
+    .editor-sesion__grupo { padding-top: 0.9rem; margin-top: 0.9rem; border-top: 1px solid var(--borde); }
+    .editor-acciones { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
+  </style>
 </head>
 <body class="superficie-docente">
   <header class="barra">
@@ -14,35 +32,72 @@
   </header>
 
   <main class="contenedor">
-    <p class="sobretitulo">Preparación del aula</p>
-    <h1>Evaluaciones</h1>
+    <div class="encabezado-pantalla">
+      <div>
+        <h1>Evaluaciones</h1>
+      </div>
+      <div class="encabezado-pantalla__acciones">
+        <button class="boton boton-icono boton-icono--con-aviso" id="boton-papelera" type="button" aria-label="Papelera" title="Papelera">
+          <span class="boton-icono__contador" id="papelera-contador" hidden>0</span>
+        </button>
+        <button class="boton" id="nueva" type="button">+ Nueva evaluación</button>
+      </div>
+    </div>
 
-    <section class="tarjeta">
-      <h2>Convocar una evaluación</h2>
-      <p>
-        Se crea en borrador: puedes cambiarlo todo hasta que la abras.
-        Una vez abierta, los parámetros quedan congelados.
+    <section class="tarjeta tarjeta--con-lista">
+      <div class="tabla-cabecera">
+        <table class="tabla">
+          <colgroup>
+            <col style="width: 30%"><col style="width: 14%"><col style="width: 10%">
+            <col style="width: 14%"><col style="width: 32%">
+          </colgroup>
+          <thead><tr><th>Evaluación</th><th>Preguntas</th><th>Estado</th><th>Progreso</th><th>Acciones</th></tr></thead>
+        </table>
+      </div>
+      <div class="panel-lista" id="lista-envoltura">
+        <table class="tabla">
+          <colgroup>
+            <col style="width: 30%"><col style="width: 14%"><col style="width: 10%">
+            <col style="width: 14%"><col style="width: 32%">
+          </colgroup>
+          <tbody id="listado"></tbody>
+        </table>
+      </div>
+      <div class="vacio-lista" id="vacio" hidden>
+        <strong>Todavía no has creado ninguna evaluación</strong>
+        <p class="apunte">Convócala con un banco de preguntas que ya hayas cargado.</p>
+        <button class="boton" id="vacio-nueva" type="button">+ Nueva evaluación</button>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="editor" class="editor-sesion">
+    <form id="formulario">
+      <h2>Nueva evaluación</h2>
+      <p class="apunte">
+        Se crea en borrador: puedes cambiarlo todo hasta que la abras. Una vez abierta,
+        estos parámetros quedan congelados (el nombre sí se puede seguir cambiando después).
       </p>
 
-      <form id="formulario">
-        <label class="campo">
-          <span>Nombre</span>
-          <input type="text" id="nombre" placeholder="Ciencias · Parcial 2" required>
-        </label>
+      <label class="campo">
+        <span>Nombre</span>
+        <input type="text" id="nombre" placeholder="Ciencias · Parcial 2" required>
+      </label>
 
-        <label class="campo">
-          <span>Banco de preguntas</span>
-          <select id="banco" required></select>
-        </label>
+      <label class="campo">
+        <span>Banco de preguntas</span>
+        <select id="banco" required></select>
+      </label>
 
-        <fieldset class="campo">
-          <span>Cursos convocados</span>
-          <div id="cursos" class="casillas"></div>
-          <p class="apunte" id="sin-cursos" hidden>
-            Todavía no hay estudiantes cargados. Cárgalos primero.
-          </p>
-        </fieldset>
+      <fieldset class="campo">
+        <span>Cursos convocados</span>
+        <div id="cursos" class="casillas"></div>
+        <p class="apunte" id="sin-cursos" hidden>
+          Todavía no hay estudiantes cargados. Cárgalos primero.
+        </p>
+      </fieldset>
 
+      <div class="editor-sesion__grupo">
         <div class="rejilla">
           <label class="campo">
             <span>Preguntas por estudiante</span>
@@ -65,37 +120,70 @@
             </select>
           </label>
         </div>
-
         <p class="apunte" id="solapamiento"></p>
-
         <p class="aviso" id="aviso-feedback" hidden>
           Con «Todo», el primero en terminar sale del aula sabiendo las respuestas.
           Úsalo solo si todos entregan a la vez.
         </p>
-
-        <p class="aviso" id="error" role="alert" hidden></p>
-        <button class="boton" type="submit">Crear evaluación</button>
-      </form>
-    </section>
-
-    <section class="tarjeta">
-      <div class="titulo-con-enlace">
-        <h2>Evaluaciones creadas</h2>
-        <a class="boton boton--secundario boton--pequeno" id="ir-papelera" href="#papelera" hidden>Papelera</a>
       </div>
-      <p id="vacio" hidden class="apunte">Todavía no has creado ninguna.</p>
-      <table class="tabla" id="listado"></table>
-    </section>
 
-    <section class="tarjeta" id="papelera" hidden>
-      <h2>Papelera</h2>
-      <p class="apunte">
-        Las evaluaciones borradas esperan aquí 30 días, con todos sus resultados, por si hace falta
-        restaurarlas. Después OpenTest las elimina solo.
-      </p>
-      <table class="tabla" id="listado-papelera"></table>
-    </section>
-  </main>
+      <p class="aviso" id="error" role="alert" hidden></p>
+
+      <div class="editor-acciones">
+        <button class="boton" type="submit">Crear evaluación</button>
+        <button class="boton boton--secundario" type="button" id="editor-cancelar">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="feedback" class="ajustes">
+    <h2>Retroalimentación</h2>
+    <p class="apunte" id="feedback-nombre"></p>
+    <label class="campo">
+      <span>Qué ve el estudiante al terminar</span>
+      <select id="feedback-select">
+        <option value="solo_puntaje">Solo su puntaje</option>
+        <option value="aciertos">Su puntaje y en qué falló</option>
+        <option value="completo">Todo, con las respuestas correctas</option>
+      </select>
+    </label>
+    <p class="aviso" id="feedback-aviso" hidden>
+      Con «Todo», quien la vea sabrá las respuestas correctas.
+    </p>
+    <p class="aviso" id="feedback-error" role="alert" hidden></p>
+    <div class="editor-acciones">
+      <button class="boton" id="feedback-guardar" type="button">Guardar</button>
+      <button class="boton boton--secundario" type="button" data-cerrar>Cancelar</button>
+    </div>
+  </dialog>
+
+  <dialog id="enviar-portal" class="ajustes">
+    <h2>Enviar al portal</h2>
+    <p class="apunte" id="enviar-portal-nombre"></p>
+    <p class="aviso" id="enviar-portal-error" role="alert" hidden></p>
+    <p class="exito" id="enviar-portal-exito" role="status" hidden></p>
+    <label class="campo" id="enviar-portal-campo">
+      <span>Evaluación del portal</span>
+      <select id="enviar-portal-select"></select>
+    </label>
+    <div class="editor-acciones">
+      <button class="boton" id="enviar-portal-enviar" type="button">Enviar</button>
+      <button class="boton boton--secundario" type="button" data-cerrar>Cerrar</button>
+    </div>
+  </dialog>
+
+  <dialog id="papelera" class="ajustes">
+    <h2>Papelera</h2>
+    <p class="apunte">
+      Las evaluaciones borradas esperan aquí 30 días, con todos sus resultados, por si hace falta
+      restaurarlas. Después OpenTest las elimina solas.
+    </p>
+    <p id="papelera-vacio" hidden class="apunte">No hay nada en la papelera.</p>
+    <table class="tabla" id="listado-papelera"></table>
+    <div class="ajustes__cierre">
+      <button class="boton boton--secundario" type="button" data-cerrar>Cerrar</button>
+    </div>
+  </dialog>
 
   <script type="module" src="/docente/sesiones.js"></script>
 </body>

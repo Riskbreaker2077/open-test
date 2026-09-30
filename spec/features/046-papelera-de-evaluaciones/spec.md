@@ -1,6 +1,6 @@
 # 046 · Papelera de evaluaciones y sugerencia tras enviar al portal
 
-**Estado:** implementado ✅
+**Estado:** implementado ✅ _(revisada por la 049: ahora **toda** evaluación no abierta va a la papelera, con o sin intentos)_
 
 ## Qué hace
 

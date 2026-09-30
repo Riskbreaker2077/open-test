@@ -21,6 +21,17 @@ if (salir) {
   });
 }
 
+// 048: botón de engranaje -> abre el <dialog id="ajustes"> de la pantalla.
+export function iniciarEngranaje() {
+  const boton = document.getElementById('engranaje');
+  const dialogo = document.getElementById('ajustes');
+  if (!boton || !dialogo) return;
+  boton.addEventListener('click', () => dialogo.showModal());
+  dialogo.querySelectorAll('[data-cerrar]').forEach((el) => {
+    el.addEventListener('click', () => dialogo.close());
+  });
+}
+
 // OpenTest corre sin ventana de consola (034): este botón es su interruptor.
 const apagar = document.getElementById('apagar');
 if (apagar) {

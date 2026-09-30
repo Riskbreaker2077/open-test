@@ -40,15 +40,17 @@
 
 **La 045, la 046 y la 047 están implementadas (29/09/2026)** y, junto con la 044, se publican como **1.6.0**. La 045 cierra un hueco de privacidad: el portal listaba y dejaba reabrir las evaluaciones cerradas que el estudiante ya había presentado, con su nota y su retroalimentación. Ahora solo lista las abiertas, en curso o en pausa que no ha entregado; `entrar` a una ya entregada o anulada responde 409 "Ya entregaste esta prueba.", y el portal descarta la cookie de un intento entregado. El resultado se sigue viendo al entregar. Con eso se cumple lo que `tech-stack.md` ya exigía y se revisa la 004/013. La 046 agrega la **papelera**: borrar una evaluación con intentos la deja 30 días restaurable (**migración v8**, `sesiones.en_papelera_en`) y después se elimina sola, al arrancar y cada 24 h. Mientras está en la papelera no aparece en ningún listado ni se envía al portal, su cookie de estudiante deja de valer y su banco sigue sin poder borrarse. **Enviar al portal** sugiere **Mover a la papelera** lo que ya quedó enviado. La 047 rediseña el panel de inicio: una franja **Ahora** con la evaluación en marcha, avisos de pendientes y los accesos en tres pasos, **Preparar → Aplicar → Después**, con `GET /api/docente/estado` ampliado. 509 tests en verde y lint de 104 archivos limpio.
 
+**La 048 y la 049 están implementadas (29/09/2026)** y se publican como **1.7.0**. La 048 rediseña las ocho pantallas del panel del docente como una app: marco fijo sin scroll de página (`overflow: hidden` en `<html>` y `<body>`, la causa de que antes «no funcionara»), solo las listas se desplazan y su cabecera queda fija con dos `<table>` que comparten `<colgroup>`. Sin sobretítulos, listas compactas con jerarquía por celda, estados en pastillas de color, acciones de fila como íconos de línea (`public/docente/iconos.js`, Heroicons MIT embebidos), creación e importación en diálogos y engranaje solo donde hay ajustes; Estadísticas suma resumen, distribución por nivel de acierto y barras por competencia. Todo el CSS nuevo vive en `public/docente/panel-shell.css`; **nunca** poner `display: grid/flex` directo en un `<td>` (descuadra la fila) ni reglas `.acciones-fila` sueltas en un `<style>` de página. Portal del estudiante, examen y proyección no cambian. La 049 hace que borrar una evaluación **siempre** pase por la papelera (revisa la 046) y agrega renombrar (`PATCH /api/docente/sesiones/:id/nombre`). 510 tests en verde y lint de 105 archivos limpio.
+
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · 035 · 036 · 037 · 038 · 039 · 040 · 041 · 042 · 043 · 044 · **045** · **046** · **047** | — | Verificación en tablet real de 039, 040, 041, 045 y en proyector de la 042 (ver `roadmap.md → Siguiente`) |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · 035 · 036 · 037 · 038 · 039 · 040 · 041 · 042 · 043 · 044 · **045** · **046** · **047** · **048** · **049** | — | Verificación en tablet real de 039, 040, 041, 045 y en proyector de la 042 (ver `roadmap.md → Siguiente`) |
 
 ### Para retomar, en este orden
 
 1. Lee `RESTART.md`: contiene el estado operativo de la última sesión.
 2. Lee `spec/constitution/roadmap.md`: el encargo original está completo; lo que sigue sale de `Backlog / ideas` si se decide continuar.
-3. `npm install && npm test` — deben pasar los 509.
+3. `npm install && npm test` — deben pasar los 510.
 4. `npm start` y entra a `http://localhost:3000/` para ver el portal del estudiante, y a `/docente/` para el panel.
 
 ## Protocolo de restart entre sesiones

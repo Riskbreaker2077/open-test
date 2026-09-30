@@ -1,0 +1,332 @@
+/* 048: el panel del docente deja de ser una página larga con scroll y pasa
+   a un marco fijo (cabecera + contenido) que ocupa el alto disponible.
+   Solo para el panel del docente: ninguna otra superficie usa
+   `body.superficie-docente`. `entrar.html` (`.pagina-acceso`) queda fuera:
+   ya es una sola tarjeta centrada sin ajustes. */
+
+/* El elemento que de verdad controla la barra de scroll del navegador es
+   <html>, no <body> — fijar overflow:hidden solo en body es la causa más
+   común de que "no funcione": el navegador sigue dejando desplazar toda la
+   página por <html>. Aquí es seguro fijar <html> sin condicionarlo a nada
+   más: este archivo solo se carga en las pantallas del panel (nunca en
+   `entrar.html`, portal, examen o proyección). */
+html { height: 100dvh; overflow: hidden; }
+
+body.superficie-docente:not(.pagina-acceso) {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  padding: 0;
+  overflow: hidden;
+}
+/* La barra de marca ocupaba casi 1/6 de una tablet en horizontal solo para
+   el logo y "Volver al panel". En el panel del docente se reduce a una
+   franja delgada: el logo pequeño y el nombre de la pantalla ya dicen
+   dónde está, no hace falta repetirlo en un título grande debajo. */
+body.superficie-docente:not(.pagina-acceso) > .barra {
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 3.25rem;
+  margin: 0;
+  padding: 0.4rem max(1rem, calc((100vw - var(--ancho)) / 2));
+}
+body.superficie-docente:not(.pagina-acceso) .marca--compacta .marca__logo {
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 7px;
+}
+body.superficie-docente:not(.pagina-acceso) .marca--compacta .marca__logo img { width: 1.85rem; height: 1.85rem; }
+body.superficie-docente:not(.pagina-acceso) .marca--compacta .marca__texto strong { font-size: 0.92rem; line-height: 1.1; }
+body.superficie-docente:not(.pagina-acceso) .marca--compacta .marca__texto small { display: none; }
+
+body.superficie-docente:not(.pagina-acceso) > main.contenedor {
+  display: flex;
+  width: 100%;
+  max-width: none;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0;
+  padding: 0.85rem max(1rem, calc((100vw - var(--ancho)) / 2)) 0.85rem;
+  gap: 0.65rem;
+  overflow: hidden;
+}
+
+/* Encabezado de contenido: una sola línea delgada, el h1 a la izquierda,
+   los íconos de acción a la derecha. Política del rediseño (048): sin
+   "sobretítulo" (la etiqueta en mayúsculas tipo "DIRECTORIO DEL AULA") en
+   ninguna pantalla del panel — no aporta nada y ocupa una línea entera.
+   El nombre de la pantalla ya está en la barra de arriba. */
+.encabezado-pantalla {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.4rem;
+}
+.encabezado-pantalla > div { display: flex; min-width: 0; align-items: center; }
+.encabezado-pantalla .sobretitulo { display: none; }
+.encabezado-pantalla h1 {
+  margin: 0;
+  overflow: hidden;
+  color: var(--azul-900);
+  font-size: clamp(1.3rem, 1.8vw + 0.7rem, 1.75rem);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.encabezado-pantalla__acciones { display: flex; flex: 0 0 auto; align-items: center; gap: 0.5rem; }
+.boton-engranaje, .boton-icono {
+  display: inline-flex;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--azul-900);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: var(--papel);
+  font-size: 1.2rem;
+  line-height: 1;
+  box-shadow: none;
+}
+.boton-engranaje:hover, .boton-engranaje:focus-visible,
+.boton-icono:hover, .boton-icono:focus-visible { border-color: var(--azul-800); background: var(--azul-100); }
+.boton-icono--con-aviso { position: relative; }
+.boton-engranaje .icono, .boton-icono .icono { width: 1.3rem; height: 1.3rem; }
+.boton-icono__contador {
+  position: absolute;
+  top: -0.3rem;
+  right: -0.3rem;
+  min-width: 1.15rem;
+  padding: 0 0.3rem;
+  color: #fff;
+  border-radius: 999px;
+  background: var(--rojo-600);
+  font-family: system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.15rem;
+  text-align: center;
+}
+
+/* El único scroll de la pantalla vive en la lista que lo necesite: la
+   tarjeta que la contiene crece para llenar el alto disponible y solo su
+   `.panel-lista` interno se desplaza; el encabezado de la tarjeta y los
+   avisos quedan siempre a la vista. */
+/* La tarjeta de una lista no necesita el mismo aire que una de contenido
+   para leer: ese espacio arriba/abajo no decora nada, solo le resta filas
+   visibles a lo único que importa en esta tarjeta. Menos padding aquí que
+   en el resto de la aplicación es intencional, no un olvido. */
+.tarjeta--con-lista {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0.6rem 1rem;
+}
+.panel-lista { flex: 1 1 auto; min-height: 0; overflow: auto; }
+
+/* Cabecera de tabla fija de verdad, no un truco: dos tablas
+   independientes que comparten las mismas columnas (`<colgroup>` +
+   `table-layout: fixed`) — la de la cabecera vive fuera del contenedor con
+   scroll, la del cuerpo adentro. No depende de qué elemento termine siendo
+   "el contenedor con scroll" ni de cómo cada navegador resuelva
+   `position: sticky` dentro de una tabla: la cabecera físicamente no está
+   dentro del área que se desplaza, así que no hay nada que "se baje". */
+.tabla-cabecera { flex: 0 0 auto; overflow: hidden; }
+.tabla-cabecera .tabla,
+.panel-lista .tabla { table-layout: fixed; width: 100%; margin: 0; }
+
+/* Listas más compactas: menos relleno por fila para que quepan más filas
+   sin desplazarse, sin perder el mínimo táctil en los controles de la fila.
+   La cabecera baja un poco de peso: es una etiqueta que se lee una vez,
+   no debe competir con los datos que se escanean fila a fila. */
+body.superficie-docente:not(.pagina-acceso) .tabla { font-size: 0.85rem; }
+body.superficie-docente:not(.pagina-acceso) .tabla th,
+body.superficie-docente:not(.pagina-acceso) .tabla td { padding: 0.55rem 0.7rem; vertical-align: top; }
+body.superficie-docente:not(.pagina-acceso) .tabla th {
+  color: var(--tinta-suave);
+  background: var(--papel);
+  border-bottom: 2px solid var(--borde);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Jerarquía dentro de una celda: qué identifica la fila (fuerte) contra qué
+   solo la describe (tenue). Dos niveles bastan — ver skill frontend-design.
+   Cada línea de apoyo se trunca con "…" en vez de partirse en un punto
+   cualquiera: así toda fila mide lo mismo, sin importar cuán largo sea el
+   nombre real del banco o de un curso. */
+.celda-titulo { display: grid; gap: 0.15rem; max-width: 20rem; line-height: 1.3; }
+.celda-titulo strong { color: var(--azul-900); font-weight: 700; }
+.celda-titulo small {
+  overflow: hidden;
+  color: var(--tinta-suave);
+  font-weight: 400;
+  font-size: 0.85em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.celda-apoyo { display: grid; gap: 0.1rem; max-width: 14rem; color: var(--tinta-suave); line-height: 1.3; }
+.celda-apoyo strong { color: var(--tinta); font-weight: 600; }
+.celda-apoyo small { overflow: hidden; font-size: 0.85em; white-space: nowrap; text-overflow: ellipsis; }
+
+/* Para una celda de una sola línea de texto tenue: a diferencia de
+   `.celda-apoyo` (pensada para envolver un <div> con dos líneas), esta va
+   directo en el `<td>`. Importante: nunca poner `display: grid`/`flex`
+   directo en un `<td>` — el navegador deja de tratarlo como celda de
+   tabla y descuadra toda la fila (pasó en Bancos y Monitoreo: 049→048). */
+.texto-discreto { color: var(--tinta-suave); font-size: 0.85em; }
+
+/* Estado como pastilla de color: un vistazo basta, sin leer la palabra. */
+.pastilla {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78em;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.pastilla--neutro { color: var(--tinta-suave); background: var(--fondo); }
+.pastilla--ambar { color: var(--azul-950); background: var(--dorado-100); }
+.pastilla--verde { color: var(--verde-700); background: var(--verde-100); }
+.pastilla--rojo { color: var(--rojo-700); background: var(--rojo-100); }
+.pastilla--azul { color: var(--azul-800); background: var(--azul-100); }
+
+/* Acciones de fila como íconos "fantasma": sin borde propio, el fondo solo
+   aparece al pasar o enfocar. Con varias acciones por fila, un cuadrado con
+   borde en cada una se siente pesado y compite con los datos; el color
+   entra recién al interactuar (menos bordes, más espaciado). El tamaño
+   respeta el mínimo táctil del proyecto (`--toque`, 44px), no uno menor. */
+/* Alineados a la izquierda, igual que el resto de columnas de la tabla:
+   con `flex-end` quedaban pegados al borde derecho, lejos de "ACCIONES"
+   en la cabecera, como si pertenecieran a otra columna. */
+.acciones-fila { display: flex; flex-wrap: nowrap; align-items: center; gap: 0.1rem; justify-content: flex-start; }
+/* La celda de acciones no necesita el mismo relleno lateral que una celda
+   de texto: ese espacio de sobra es justo lo que le falta a los íconos
+   para quedar todos en una sola línea. */
+.tabla td:last-child { padding-inline: 0.3rem; }
+.boton-fila {
+  display: inline-flex;
+  width: var(--toque);
+  height: var(--toque);
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--tinta-suave);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 1rem;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: none;
+}
+.boton-fila:hover, .boton-fila:focus-visible { color: var(--azul-900); background: var(--azul-100); }
+.boton-fila--peligro:hover, .boton-fila--peligro:focus-visible { color: var(--rojo-700); background: var(--rojo-100); }
+.acciones-fila select { min-height: 2.1rem; padding: 0 0.4rem; font-size: 0.82rem; }
+
+/* Íconos de línea (Heroicons, ver `iconos.js`): trazo, no relleno, del
+   mismo grosor en todos — más finos y serios que un emoji, que además
+   se ve distinto en cada sistema operativo. */
+.icono { width: 1.15rem; height: 1.15rem; flex: 0 0 auto; }
+
+/* Diálogo de ajustes: mismo tratamiento visual que los editores existentes. */
+.ajustes {
+  width: min(34rem, 94vw);
+  max-height: 86dvh;
+  overflow: auto;
+  padding: clamp(1.25rem, 3vw, 1.85rem);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--papel);
+  box-shadow: var(--sombra);
+  color: var(--tinta);
+}
+.ajustes::backdrop { background: rgb(11 38 59 / 35%); }
+.ajustes h2 { margin-top: 0; }
+.ajustes__grupo { margin-bottom: 1.25rem; }
+.ajustes__grupo:last-child { margin-bottom: 0; }
+.ajustes__grupo h3 { margin-bottom: 0.6rem; font-size: 1rem; }
+.ajustes__cierre { display: flex; justify-content: flex-end; margin-top: 1.25rem; }
+
+/* Estado vacío: invitación a actuar, no una frase suelta perdida arriba
+   de una tabla vacía (Refactoring UI, "finishing touches — empty states"). */
+.vacio-lista {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  color: var(--tinta-suave);
+  text-align: center;
+}
+.vacio-lista strong { color: var(--azul-900); font-family: Georgia, serif; font-size: 1.3rem; font-weight: 700; }
+.vacio-lista p { margin: 0; max-width: 26rem; }
+.vacio-lista .boton { margin-top: 0.4rem; }
+
+/* Pantallas de un solo bloque sin listas ni tarjetas de más (Resultados):
+   se centran verticalmente en el alto disponible en vez de quedar pegadas
+   contra arriba con todo el resto de la pantalla vacío debajo. */
+.contenido-centrado {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  justify-content: center;
+}
+
+/* No hay una salida a "scroll de página normal" por debajo de cierto ancho:
+   se probó y rompía justo lo que se pidió (cabecera fija, sin que la tabla
+   "se baje"). El panel del docente vive en tablet horizontal o portátil,
+   nunca en un teléfono en vertical, así que el marco fijo se sostiene a
+   cualquier ancho razonable de esos dos. */
+
+/* Las tarjetas traen un margen inferior de página de lectura; dentro del
+   marco fijo el espacio entre bloques ya lo pone el `gap` del <main>. */
+body.superficie-docente:not(.pagina-acceso) main.contenedor .tarjeta { margin-bottom: 0; }
+
+/* Inicio: todo cabe en una pantalla, aunque sea de portátil pequeño.
+   "Ahora" es una franja de una línea, los avisos son fichas en fila y los
+   siete accesos son filas con ícono (una línea de descripción), repartidas
+   en tres columnas — antes cada acceso ocupaba una tarjeta alta y en la
+   pantalla solo cabía uno por columna. */
+.panel-inicio .ahora { display: flex; flex: 0 0 auto; align-items: center; gap: 1rem; max-height: 7.5rem; padding: 0.55rem 1rem; margin: 0; overflow: auto; }
+.panel-inicio .ahora__etiqueta { flex: 0 0 auto; margin: 0; }
+.panel-inicio #ahora-contenido { flex: 1 1 auto; min-width: 0; }
+.panel-inicio .ahora__sesion { padding: 0.15rem 0; flex-wrap: nowrap; }
+.panel-inicio .ahora__datos { display: flex; flex: 1 1 auto; align-items: center; gap: 0.3rem 0.8rem; min-width: 0; }
+.panel-inicio .ahora__nombre { flex: 0 1 auto; overflow: hidden; font-size: 1.05rem; white-space: nowrap; text-overflow: ellipsis; }
+.panel-inicio .ahora__detalle { overflow: hidden; font-size: 0.85rem; white-space: nowrap; text-overflow: ellipsis; }
+.panel-inicio .ahora__acciones .boton { min-height: 2.4rem; padding-block: 0.3rem; }
+
+.panel-inicio .avisos-caja { flex: 0 1 auto; min-width: 0; }
+.panel-inicio .avisos { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.4rem; padding: 0; margin: 0; list-style: none; }
+.panel-inicio .ficha { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 2.2rem; padding: 0.2rem 0.85rem; color: #fff; border-radius: 999px; background: rgb(255 255 255 / 12%); font-size: 0.84rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.panel-inicio .ficha::before { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--dorado-500); content: ""; }
+.panel-inicio .ficha:hover, .panel-inicio .ficha:focus-visible { background: rgb(255 255 255 / 22%); }
+
+.panel-inicio .pasos { flex: 1 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; gap: 0.6rem; }
+.panel-inicio .paso { display: flex; flex-direction: column; gap: 0.1rem; min-height: 0; padding: 0.6rem 0.7rem; overflow: auto; }
+.panel-inicio .paso__titulo { margin: 0 0 0.25rem; font-family: system-ui, sans-serif; font-size: 0.95rem; }
+.panel-inicio .paso__numero { width: 1.5rem; height: 1.5rem; font-size: 0.8rem; }
+.panel-inicio .acceso-fila { display: flex; align-items: center; gap: 0.7rem; padding: 0.4rem 0.5rem; margin: 0; border-radius: 12px; }
+.panel-inicio .acceso-fila + .acceso-fila { border-top: 0; border-radius: 12px; }
+.panel-inicio .acceso-icono { display: grid; flex: 0 0 auto; width: 2.3rem; height: 2.3rem; place-items: center; color: var(--dorado-600); border-radius: 10px; background: var(--dorado-100); }
+.panel-inicio .acceso-icono .icono { width: 1.3rem; height: 1.3rem; }
+.panel-inicio .acceso-texto { display: grid; flex: 1 1 auto; min-width: 0; gap: 0.05rem; }
+.panel-inicio .acceso-texto strong { display: block; overflow: hidden; font-family: system-ui, sans-serif; font-size: 0.95rem; white-space: nowrap; text-overflow: ellipsis; }
+.panel-inicio .acceso-texto span { overflow: hidden; color: var(--tinta-suave); font-size: 0.78rem; white-space: nowrap; text-overflow: ellipsis; }
+.panel-inicio .paso__nota { margin: 0.4rem 0 0; font-size: 0.78rem; }
+@media (max-width: 60rem) {
+  .panel-inicio .pasos { grid-template-rows: none; overflow: auto; }
+}

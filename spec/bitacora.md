@@ -823,3 +823,34 @@ el sondeo en las demás páginas que importan `panel.js`.
 Verificación: 509 tests y lint en verde. Los recorridos se hicieron en
 Chrome sin cabeza (CDP con `WebSocket` nativo de Node 24, sin dependencias)
 contra un servidor en memoria sembrado como en los tests. Sin push ni tag.
+
+## 29/09/2026 (tarde) — 048 y 049, publicadas como 1.7.0
+
+El usuario pidió rediseñar todo el panel del docente «como una app, sin
+scroll» y guiar el resultado sobre su instalación real. Se especificaron la
+048 (interfaz) y, sobre la marcha, la 049 (papelera universal y renombrar).
+
+**Lecciones que costaron varias vueltas y conviene no repetir:**
+
+- `overflow: hidden` solo en `<body>` no impide que la página se desplace:
+  el elemento que controla el scroll del navegador es `<html>`. Va en los dos.
+- `position: sticky` sobre un `<th>` no fue confiable aquí; la cabecera fija
+  se resolvió con dos `<table>` (cabecera fuera del scroll, cuerpo dentro) que
+  comparten `<colgroup>` y `table-layout: fixed`.
+- Nunca poner `display: grid` o `flex` directo en un `<td>`: deja de ser
+  celda y descuadra la fila. Va en un `<div>` interno.
+- Reglas duplicadas en el `<style>` de una página (`.acciones-fila`) ganan a
+  las de `panel-shell.css` por venir después: se borraron.
+- Un `max-height` en `%` dentro de un flex anidado no resolvía contra nada
+  fiable; se sustituyó por paneles lado a lado con alto propio.
+- Al sincronizar `server/` a la instalación, `cp -r server destino/server`
+  con la carpeta ya existente crea `server/server/` y no actualiza nada;
+  hay que copiar el contenido (`server/.`). El renombrar «no funcionaba» por
+  eso, no por el código.
+
+**049.** El usuario pidió que todo borrado pase por la papelera y poder
+renombrar. `renombrarSesion` se permite en cualquier estado porque el nombre
+es una etiqueta, no un parámetro de la prueba.
+
+Verificación: 510 tests y lint (105 archivos) en verde; el resto lo revisó el
+usuario pantalla por pantalla sobre su instalación.

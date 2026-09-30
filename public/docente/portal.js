@@ -1,4 +1,8 @@
-import { api } from './panel.js';
+import { api, iniciarEngranaje } from './panel.js';
+import { crearIcono } from './iconos.js';
+
+document.getElementById('engranaje').append(crearIcono('engranaje'));
+iniciarEngranaje();
 
 const elementos = {
   formVinculo: document.getElementById('form-vinculo'),
@@ -9,8 +13,11 @@ const elementos = {
   errorVinculo: document.getElementById('error-vinculo'),
   buscarEvaluaciones: document.getElementById('buscar-evaluaciones'),
   errorEvaluaciones: document.getElementById('error-evaluaciones'),
-  listado: document.getElementById('listado'),
+  listaCabecera: document.getElementById('lista-cabecera'),
+  listaEnvoltura: document.getElementById('lista-envoltura'),
   filas: document.getElementById('filas'),
+  chipVinculo: document.getElementById('chip-vinculo'),
+  dialogo: document.getElementById('ajustes'),
   vacio: document.getElementById('vacio'),
   enviar: document.getElementById('enviar'),
   errorEnvio: document.getElementById('error-envio'),
@@ -55,6 +62,9 @@ function pintarVinculo(vinculo) {
     ? `Vinculado con ${vinculo.url} (clave terminada en ${vinculo.finClave}).`
     : '');
   elementos.desvincular.hidden = !vinculo.vinculado;
+  elementos.chipVinculo.className = `pastilla vinculo-chip pastilla--${vinculo.vinculado ? 'verde' : 'ambar'}`;
+  elementos.chipVinculo.textContent = vinculo.vinculado ? 'Vinculado' : 'Sin vincular';
+  elementos.chipVinculo.title = vinculo.vinculado ? `Vinculado con ${vinculo.url}` : 'Vincular con el portal';
   if (vinculo.url) elementos.url.value = vinculo.url;
   elementos.clave.value = '';
   elementos.clave.placeholder = vinculo.vinculado ? 'Pega una clave nueva solo si la cambiaste' : 'mcp_…';
@@ -72,10 +82,28 @@ async function elegirCodigo(sesionId, select) {
   pintarEnvios(respuesta.envios);
 }
 
+// Color y palabra corta del estado; la frase completa va debajo, recortada.
+function pastillaDeEnvio(envio) {
+  switch (envio.estado) {
+    case 'sin_codigo': return ['neutro', 'Sin elegir'];
+    case 'sin_intentos': return ['neutro', 'Sin intentos'];
+    case 'enviado': return ['verde', 'Enviada'];
+    default: return envio.ultimoError ? ['rojo', 'Falló'] : ['ambar', 'Pendiente'];
+  }
+}
+
 function filaEnvio(envio) {
   const fila = document.createElement('tr');
   const nombre = document.createElement('td');
-  nombre.textContent = `${envio.nombre} (${envio.cursos})`;
+  const caja = document.createElement('div');
+  caja.className = 'celda-titulo';
+  const titulo = document.createElement('strong');
+  titulo.textContent = envio.nombre;
+  titulo.title = envio.nombre;
+  const cursos = document.createElement('small');
+  cursos.textContent = envio.cursos;
+  caja.append(titulo, cursos);
+  nombre.append(caja);
 
   const celdaDestino = document.createElement('td');
   const select = document.createElement('select');
@@ -102,7 +130,17 @@ function filaEnvio(envio) {
   celdaDestino.append(select);
 
   const estado = document.createElement('td');
-  estado.textContent = textoEstado(envio);
+  const cajaEstado = document.createElement('div');
+  cajaEstado.className = 'celda-estado';
+  const [color, etiqueta] = pastillaDeEnvio(envio);
+  const pastilla = document.createElement('span');
+  pastilla.className = `pastilla pastilla--${color}`;
+  pastilla.textContent = etiqueta;
+  const detalle = document.createElement('small');
+  detalle.textContent = textoEstado(envio);
+  detalle.title = textoEstado(envio);
+  cajaEstado.append(pastilla, detalle);
+  estado.append(cajaEstado);
   fila.append(nombre, celdaDestino, estado);
   return fila;
 }
@@ -136,7 +174,8 @@ function pintarEnvios(envios) {
   ultimosEnvios = envios;
   pintarSugerencia(envios);
   elementos.vacio.hidden = envios.length > 0;
-  elementos.listado.hidden = envios.length === 0;
+  elementos.listaCabecera.hidden = envios.length === 0;
+  elementos.listaEnvoltura.hidden = envios.length === 0;
   elementos.filas.replaceChildren(...envios.map(filaEnvio));
   const pendientes = envios.filter((envio) => envio.estado === 'pendiente').length;
   elementos.enviar.disabled = pendientes === 0;
@@ -160,7 +199,10 @@ elementos.formVinculo.addEventListener('submit', async (evento) => {
   }
   mostrar(elementos.errorVinculo, '');
   pintarVinculo(respuesta.vinculo);
+  elementos.dialogo.close();
 });
+
+elementos.chipVinculo.addEventListener('click', () => elementos.dialogo.showModal());
 
 elementos.desvincular.addEventListener('click', async () => {
   if (!window.confirm('¿Desvincular OpenTest del portal? Tendrás que pegar la clave otra vez para enviar.')) return;
@@ -184,7 +226,7 @@ elementos.buscarEvaluaciones.addEventListener('click', async () => {
     mostrar(elementos.errorEvaluaciones, 'OpenTest no respondió. Revisa que siga abierto.');
   } finally {
     elementos.buscarEvaluaciones.disabled = false;
-    elementos.buscarEvaluaciones.textContent = 'Buscar evaluaciones disponibles';
+    elementos.buscarEvaluaciones.textContent = 'Buscar en el portal';
   }
 });
 

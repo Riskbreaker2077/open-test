@@ -1,6 +1,9 @@
 // Panel de inicio (047): qué está en marcha, qué quedó pendiente y los
 // accesos ordenados como se trabaja: preparar, aplicar, después.
 import { api } from './panel.js';
+import { crearIcono } from './iconos.js';
+
+for (const nodo of document.querySelectorAll('[data-icono]')) nodo.append(crearIcono(nodo.dataset.icono));
 
 const ahora = document.getElementById('ahora-contenido');
 const pendientes = document.getElementById('pendientes');
@@ -55,8 +58,7 @@ function pintarAhora(activas) {
     const vacio = el('div', 'ahora__sesion');
     const datos = el('div', 'ahora__datos');
     datos.append(
-      el('strong', 'ahora__nombre', 'No hay ninguna evaluación en marcha'),
-      el('span', 'ahora__detalle', 'Cuando abras una, aparecerá aquí para monitorearla y proyectarla.'),
+      el('strong', 'ahora__nombre', 'Sin evaluación en marcha'),
     );
     const acciones = el('div', 'ahora__acciones');
     acciones.append(enlace('Ir a Evaluaciones', '/docente/sesiones.html', 'boton boton--claro'));
@@ -68,30 +70,24 @@ function pintarAhora(activas) {
 }
 
 function pintarPendientes(estado) {
+  // Fichas cortas y clicables (el texto largo va en el title).
   const avisos = [];
-  if (estado.estudiantes === 0) {
-    avisos.push(['Todavía no has cargado estudiantes. Empieza por ahí.', 'Cargar estudiantes', '/docente/estudiantes.html']);
-  }
-  if (estado.bancos === 0) {
-    avisos.push(['Todavía no hay bancos de preguntas.', 'Cargar un banco', '/docente/bancos.html']);
-  }
+  if (estado.estudiantes === 0) avisos.push(['Sin estudiantes', 'Todavía no has cargado estudiantes. Empieza por ahí.', '/docente/estudiantes.html']);
+  if (estado.bancos === 0) avisos.push(['Sin bancos', 'Todavía no hay bancos de preguntas.', '/docente/bancos.html']);
   if (estado.sinEnviar > 0) {
     avisos.push([
+      `${estado.sinEnviar} sin enviar al portal`,
       `${plural(estado.sinEnviar, 'evaluación cerrada tiene', 'evaluaciones cerradas tienen')} resultados sin enviar al portal.`,
-      'Enviar al portal', '/docente/portal.html',
-    ]);
-  }
-  if (estado.enPapelera > 0) {
-    avisos.push([
-      `${plural(estado.enPapelera, 'evaluación está', 'evaluaciones están')} en la papelera; se eliminan solas a los 30 días.`,
-      'Ver la papelera', '/docente/sesiones.html#papelera',
+      '/docente/portal.html',
     ]);
   }
 
   pendientes.hidden = avisos.length === 0;
-  listaPendientes.replaceChildren(...avisos.map(([texto, accion, href]) => {
+  listaPendientes.replaceChildren(...avisos.map(([texto, detalle, href]) => {
     const item = el('li');
-    item.append(el('span', null, texto), enlace(accion, href, 'boton boton--secundario boton--pequeno'));
+    const ficha = enlace(texto, href, 'ficha');
+    ficha.title = detalle;
+    item.append(ficha);
     return item;
   }));
 }

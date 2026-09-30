@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" href="/assets/isotipo-opentest.png">
   <title>OpenTest — Panel del docente</title>
   <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="/docente/panel-shell.css">
 </head>
 <body class="superficie-docente docente-inicio">
   <header class="barra">
@@ -20,62 +21,66 @@
   </header>
 
   <main class="contenedor panel-inicio">
-    <p class="sobretitulo">Gestión de evaluaciones</p>
-    <h1>Panel del docente</h1>
+    <div class="encabezado-pantalla"><div><h1>Panel del docente</h1></div></div>
 
     <section class="ahora" id="ahora" aria-labelledby="titulo-ahora" aria-live="polite">
       <p class="ahora__etiqueta" id="titulo-ahora">Ahora</p>
       <div id="ahora-contenido">
         <p class="ahora__vacio">Cargando…</p>
       </div>
-    </section>
-
-    <section class="pendientes" id="pendientes" aria-label="Pendientes" hidden>
-      <ul id="pendientes-lista"></ul>
+      <div class="avisos-caja" id="pendientes" aria-label="Pendientes" hidden>
+        <ul class="avisos" id="pendientes-lista"></ul>
+      </div>
     </section>
 
     <div class="pasos">
       <section class="paso" aria-labelledby="paso-1">
         <h2 class="paso__titulo" id="paso-1"><span class="paso__numero">1</span> Preparar</h2>
         <a class="acceso-fila" href="/docente/estudiantes.html">
-          <strong>Estudiantes <span class="acceso-fila__dato" data-dato="estudiantes"></span></strong>
-          <span>Cargar la lista del colegio y consultarla por curso.</span>
+          <span class="acceso-icono" data-icono="estudiantes"></span>
+          <span class="acceso-texto"><strong>Estudiantes</strong><span>Cargar la lista y consultarla por curso</span></span>
+          <span class="acceso-fila__dato" data-dato="estudiantes"></span>
         </a>
         <a class="acceso-fila" href="/docente/bancos.html">
-          <strong>Bancos de preguntas <span class="acceso-fila__dato" data-dato="bancos"></span></strong>
-          <span>Cargar los paquetes de los que saldrá cada prueba.</span>
+          <span class="acceso-icono" data-icono="bancos"></span>
+          <span class="acceso-texto"><strong>Bancos de preguntas</strong><span>Los paquetes de los que sale cada prueba</span></span>
+          <span class="acceso-fila__dato" data-dato="bancos"></span>
         </a>
         <a class="acceso-fila" href="/docente/sesiones.html">
-          <strong>Evaluaciones <span class="acceso-fila__dato" data-dato="evaluaciones"></span></strong>
-          <span>Convocar una prueba para un curso y abrirla el día del examen.</span>
+          <span class="acceso-icono" data-icono="evaluaciones"></span>
+          <span class="acceso-texto"><strong>Evaluaciones</strong><span>Convocar y abrir la prueba del día</span></span>
+          <span class="acceso-fila__dato" data-dato="evaluaciones"></span>
         </a>
       </section>
 
       <section class="paso" aria-labelledby="paso-2">
         <h2 class="paso__titulo" id="paso-2"><span class="paso__numero">2</span> Aplicar</h2>
         <a class="acceso-fila" href="/docente/monitoreo.html">
-          <strong>Monitorear</strong>
-          <span>Ver quién entró, por dónde va y quién ya entregó.</span>
+          <span class="acceso-icono" data-icono="monitorear"></span>
+          <span class="acceso-texto"><strong>Monitorear</strong><span>Quién entró, por dónde va, quién entregó</span></span>
+          
         </a>
         <p class="paso__nota">
-          Para proyectar el código QR y el tablero de asistencia, usa <strong>Proyectar</strong>
-          en la evaluación en marcha.
+          Para proyectar el QR y la asistencia, usa <strong>Proyectar</strong> en la evaluación en marcha.
         </p>
       </section>
 
       <section class="paso" aria-labelledby="paso-3">
         <h2 class="paso__titulo" id="paso-3"><span class="paso__numero">3</span> Después</h2>
         <a class="acceso-fila" href="/docente/resultados.html">
-          <strong>Descargar resultados</strong>
-          <span>El Excel con resumen y detalle, o el archivo completo.</span>
+          <span class="acceso-icono" data-icono="descargar"></span>
+          <span class="acceso-texto"><strong>Descargar resultados</strong><span>Excel con resumen y detalle, o el .zip</span></span>
+          
         </a>
         <a class="acceso-fila" href="/docente/portal.html">
-          <strong>Enviar al portal</strong>
-          <span>Llevar los resultados al portal de estudiantes cuando haya internet.</span>
+          <span class="acceso-icono" data-icono="enviar"></span>
+          <span class="acceso-texto"><strong>Enviar al portal</strong><span>Llevar los resultados al portal de estudiantes</span></span>
+          
         </a>
         <a class="acceso-fila" href="/docente/estadisticas.html">
-          <strong>Estadísticas</strong>
-          <span>Qué preguntas y competencias falla más el grupo.</span>
+          <span class="acceso-icono" data-icono="estadisticas"></span>
+          <span class="acceso-texto"><strong>Estadísticas</strong><span>Qué preguntas y competencias falla el grupo</span></span>
+          
         </a>
       </section>
     </div>

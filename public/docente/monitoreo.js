@@ -1,10 +1,15 @@
-import { api } from './panel.js';
+import { api, iniciarEngranaje } from './panel.js';
+import { crearIcono } from './iconos.js';
+
+document.getElementById('engranaje').append(crearIcono('engranaje'));
+iniciarEngranaje();
 
 const elementos = {
   panel: document.getElementById('panel'),
   sinSesiones: document.getElementById('sin-sesiones'),
   selector: document.getElementById('sesion'),
   nombre: document.getElementById('nombre'),
+  estadoPastilla: document.getElementById('estado-pastilla'),
   parametros: document.getElementById('parametros'),
   direccion: document.getElementById('direccion'),
   proyectar: document.getElementById('proyectar'),
@@ -17,6 +22,17 @@ const elementos = {
   sinEntrar: document.getElementById('sin-entrar'),
 };
 
+const ETIQUETAS_ESTADO = {
+  sin_entrar: 'Sin entrar',
+  presentando: 'Presentando',
+  entregado: 'Entregado',
+};
+const PASTILLA_ESTADO = { sin_entrar: 'neutro', presentando: 'ambar', entregado: 'verde' };
+const ETIQUETAS_SESION = {
+  borrador: 'Borrador', abierta: 'Abierta — esperando', en_curso: 'En curso', pausada: 'En pausa', cerrada: 'Cerrada',
+};
+const PASTILLA_SESION = { borrador: 'neutro', abierta: 'ambar', en_curso: 'verde', pausada: 'rojo', cerrada: 'azul' };
+
 let sesionId = null;
 let sondeo = null;
 let ultimo = null;
@@ -27,40 +43,48 @@ const tiempo = (segundos) => {
   return `${String(minutos).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 };
 
-function celda(texto) {
+function celdaTexto(texto) {
   const td = document.createElement('td');
+  td.className = 'texto-discreto';
   td.textContent = texto;
   return td;
 }
 
+// El nombre identifica la fila (fuerte); el curso es de apoyo, tenue debajo
+// — igual que Evaluación/Banco en las otras listas del panel.
+function celdaEstudiante(estudiante) {
+  const td = document.createElement('td');
+  const caja = document.createElement('div');
+  caja.className = 'celda-titulo';
+  const nombre = document.createElement('strong');
+  nombre.textContent = estudiante.nombre;
+  const curso = document.createElement('small');
+  curso.textContent = estudiante.curso;
+  caja.append(nombre, curso);
+  td.append(caja);
+  return td;
+}
+
+function celdaEstado(estudiante) {
+  const td = document.createElement('td');
+  const pastilla = document.createElement('span');
+  // La anulación (038) se superpone al estado: se anuló, pero sigue
+  // importando si había entrado y si había entregado.
+  if (estudiante.anulado) {
+    pastilla.className = 'pastilla pastilla--rojo';
+    pastilla.textContent = `Anulada · ${ETIQUETAS_ESTADO[estudiante.estado] ?? estudiante.estado}`;
+  } else {
+    pastilla.className = `pastilla pastilla--${PASTILLA_ESTADO[estudiante.estado] ?? 'neutro'}`;
+    pastilla.textContent = ETIQUETAS_ESTADO[estudiante.estado] ?? estudiante.estado;
+  }
+  td.append(pastilla);
+  return td;
+}
+
 function pintarTabla(estudiantes) {
-  const cabecera = document.createElement('thead');
-  cabecera.innerHTML = '<tr><th>Estudiante</th><th>Curso</th><th>Estado</th>' +
-    '<th>Avance</th><th>Tiempo</th><th>Resultado</th><th></th></tr>';
-  const cuerpo = document.createElement('tbody');
-  for (const estudiante of estudiantes) {
+  const filas = estudiantes.map((estudiante) => {
     const fila = document.createElement('tr');
-    fila.append(celda(estudiante.nombre), celda(estudiante.curso));
-    // La anulación (038) se superpone al estado: se anuló, pero sigue
-    // importando si había entrado y si había entregado.
-    const estado = celda(estudiante.anulado
-      ? `anulada · ${estudiante.estado.replace('_', ' ')}`
-      : estudiante.estado.replace('_', ' '));
-    estado.className = estudiante.anulado
-      ? 'estado-monitor estado-monitor--anulado'
-      : `estado-monitor estado-monitor--${estudiante.estado}`;
-    fila.append(
-      estado,
-      celda(estudiante.estado === 'presentando' ? `Pregunta ${estudiante.preguntaActual}` : '—'),
-      celda(estudiante.estado === 'presentando' ? tiempo(estudiante.segundosRestantes) : '—'),
-      celda((() => {
-        if (estudiante.anulado) return 'Anulada · 0 puntos · 0 %';
-        return estudiante.estado === 'entregado'
-          ? `${estudiante.puntaje} puntos · ${estudiante.porcentaje} % · ${estudiante.motivoEntrega}`
-          : '—';
-      })()),
-    );
-    const acciones = document.createElement('td');
+    const tdAcciones = document.createElement('td');
     if (estudiante.estado === 'presentando' && !estudiante.anulado) {
       const boton = document.createElement('button');
       boton.type = 'button';
@@ -74,20 +98,34 @@ function pintarTabla(estudiantes) {
         if (!respuesta.ok) window.alert(respuesta.mensaje);
         await actualizar();
       });
-      acciones.append(boton);
+      tdAcciones.append(boton);
     }
-    fila.append(acciones);
-    cuerpo.append(fila);
-  }
-  elementos.tabla.replaceChildren(cabecera, cuerpo);
+    fila.append(
+      celdaEstudiante(estudiante),
+      celdaEstado(estudiante),
+      celdaTexto(estudiante.estado === 'presentando' ? `Pregunta ${estudiante.preguntaActual}` : '—'),
+      celdaTexto(estudiante.estado === 'presentando' ? tiempo(estudiante.segundosRestantes) : '—'),
+      celdaTexto((() => {
+        if (estudiante.anulado) return 'Anulada · 0 puntos · 0 %';
+        return estudiante.estado === 'entregado'
+          ? `${estudiante.puntaje} puntos · ${estudiante.porcentaje} % · ${estudiante.motivoEntrega}`
+          : '—';
+      })()),
+      tdAcciones,
+    );
+    return fila;
+  });
+  elementos.tabla.replaceChildren(...filas);
 }
 
 function pintar(monitoreo) {
   ultimo = monitoreo;
   const { sesion, contadores } = monitoreo;
   elementos.nombre.textContent = sesion.nombre;
+  elementos.estadoPastilla.className = `pastilla pastilla--${PASTILLA_SESION[sesion.estado] ?? 'neutro'}`;
+  elementos.estadoPastilla.textContent = ETIQUETAS_SESION[sesion.estado] ?? sesion.estado;
   elementos.parametros.textContent = `${sesion.banco} · ${sesion.cursos.join(', ')} · ` +
-    `${sesion.nPreguntas} preguntas · ${sesion.duracionMinutos} minutos · ${sesion.estado}`;
+    `${sesion.nPreguntas} preguntas · ${sesion.duracionMinutos} minutos`;
   elementos.direccion.textContent = monitoreo.direccion;
   elementos.proyectar.href = `/proyeccion/?sesion=${sesion.id}`;
   elementos.convocados.textContent = contadores.convocados;
