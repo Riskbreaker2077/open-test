@@ -23,6 +23,7 @@ import {
   POR_DEFECTO,
   puedeEntrar,
   reanudarSesion,
+  renombrarSesion,
   restaurarSesion,
   sesionesDisponiblesPara,
   tiempoRestante,
@@ -356,11 +357,14 @@ test('borrar una sesión con intentos la manda a la papelera sin perder nada (04
   cerrarBd(db);
 });
 
-test('sin intentos se borra en el acto; con intentos y abierta no se deja borrar (046)', () => {
+test('un borrador borrado también va a la papelera; abierta no se deja borrar (046, 049)', () => {
   const db = preparar();
   const borrador = crearSesion(db, base);
-  assert.equal(borrarSesion(db, borrador.id).enPapelera, false);
-  assert.equal(cuenta(db, 'sesiones WHERE id = ?', borrador.id), 0);
+  assert.equal(borrarSesion(db, borrador.id).enPapelera, true);
+  assert.equal(cuenta(db, 'sesiones WHERE id = ?', borrador.id), 1);
+  assert.deepEqual(listarSesiones(db), [], 'desaparece de las evaluaciones aunque no tenga intentos');
+  restaurarSesion(db, borrador.id);
+  assert.equal(listarSesiones(db).length, 1);
 
   const abierta = crearSesion(db, base);
   abrirSesion(db, abierta.id);
@@ -410,11 +414,27 @@ test('un banco usado por una evaluación en la papelera sigue sin poder borrarse
   cerrarBd(db);
 });
 
-test('una sesión cerrada con cero intentos se borra', () => {
+test('una sesión cerrada con cero intentos también va a la papelera (049)', () => {
   const db = preparar();
   const sesion = crearSesion(db, base);
   abrirSesion(db, sesion.id);
   cerrarSesion(db, sesion.id);
-  assert.doesNotThrow(() => borrarSesion(db, sesion.id));
+  assert.equal(borrarSesion(db, sesion.id).enPapelera, true);
+  assert.equal(cuenta(db, 'sesiones WHERE id = ?', sesion.id), 1);
+  cerrarBd(db);
+});
+
+test('renombrar una evaluación funciona en cualquier estado (049)', () => {
+  const db = preparar();
+  const sesion = crearSesion(db, base);
+  assert.equal(renombrarSesion(db, sesion.id, '  Ciencias · Parcial 3  ').nombre, 'Ciencias · Parcial 3');
+
+  abrirSesion(db, sesion.id);
+  assert.equal(renombrarSesion(db, sesion.id, 'Renombrada abierta').nombre, 'Renombrada abierta');
+
+  cerrarSesion(db, sesion.id);
+  assert.equal(renombrarSesion(db, sesion.id, 'Renombrada cerrada').nombre, 'Renombrada cerrada');
+
+  assert.throws(() => renombrarSesion(db, sesion.id, '   '), /necesita un nombre/);
   cerrarBd(db);
 });

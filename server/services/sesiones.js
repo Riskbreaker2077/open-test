@@ -227,6 +227,20 @@ export function actualizarNivelFeedback(db, id, nivel) {
   return obtenerSesion(db, id);
 }
 
+/**
+ * El nombre es una etiqueta, no un parámetro de la prueba (049): a
+ * diferencia de duración/preguntas/mínimo, cambiarlo después de abierta no
+ * afecta la comparabilidad entre estudiantes, así que se permite en
+ * cualquier estado.
+ */
+export function renombrarSesion(db, id, nombre) {
+  obtenerSesion(db, id);
+  const limpio = String(nombre ?? '').trim();
+  if (limpio === '') throw error('La evaluación necesita un nombre.');
+  db.prepare('UPDATE sesiones SET nombre = ? WHERE id = ?').run(limpio, id);
+  return obtenerSesion(db, id);
+}
+
 /** Segundos que le quedan a una sesión ya comenzada, sin efectos secundarios. */
 function calcularRestantes(sesion, referencia) {
   if (!sesion.comenzada_en) return sesion.duracion_minutos * 60;
@@ -275,18 +289,13 @@ const MS_DIA = 24 * 60 * 60 * 1000;
 const iso = (ahora) => (ahora instanceof Date ? ahora : new Date(ahora)).toISOString();
 
 /**
- * Borrar una evaluación con intentos la manda a la papelera (046): los
- * resultados son lo único que no se puede volver a generar. Sin intentos no
- * hay nada que proteger y se borra en el acto.
+ * Borrar una evaluación siempre la manda a la papelera (046, ampliado por
+ * 049): con o sin intentos, para que "Restaurar" funcione igual en
+ * cualquier caso y el docente no pierda un borrador por error de un clic.
+ * Solo se bloquea mientras está abierta, en curso o pausada.
  */
 export function borrarSesion(db, id, ahora = new Date()) {
   const sesion = obtenerSesion(db, id);
-  const { total } = db.prepare('SELECT count(*) AS total FROM intentos WHERE sesion_id = ?').get(id);
-
-  if (total === 0) {
-    db.prepare('DELETE FROM sesiones WHERE id = ?').run(id);
-    return { ...sesion, enPapelera: false };
-  }
   if (ESTADOS_VISIBLES.includes(sesion.estado)) {
     throw error('Cierra la evaluación antes de borrarla.', 409);
   }

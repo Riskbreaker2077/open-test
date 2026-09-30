@@ -29,6 +29,7 @@ import {
   restaurarSesion,
   actualizarSesion,
   actualizarNivelFeedback,
+  renombrarSesion,
 } from '../services/sesiones.js';
 import { svgQr } from '../qr.js';
 import { urlsDeIntranet } from '../red.js';
@@ -398,6 +399,12 @@ export function rutasDocente(db) {
   router.patch('/sesiones/:id/feedback', (req, res) => {
     responder(res, () => ({
       sesion: actualizarNivelFeedback(db, Number(req.params.id), req.body?.nivel_feedback),
+    }));
+  });
+
+  router.patch('/sesiones/:id/nombre', (req, res) => {
+    responder(res, () => ({
+      sesion: renombrarSesion(db, Number(req.params.id), req.body?.nombre),
     }));
   });
 
