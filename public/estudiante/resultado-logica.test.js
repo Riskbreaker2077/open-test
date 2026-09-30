@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  colorDePunto, esPerfecto, etiquetaDeEstado, hashDePregunta, mensajeDeFelicitacion,
+  colorDePunto, esPerfecto, formatearNota, etiquetaDeEstado, hashDePregunta, mensajeDeFelicitacion,
   MENSAJES_PERFECTO, ordenDesdeHash,
 } from './resultado-logica.js';
 
@@ -46,4 +46,11 @@ test('mensajeDeFelicitacion reparte mensajes distintos entre estudiantes', () =>
     vistos.add(mensajeDeFelicitacion({ estudiante: `Estudiante ${i}`, sesion: 'Parcial', entregadoEn: '2026-09-23T10:00:00.000Z' }));
   }
   assert.equal(vistos.size, MENSAJES_PERFECTO.length, 'con 200 estudiantes salen los diez mensajes');
+});
+
+test('formatearNota usa coma decimal y un decimal', () => {
+  assert.equal(formatearNota(3.5), '3,5');
+  assert.equal(formatearNota(5), '5,0');
+  assert.equal(formatearNota(0), '0,0');
+  assert.equal(formatearNota(undefined), '0,0');
 });

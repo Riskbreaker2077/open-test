@@ -10,6 +10,10 @@
 
 Nombre del estudiante en el header del examen y "Saltar" que conserva la respuesta (`spec/features/050-*`). Publicada como **1.7.1** (tag `v1.7.1`); falta verificar en tablet.
 
+## 30/09/2026 — 051
+
+Nota del estudiante (0,0–5,0, regla de tres) en la pantalla de resultado (`spec/features/051-*`). Commiteada en la rama, **sin publicar**: el usuario publica la versión (los tags no se pueden empujar desde la sesión web; ver 1.7.1).
+
 ## Feature/tarea en curso
 
 - Ninguna. 048 y 049 completas y desplegadas.

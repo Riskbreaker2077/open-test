@@ -8,6 +8,7 @@ import {
   preguntaMiembroBancoOpciones,
 } from '../fixtures-preguntas.js';
 import { guardarEstudiantes } from './estudiantes.js';
+import { notaDe } from './calificacion.js';
 import { iniciarOReanudarIntento } from './intentos.js';
 import { abrirSesion, comenzarSesion, crearSesion, obtenerSesion } from './sesiones.js';
 import {
@@ -74,6 +75,7 @@ test('la entrega persiste la nota una sola vez y distingue los cuatro estados', 
   assert.equal(entregado.aciertos, 1);
   assert.equal(entregado.puntaje, 1);
   assert.equal(obtenerResultado(db, intento.id).porcentaje, 25);
+  assert.equal(obtenerResultado(db, intento.id).nota, 1.3, 'nota = 1/4 × 5, un decimal');
   assert.deepEqual(
     obtenerResultado(db, intento.id).preguntas.map((p) => p.estado),
     ['acertada', 'fallada', 'saltada', 'sin_llegar'],
@@ -208,4 +210,13 @@ test('la calificación persiste el puntaje total sumando valor de matching', () 
   assert.equal(entrega.aciertos, 1);
   assert.equal(entrega.puntaje, 1, 'valor por defecto 1');
   cerrarBd(db);
+});
+
+test('notaDe: regla de tres sobre 5,0 con un decimal y tope en la escala', () => {
+  assert.equal(notaDe(14, 20), 3.5);
+  assert.equal(notaDe(20, 20), 5);
+  assert.equal(notaDe(0, 20), 0);
+  assert.equal(notaDe(0, 0), 0);
+  assert.equal(notaDe(7, 10), 3.5);
+  assert.equal(notaDe(25, 20), 5, 'un valor > 1 no pasa de la escala');
 });

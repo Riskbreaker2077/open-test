@@ -44,6 +44,8 @@
 
 **La 050 está implementada (30/09/2026).** El header del examen del estudiante muestra el nombre al centro (progreso · nombre · reloj) y "Saltar" deja de borrar una respuesta ya dada: antes enviaba siempre `null`, y quien revisaba con "Anterior" lo usaba para avanzar y dejaba cada pregunta en blanco. Solo cliente. 512 tests en verde. Publicada como **1.7.1**. Pendiente verificar en tablet.
 
+**La 051 está implementada (30/09/2026).** El resultado del estudiante muestra su **nota**: regla de tres `puntaje / total × 5,0` con un decimal y coma decimal (`3,5`), tope en 5,0 y 0,0 si la prueba fue anulada. La escala vive en `NOTA_MAXIMA` (`server/services/calificacion.js`); `armarResultado` añade `nota` en todos los niveles. La exportación no cambia. 514 tests en verde. Sin publicar aún; pendiente verificar en tablet.
+
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
 | 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · 035 · 036 · 037 · 038 · 039 · 040 · 041 · 042 · 043 · 044 · **045** · **046** · **047** · **048** · **049** | — | Nada pendiente: 039–045 verificadas en dispositivo real (30/09/2026) |

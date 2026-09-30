@@ -66,3 +66,8 @@ export function mensajeDeFelicitacion(resultado) {
   const semilla = `${resultado?.estudiante ?? ''}|${resultado?.sesion ?? ''}|${resultado?.entregadoEn ?? ''}`;
   return MENSAJES_PERFECTO[hash(semilla) % MENSAJES_PERFECTO.length];
 }
+
+/** Nota con coma decimal y un decimal: 3,5 · 5,0 (051). */
+export function formatearNota(nota) {
+  return Number(nota ?? 0).toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}

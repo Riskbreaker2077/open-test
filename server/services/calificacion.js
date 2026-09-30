@@ -13,6 +13,16 @@ const error = (mensaje, estado = 400) => Object.assign(new Error(mensaje), { est
  * entrada del banco marcada como correcta al empaquetar). Las preguntas
  * sin opciones propias se identifican porque su `opciones` está vacío.
  */
+/** Nota máxima de la escala (051): la nota es una regla de tres sobre esto. */
+export const NOTA_MAXIMA = 5;
+
+/** puntaje / total × NOTA_MAXIMA, con un decimal y sin pasarse de la escala. */
+export function notaDe(puntaje, total) {
+  if (!total) return 0;
+  const nota = (Number(puntaje) / total) * NOTA_MAXIMA;
+  return Math.min(NOTA_MAXIMA, Number(nota.toFixed(1)));
+}
+
 export function calificarIntento(preguntas) {
   const total = preguntas.length;
   let aciertos = 0;
@@ -152,6 +162,7 @@ export function armarResultado(intento, preguntas, nivel) {
       aciertos: 0,
       total: preguntas.length,
       porcentaje: 0,
+      nota: 0,
       nivel,
     };
   }
@@ -163,6 +174,7 @@ export function armarResultado(intento, preguntas, nivel) {
     porcentaje: preguntas.length === 0
       ? 0
       : Number(((intento.puntaje / preguntas.length) * 100).toFixed(1)),
+    nota: notaDe(intento.puntaje, preguntas.length),
     nivel,
   };
   if (nivel === 'solo_puntaje') return base;

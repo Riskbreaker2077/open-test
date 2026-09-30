@@ -1,6 +1,6 @@
 import { renderizarPregunta, textoPlano } from '/shared/pregunta.js';
 import {
-  colorDePunto, esPerfecto, etiquetaDeEstado, hashDePregunta, mensajeDeFelicitacion, ordenDesdeHash,
+  colorDePunto, esPerfecto, formatearNota, etiquetaDeEstado, hashDePregunta, mensajeDeFelicitacion, ordenDesdeHash,
 } from '/estudiante/resultado-logica.js';
 
 const contenido = document.getElementById('contenido');
@@ -17,6 +17,7 @@ const puntajeMarco = document.getElementById('puntaje-marco');
 const celebracion = document.getElementById('celebracion');
 const puntaje = document.getElementById('puntaje');
 const porcentaje = document.getElementById('porcentaje');
+const nota = document.getElementById('nota');
 const mapa = document.getElementById('mapa');
 const puntos = document.getElementById('puntos');
 const leyenda = document.getElementById('leyenda');
@@ -267,6 +268,7 @@ async function cargar() {
       ? `${resultado.estudiante}, tu prueba fue anulada`
       : `${resultado.estudiante}, este es tu resultado`;
     puntaje.textContent = `${numero(resultado.puntaje)} / ${numero(resultado.total)}`;
+    nota.textContent = `Tu nota: ${formatearNota(resultado.nota)}`;
     porcentaje.textContent = `${resultado.porcentaje} %`;
     pintarPuntos();
     contenido.hidden = false;
