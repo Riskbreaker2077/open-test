@@ -23,6 +23,16 @@ body {
   background-size: 4.5rem 100%, auto;
 }
 
+.nombre-examen {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  font-weight: 600;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .reloj-examen {
   font-size: 1.55rem;
   font-weight: 800;

@@ -1,4 +1,5 @@
 import { renderizarPregunta, renderizarGrupo } from '/shared/pregunta.js';
+import { opcionAlSaltar } from '/estudiante/saltar-logica.js';
 
 const elementos = {
   examen: document.getElementById('examen'),
@@ -6,6 +7,7 @@ const elementos = {
   tituloEspera: document.getElementById('titulo-espera'),
   textoEspera: document.getElementById('texto-espera'),
   progreso: document.getElementById('progreso'),
+  nombre: document.getElementById('nombre-estudiante'),
   reloj: document.getElementById('reloj'),
   pregunta: document.getElementById('pregunta'),
   grupo: document.getElementById('grupo'),
@@ -317,6 +319,7 @@ async function actualizarEstado() {
   try {
     const { estado } = await pedir('/api/examen/estado');
     sincronizarReloj(estado.segundosRestantes);
+    elementos.nombre.textContent = estado.estudiante ?? '';
     if (estado.entregado) {
       window.location.replace('/estudiante/resultado.html');
       return;
@@ -337,7 +340,7 @@ async function actualizarEstado() {
 }
 
 elementos.anterior.addEventListener('click', volver);
-elementos.saltar.addEventListener('click', () => avanzar(null));
+elementos.saltar.addEventListener('click', () => avanzar(opcionAlSaltar(opcionElegida)));
 elementos.siguiente.addEventListener('click', () => avanzar(estaEnPantallaDeGrupo() ? undefined : opcionElegida));
 
 window.setInterval(() => {

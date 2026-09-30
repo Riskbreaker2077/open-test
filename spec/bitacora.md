@@ -854,3 +854,5 @@ es una etiqueta, no un parámetro de la prueba.
 
 Verificación: 510 tests y lint (105 archivos) en verde; el resto lo revisó el
 usuario pantalla por pantalla sobre su instalación.
+
+**050.** El docente reportó que "Anterior" borraba respuestas. A nivel de servicio no se reprodujo: la causa hallada fue "Saltar", siempre habilitado y siempre enviando `null`, que quien revisaba usaba para avanzar. Ahora envía la selección actual. Además, el nombre del estudiante va al centro del header. Verificación: 512 tests y lint (107 archivos); falta tablet real. Nota: el entorno no traía `node_modules`; `npm install` antes de `npm test`.

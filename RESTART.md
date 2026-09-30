@@ -6,6 +6,10 @@
   panel del docente (048) y papelera universal + renombrar (049). El workflow
   `instalador.yml` compila y commitea el instalador.
 
+## 30/09/2026 — 050
+
+Nombre del estudiante en el header del examen y "Saltar" que conserva la respuesta (`spec/features/050-*`). Sin publicar versión aún; falta verificar en tablet.
+
 ## Feature/tarea en curso
 
 - Ninguna. 048 y 049 completas y desplegadas.
