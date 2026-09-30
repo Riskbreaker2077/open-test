@@ -30,7 +30,8 @@
 
 1. Confirmar que el workflow de `v1.7.0` terminó en verde y hacer
    `git pull` para traer el commit del instalador.
-2. En tablet real: 039, 040, 041, 045 y (en proyector) la 042.
+2. Verificado por el usuario el 30/09/2026: 039, 040, 041, 045 en tablet
+   real y la 042 en proyector, sin novedades.
 3. En `portal-estudiantes`: sigue pendiente decidir si se fusiona la rama
    `feature/044-listar-evaluaciones-disponibles`.
 
