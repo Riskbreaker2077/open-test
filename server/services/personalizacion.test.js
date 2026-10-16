@@ -1,7 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { crearPrng } from './prng.js';
-import { barajar, cuotasPorCompetencia, generarPrueba, muestrear, solapamientoEsperado } from './personalizacion.js';
+import {
+  barajar,
+  completarPrueba,
+  cuotasPorCompetencia,
+  generarPrueba,
+  muestrear,
+  solapamientoEsperado,
+} from './personalizacion.js';
 
 /** Banco de prueba: cada pregunta con sus cuatro opciones y la correcta marcada. */
 function banco(total = 50) {
@@ -320,4 +327,57 @@ test('el sorteo nunca supera nPreguntas ni parte un grupo, aunque el grupo no qu
       );
     }
   }
+});
+
+/** El banco de 11A del 16/10/2026: 6 sueltas y grupos de contexto compartido de 5, 5 y seis de 4. */
+function bancoDe11A() {
+  const competencias = ['interpretacion', 'reflexivo', 'social'];
+  const preguntas = Array.from({ length: 6 }, (_, i) => ({
+    id: `S${i}`,
+    competencia: competencias[i % 3],
+    opciones: [1, 2, 3, 4].map((j) => ({ id: `S${i}-${j}` })),
+  }));
+  [5, 5, 4, 4, 4, 4, 4, 4].forEach((tamano, g) => {
+    for (let m = 0; m < tamano; m += 1) {
+      preguntas.push({
+        id: `G${g}-${m}`,
+        competencia: competencias[g % 3],
+        grupo_id: `g${g}`,
+        grupo_divisible: true,
+        opciones: [1, 2, 3, 4].map((j) => ({ id: `G${g}-${m}-${j}` })),
+      });
+    }
+  });
+  return preguntas;
+}
+
+test('con grupos de contexto compartido la prueba sale siempre completa (053)', () => {
+  const preguntas = bancoDe11A();
+  for (let i = 0; i < 300; i += 1) {
+    const generada = generarPrueba({ preguntas, nPreguntas: 20, semilla: `e${i}` });
+    assert.equal(generada.length, 20, `semilla e${i}`);
+    assert.equal(new Set(generada.map((f) => f.preguntaId)).size, 20);
+    assert.deepEqual(generada.map((f) => f.orden), Array.from({ length: 20 }, (_, k) => k + 1));
+  }
+});
+
+test('emparejamiento y texto con blancos no se parten ni para completar', () => {
+  const grupo = (g, tamano) => Array.from({ length: tamano }, (_, m) => ({
+    id: `${g}-${m}`, grupo_id: g, opciones: [{ id: `${g}-${m}-o` }],
+  }));
+  const preguntas = [...grupo('A', 4), ...grupo('B', 4), ...grupo('C', 4)];
+  assert.throws(() => generarPrueba({ preguntas, nPreguntas: 6, semilla: 'x' }), /sin partir un grupo/);
+  assert.equal(generarPrueba({ preguntas, nPreguntas: 8, semilla: 'x' }).length, 8);
+});
+
+test('completarPrueba agrega al final lo que falta sin repetir (053)', () => {
+  const preguntas = bancoDe11A();
+  const corta = generarPrueba({ preguntas, nPreguntas: 16, semilla: 'corta' });
+  const yaElegidas = corta.map((f) => f.preguntaId);
+  const faltantes = completarPrueba({ preguntas, yaElegidas, nPreguntas: 20, semilla: 'corta' });
+
+  assert.deepEqual(faltantes.map((f) => f.orden), [17, 18, 19, 20]);
+  const todas = [...yaElegidas, ...faltantes.map((f) => f.preguntaId)];
+  assert.equal(new Set(todas).size, 20);
+  assert.deepEqual(completarPrueba({ preguntas, yaElegidas, nPreguntas: 20, semilla: 'corta' }), faltantes);
 });

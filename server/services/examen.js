@@ -1,6 +1,7 @@
 import { tiempoRestante } from './sesiones.js';
 import { entregarIntentoCalificado } from './calificacion.js';
 import { analizarBloques } from './bloques.js';
+import { materializarPrueba } from './intentos.js';
 
 const error = (mensaje, estado = 400) => Object.assign(new Error(mensaje), { estado });
 const iso = (ahora) => (ahora instanceof Date ? ahora : new Date(ahora)).toISOString();
@@ -180,7 +181,13 @@ export function obtenerPregunta(db, intento, orden, ahora = new Date()) {
   if (!Number.isInteger(numero) || numero < 1 || numero > vigente.sesion.n_preguntas) {
     throw error(`La pregunta debe estar entre 1 y ${vigente.sesion.n_preguntas}.`, 404);
   }
-  const fila = filaPregunta(db, intento.id, numero);
+  let fila = filaPregunta(db, intento.id, numero);
+  if (!fila) {
+    // Una prueba corta (sorteo anterior a la 053) se completa aquí mismo, para
+    // que la tablet que ya estaba en la pregunta que faltaba siga sin salir.
+    materializarPrueba(db, vigente.intento);
+    fila = filaPregunta(db, intento.id, numero);
+  }
   if (!fila) throw error('Esa pregunta no forma parte de tu prueba.', 404);
 
   const despachada = pantallaDespachada(db, intento.id, fila);

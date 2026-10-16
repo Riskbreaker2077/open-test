@@ -18,6 +18,10 @@ Nota del estudiante (0,0–5,0, regla de tres) en la pantalla de resultado (`spe
 
 Editor de banco en dos paneles con edición completa de preguntas y grupos y «Agregar desde ZIP» a un banco existente (`spec/features/052-*`). Revisada por el usuario en su instalación; publicada como **1.8.0** (tag `v1.8.0`).
 
+## 16/10/2026 — 053
+
+El sorteo dejaba pruebas cortas con grupos (11A atascada en la 16/17). Corregido y con reparación automática de los intentos cortos (`spec/features/053-*`). Publicada como **1.8.1** (tag `v1.8.1`). **La evaluación «11A - Módulo 2 - III - CS» está en pausa**: instalar la 1.8.1 y reanudarla. Las tablets piden la pregunta que falta y la prueba se completa sola. La de 11B (borrador, mismo banco) puede abrirse con la 1.8.1.
+
 ## Feature/tarea en curso
 
 - Ninguna. 048 y 049 completas y desplegadas.

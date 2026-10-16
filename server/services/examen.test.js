@@ -554,3 +554,16 @@ test('una pantalla de grupo con un miembro pendiente sigue cobrando el mínimo',
   assert.equal(completa.segundosParaAvanzar, 0);
   cerrarBd(db);
 });
+
+test('pedir la pregunta que le falta a una prueba corta la completa y la devuelve (053)', () => {
+  const { db, intento } = preparar();
+  db.prepare('DELETE FROM intento_preguntas WHERE intento_id = ? AND orden > 2').run(intento.id);
+
+  const pregunta = obtenerPregunta(db, intento, 3, INICIO);
+  assert.equal(pregunta.orden, 3);
+  assert.equal(
+    db.prepare('SELECT count(*) AS n FROM intento_preguntas WHERE intento_id = ?').get(intento.id).n,
+    4,
+  );
+  cerrarBd(db);
+});

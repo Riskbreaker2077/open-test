@@ -480,3 +480,52 @@ test('cerrar la evaluación no recalifica ni revive al anulado', () => {
   assert.ok(tras.anulado_en);
   cerrarBd(db);
 });
+
+function prepararConGrupos() {
+  const db = abrirBd(':memory:');
+  const grupos = [grupoContextoCompartido({ id: 'g-a' }), grupoContextoCompartido({ id: 'g-b' })];
+  const miembros = ['g-a', 'g-b'].flatMap((g) => [1, 2, 3, 4].map(() => preguntaMiembroContextoCompartido(g)));
+  guardarBanco(db, 'Ciencias', [...miembros, ...preguntasDeEjemplo(2)], grupos);
+  guardarEstudiantes(db, [ANA]);
+  const sesion = crearSesion(db, { nombre: 'Parcial', banco_id: 1, cursos: ['10A'], n_preguntas: 7 });
+  abrirSesion(db, sesion.id);
+  return { db, sesion: obtenerSesion(db, sesion.id) };
+}
+
+test('una prueba que quedó corta se completa al reanudar sin tocar lo que ya tenía (053)', () => {
+  const { db, sesion } = prepararConGrupos();
+  const { intento } = iniciarOReanudarIntento(db, sesion, ANA);
+  assert.equal(pruebaDelIntento(db, intento.id).length, 7);
+
+  // Simula el sorteo anterior a la 053: la prueba quedó con 4 de 7.
+  db.prepare('DELETE FROM intento_preguntas WHERE intento_id = ? AND orden > 4').run(intento.id);
+  const antes = pruebaDelIntento(db, intento.id);
+
+  iniciarOReanudarIntento(db, sesion, ANA);
+  const despues = pruebaDelIntento(db, intento.id);
+  assert.equal(despues.length, 7);
+  assert.deepEqual(despues.slice(0, 4), antes);
+  assert.equal(new Set(despues.map((f) => f.pregunta_id)).size, 7);
+  cerrarBd(db);
+});
+
+test('una prueba entregada no se completa (053)', () => {
+  const { db, sesion } = prepararConGrupos();
+  const { intento } = iniciarOReanudarIntento(db, sesion, ANA);
+  db.prepare('DELETE FROM intento_preguntas WHERE intento_id = ? AND orden > 4').run(intento.id);
+  db.prepare("UPDATE intentos SET entregado_en = '2026-10-16T16:00:00.000Z' WHERE id = ?").run(intento.id);
+
+  assert.equal(materializarPrueba(db, intento).preguntas, 4);
+  assert.equal(pruebaDelIntento(db, intento.id).length, 4);
+  cerrarBd(db);
+});
+
+test('abrir una evaluación imposible de formar sin partir grupos falla con mensaje claro (053)', () => {
+  const db = abrirBd(':memory:');
+  const banco = grupoBancoOpciones({ id: 'g-bo' });
+  const miembros = [1, 2, 3, 4].map(() => preguntaMiembroBancoOpciones('g-bo', banco.banco));
+  guardarBanco(db, 'Inglés', [...miembros, ...preguntasDeEjemplo(1)], [banco]);
+  const sesion = crearSesion(db, { nombre: 'Parcial', banco_id: 1, cursos: ['10A'], n_preguntas: 3 });
+  assert.throws(() => abrirSesion(db, sesion.id), /sin partir un grupo/);
+  cerrarBd(db);
+});

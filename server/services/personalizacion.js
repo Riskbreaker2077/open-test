@@ -77,7 +77,7 @@ export function cuotasPorCompetencia(tamanosPorGrupo, total) {
 }
 
 /**
- * @param preguntas   [{ id, opciones: [{ id }], competencia?, grupo_id? }] — el banco entero.
+ * @param preguntas   [{ id, opciones: [{ id }], competencia?, grupo_id?, grupo_divisible? }] — el banco entero.
  *                    `competencia` es opcional: sin ella (o en un banco anterior
  *                    a la 016, donde queda en blanco) todo el banco cae en un
  *                    único grupo y el sorteo es puramente al azar, como antes.
@@ -86,6 +86,9 @@ export function cuotasPorCompetencia(tamanosPorGrupo, total) {
  *                    como una unidad indivisible: si entra una pregunta del
  *                    grupo, entran todas, y la cuota por competencia se reparte
  *                    por el peso del grupo (cantidad de miembros).
+ *                    `grupo_divisible` (contexto compartido) permite tomar
+ *                    preguntas sueltas del grupo, solo como último recurso
+ *                    para completar `nPreguntas` (053).
  * @param nPreguntas  cuántas sortear
  * @param semilla     determina íntegramente el resultado
  * @returns [{ orden, preguntaId, ordenOpciones: [idOpcion|banco_id] }]
@@ -163,25 +166,85 @@ export function generarPrueba({ preguntas, nPreguntas, semilla }) {
     }
   }
 
-  // Si las cuotas suman menos de nPreguntas (porque un grupo consumió
-  // sobrantes o una cuota se truncó), agregamos unidades al azar hasta
-  // llegar al total — pero sin pasarnos: un grupo que ya no cabe entero
-  // se omite antes que partirlo.
-  while (seleccionadas.length < nPreguntas) {
-    const restantes = preguntas.filter((p) => !seleccionadas.includes(p));
-    if (restantes.length === 0) break;
-    const candidato = muestrear(restantes, 1, prng)[0];
-    if (!candidato) break;
-    const hermanos = candidato.grupo_id
-      ? preguntas.filter((p) => p.grupo_id === candidato.grupo_id && !seleccionadas.includes(p))
-      : [];
-    if (seleccionadas.length + 1 + hermanos.length > nPreguntas) break;
-    seleccionadas.push(candidato);
-    for (const hermano of hermanos) seleccionadas.push(hermano);
-  }
+  // Las cuotas pueden quedarse cortas cuando un grupo no cabe entero en lo
+  // que falta; antes el sorteo se detenía ahí y la prueba salía con menos
+  // preguntas de las que anunciaba la evaluación (053).
+  rellenar(preguntas, seleccionadas, nPreguntas, prng);
+  exigirCompleta(seleccionadas.length, nPreguntas);
 
   return barajar(seleccionadas, prng).map((pregunta, i) => ({
     orden: i + 1,
+    preguntaId: pregunta.id,
+    ordenOpciones: barajar(pregunta.opciones.map((o) => o.id), prng),
+  }));
+}
+
+/**
+ * Completa `seleccionadas` (se modifica en el sitio) hasta `nPreguntas`.
+ *
+ * Primero agrega piezas enteras que quepan: preguntas sueltas o grupos
+ * completos. Si aun así falta, toma preguntas sueltas de un grupo de contexto
+ * compartido (`grupo_divisible`): cada una se muestra con el contexto del
+ * grupo, así que partirlo no estorba. Emparejamiento y texto con blancos
+ * nunca se parten.
+ */
+function rellenar(preguntas, seleccionadas, nPreguntas, prng) {
+  const elegidas = new Set(seleccionadas.map((pregunta) => pregunta.id));
+  const piezas = new Map();
+  for (const pregunta of preguntas) {
+    if (elegidas.has(pregunta.id)) continue;
+    const clave = pregunta.grupo_id ? `g:${pregunta.grupo_id}` : `s:${pregunta.id}`;
+    if (!piezas.has(clave)) piezas.set(clave, []);
+    piezas.get(clave).push(pregunta);
+  }
+  const barajadas = barajar([...piezas.values()], prng);
+
+  const agregar = (pregunta) => {
+    seleccionadas.push(pregunta);
+    elegidas.add(pregunta.id);
+  };
+  for (const pieza of barajadas) {
+    if (seleccionadas.length >= nPreguntas) return;
+    if (seleccionadas.length + pieza.length <= nPreguntas) pieza.forEach(agregar);
+  }
+  for (const pieza of barajadas) {
+    if (!pieza[0].grupo_divisible) continue;
+    for (const pregunta of pieza) {
+      if (seleccionadas.length >= nPreguntas) return;
+      if (!elegidas.has(pregunta.id)) agregar(pregunta);
+    }
+  }
+}
+
+function exigirCompleta(total, nPreguntas) {
+  if (total < nPreguntas) {
+    throw Object.assign(
+      new Error(
+        `No se puede armar una prueba de ${nPreguntas} preguntas sin partir un grupo de emparejamiento ` +
+          'o de texto con blancos. Cambia el número de preguntas de la evaluación.',
+      ),
+      { estado: 409 },
+    );
+  }
+}
+
+/**
+ * Las preguntas que le faltan a una prueba ya escrita que quedó corta (053).
+ * Las existentes no se tocan: las nuevas van al final, desde
+ * `yaElegidas.length + 1`, sorteadas entre las que el intento no tiene.
+ *
+ * @param yaElegidas  ids de las preguntas que la prueba ya tiene
+ */
+export function completarPrueba({ preguntas, yaElegidas, nPreguntas, semilla }) {
+  const prng = crearPrng(`${semilla}:completar`);
+  const ids = new Set(yaElegidas);
+  const seleccionadas = preguntas.filter((pregunta) => ids.has(pregunta.id));
+  const antes = seleccionadas.length;
+  rellenar(preguntas, seleccionadas, nPreguntas, prng);
+  exigirCompleta(yaElegidas.length + seleccionadas.length - antes, nPreguntas);
+
+  return seleccionadas.slice(antes).map((pregunta, i) => ({
+    orden: yaElegidas.length + i + 1,
     preguntaId: pregunta.id,
     ordenOpciones: barajar(pregunta.opciones.map((o) => o.id), prng),
   }));

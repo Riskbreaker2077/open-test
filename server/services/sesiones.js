@@ -1,3 +1,6 @@
+import { idsDePreguntasYOpciones } from './bancos.js';
+import { generarPrueba } from './personalizacion.js';
+
 export const NIVELES_FEEDBACK = ['solo_puntaje', 'aciertos', 'completo'];
 
 /** Estados desde los que el estudiante puede ver la sesión en su portal. */
@@ -138,6 +141,12 @@ export function abrirSesion(db, id) {
         'Carga más preguntas o baja el número.',
       409,
     );
+  }
+  // Con grupos que no se pueden partir, el número pedido puede ser imposible
+  // de formar: mejor que el docente lo sepa ahora y no en la tablet (053).
+  const preguntas = idsDePreguntasYOpciones(db, sesion.banco_id);
+  for (const semilla of ['a', 'b', 'c', 'd', 'e']) {
+    generarPrueba({ preguntas, nPreguntas: sesion.n_preguntas, semilla });
   }
 
   db.prepare("UPDATE sesiones SET estado = 'abierta' WHERE id = ?").run(id);

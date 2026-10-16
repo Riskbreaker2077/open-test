@@ -289,11 +289,11 @@ export function idsDePreguntasYOpciones(db, bancoId) {
   for (const pregunta of preguntas) {
     if (pregunta.grupo_id && !gruposPorId.has(pregunta.grupo_id)) {
       const fila = db
-        .prepare('SELECT id, banco FROM grupos WHERE id = ?')
+        .prepare('SELECT id, tipo, banco FROM grupos WHERE id = ?')
         .get(pregunta.grupo_id);
       if (fila) {
         const banco = JSON.parse(fila.banco ?? '[]');
-        gruposPorId.set(fila.id, banco.map((e) => ({ id: e.id })));
+        gruposPorId.set(fila.id, { tipo: fila.tipo, entradas: banco.map((e) => ({ id: e.id })) });
       }
     }
   }
@@ -302,9 +302,11 @@ export function idsDePreguntasYOpciones(db, bancoId) {
     id: pregunta.id,
     competencia: pregunta.competencia,
     grupo_id: pregunta.grupo_id ?? null,
+    // Solo el contexto compartido se puede partir para completar la prueba (053).
+    grupo_divisible: gruposPorId.get(pregunta.grupo_id)?.tipo === 'contexto_compartido',
     tipo_item: pregunta.tipo_item ?? 'estandar',
     opciones: pregunta.tipo_item === 'miembro_banco_opciones'
-      ? (gruposPorId.get(pregunta.grupo_id) ?? [])
+      ? (gruposPorId.get(pregunta.grupo_id)?.entradas ?? [])
       : opciones.all(pregunta.id),
   }));
 }

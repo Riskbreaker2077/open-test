@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { idsDePreguntasYOpciones } from './bancos.js';
-import { generarPrueba } from './personalizacion.js';
+import { completarPrueba, generarPrueba } from './personalizacion.js';
 import { puedeEntrar } from './sesiones.js';
 import { calificarIntento, entregarIntentoCalificado, preguntasCalificables } from './calificacion.js';
 
@@ -30,6 +30,8 @@ export function iniciarOReanudarIntento(db, sesion, estudiante) {
       const motivo = puedeEntrar(sesion, estudiante);
       if (motivo) throw error(motivo, 409);
       db.prepare('UPDATE intentos SET token = ? WHERE id = ?').run(token, existente.id);
+      // Una prueba que quedó corta se completa al reanudar (053).
+      materializarPrueba(db, existente);
       return { intento: { ...existente, token }, nuevo: false };
     }
 
@@ -67,6 +69,10 @@ export function iniciarOReanudarIntento(db, sesion, estudiante) {
  * mitad de examen. Estas filas son un registro histórico, no una caché: son lo
  * que permite reanudar tras una caída y auditar meses después qué vio quien
  * reclama su nota.
+ *
+ * La única excepción es una prueba que quedó con menos preguntas que la
+ * evaluación (el sorteo anterior a la 053 podía cortarse con grupos): se le
+ * agregan al final las que faltan, sin tocar las que ya tiene.
  */
 export function materializarPrueba(db, intento) {
   return db.transaction(() => {
@@ -74,22 +80,42 @@ export function materializarPrueba(db, intento) {
       .prepare('SELECT count(*) AS total FROM intento_preguntas WHERE intento_id = ?')
       .get(intento.id).total;
 
-    if (yaMaterializada > 0) return { generada: false, preguntas: yaMaterializada };
-
     const sesion = db.prepare('SELECT * FROM sesiones WHERE id = ?').get(intento.sesion_id);
+    const insertar = db.prepare(`
+      INSERT INTO intento_preguntas (intento_id, orden, pregunta_id, orden_opciones)
+      VALUES (?, ?, ?, ?)
+    `);
+    const escribir = (filas) => {
+      for (const fila of filas) {
+        insertar.run(intento.id, fila.orden, fila.preguntaId, fila.ordenOpciones.join(','));
+      }
+    };
+
+    if (yaMaterializada > 0) {
+      const { entregado_en: entregadoEn } = db.prepare('SELECT entregado_en FROM intentos WHERE id = ?').get(intento.id);
+      if (yaMaterializada >= sesion.n_preguntas || entregadoEn) {
+        return { generada: false, preguntas: yaMaterializada };
+      }
+      const yaElegidas = db
+        .prepare('SELECT pregunta_id FROM intento_preguntas WHERE intento_id = ? ORDER BY orden')
+        .all(intento.id)
+        .map((fila) => fila.pregunta_id);
+      const faltantes = completarPrueba({
+        preguntas: idsDePreguntasYOpciones(db, sesion.banco_id),
+        yaElegidas,
+        nPreguntas: sesion.n_preguntas,
+        semilla: intento.semilla,
+      });
+      escribir(faltantes);
+      return { generada: false, completadas: faltantes.length, preguntas: yaMaterializada + faltantes.length };
+    }
+
     const prueba = generarPrueba({
       preguntas: idsDePreguntasYOpciones(db, sesion.banco_id),
       nPreguntas: sesion.n_preguntas,
       semilla: intento.semilla,
     });
-
-    const insertar = db.prepare(`
-      INSERT INTO intento_preguntas (intento_id, orden, pregunta_id, orden_opciones)
-      VALUES (?, ?, ?, ?)
-    `);
-    for (const fila of prueba) {
-      insertar.run(intento.id, fila.orden, fila.preguntaId, fila.ordenOpciones.join(','));
-    }
+    escribir(prueba);
 
     return { generada: true, preguntas: prueba.length };
   })();
