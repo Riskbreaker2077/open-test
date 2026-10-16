@@ -2,11 +2,14 @@ import express, { Router } from 'express';
 import { validarEstudiantes } from '../importers/estudiantes.js';
 import { MAX_BYTES_PAQUETE, validarPaquete } from '../importers/paquete-zip.js';
 import {
+  actualizarGrupo,
   actualizarPreguntaManual,
+  agregarPaqueteABanco,
   agregarPreguntaManual,
   borrarBanco,
   contarBancos,
   crearBancoVacio,
+  eliminarGrupo,
   eliminarPregunta,
   guardarBanco,
   listarBancos,
@@ -244,6 +247,26 @@ export function rutasDocente(db) {
     });
   });
 
+  // Agregar un ZIP a un banco que ya existe (052): mismo validador y misma
+  // previsualización que la importación, pero sin crear un banco nuevo.
+  router.post('/bancos/:id/paquete/validar', cuerpoZip, (req, res) => {
+    const resultado = validarPaquete(req.body, { imagenesDisponibles: nombresDisponibles() });
+    if (resultado.errores.length > 0) return res.json({ ok: false, errores: resultado.errores });
+    res.json(resumenPaquete(resultado));
+  });
+
+  router.post('/bancos/:id/paquete/confirmar', cuerpoZip, (req, res) => {
+    const resultado = validarPaquete(req.body, { imagenesDisponibles: nombresDisponibles() });
+    if (resultado.errores.length > 0) return res.status(400).json({ ok: false, errores: resultado.errores });
+    try {
+      const resumen = agregarPaqueteABanco(db, Number(req.params.id), resultado.preguntas, resultado.grupos);
+      for (const imagen of resultado.imagenes) guardarImagen(imagen.nombre, imagen.contenido);
+      res.json({ ok: true, resumen, imagenes: resultado.imagenes.map((imagen) => imagen.nombre) });
+    } catch (err) {
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
   // Ingreso manual (028): un banco vacío que el docente llena pregunta a
   // pregunta, sin pasar por el ZIP del estándar.
   router.post('/bancos', (req, res) => {
@@ -310,6 +333,23 @@ export function rutasDocente(db) {
   router.delete('/preguntas/:id', (req, res) => {
     try {
       res.json({ ok: true, pregunta: eliminarPregunta(db, Number(req.params.id)) });
+    } catch (err) {
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
+  router.put('/grupos/:id', (req, res) => {
+    try {
+      res.json({ ok: true, grupo: actualizarGrupo(db, req.params.id, req.body ?? {}) });
+    } catch (err) {
+      if (err.errores) return res.status(err.estado ?? 400).json({ ok: false, errores: err.errores });
+      res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
+    }
+  });
+
+  router.delete('/grupos/:id', (req, res) => {
+    try {
+      res.json({ ok: true, grupo: eliminarGrupo(db, req.params.id) });
     } catch (err) {
       res.status(err.estado ?? 400).json({ ok: false, mensaje: err.message });
     }

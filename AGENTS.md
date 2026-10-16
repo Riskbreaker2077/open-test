@@ -46,15 +46,17 @@
 
 **La 051 está implementada (30/09/2026).** El resultado del estudiante muestra su **nota**: regla de tres `puntaje / total × 5,0` con un decimal y coma decimal (`3,5`), tope en 5,0 y 0,0 si la prueba fue anulada. La escala vive en `NOTA_MAXIMA` (`server/services/calificacion.js`); `armarResultado` añade `nota` en todos los niveles. La exportación no cambia. 514 tests en verde. Publicada como **1.7.2**; pendiente verificar en tablet.
 
+**La 052 está implementada (16/10/2026).** El detalle de un banco es ahora un editor de dos paneles: nombre del banco en una línea pequeña, lista de preguntas a la izquierda con Editar/Eliminar (los grupos como encabezado con sus miembros debajo) y la pregunta completa a la derecha, con la correcta, las justificaciones y la ficha pedagógica. El editor (`public/docente/editor-bloques.js`) corrige cualquier pregunta no usada entera: bloques texto/imagen/tabla, 2–8 opciones, los diez datos pedagógicos y miembros de grupo (antes 409); `PUT/DELETE /api/docente/grupos/:id` editan o borran un grupo; emparejamiento y texto con blancos solo se borran enteros. «+ Agregar desde ZIP» (`POST /bancos/:id/paquete/validar|confirmar`) añade un paquete al banco abierto, y los ids de grupo repetidos reciben sufijo (antes cargar dos veces el mismo ZIP con grupos fallaba). Sin migración. 526 tests en verde, lint de 108 archivos limpio; revisada por el usuario sobre su instalación.
+
 | Hecho ✅ | En curso 🔧 | Siguiente 🔜 |
 |---|---|---|
-| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · 035 · 036 · 037 · 038 · 039 · 040 · 041 · 042 · 043 · 044 · **045** · **046** · **047** · **048** · **049** | — | Nada pendiente: 039–045 verificadas en dispositivo real (30/09/2026) |
+| 001 · 011 · 002 · 003 · 004 · 005 · 013 · 012 · 006 · 007 · 008 · 009 · 010 · 014 · 015 · 016 · 017 · 018 · 019 · 020 · 021 · 022 · 023 · 024 · 025 · 026 · 027 · Validación final · 028 · 029 · 030 · 031 · 032 · 033 · 034 · 035 · 036 · 037 · 038 · 039 · 040 · 041 · 042 · 043 · 044 · **045** · **046** · **047** · **048** · **049** · 050 · 051 · **052** | — | Nada pendiente: 039–045 verificadas en dispositivo real (30/09/2026) |
 
 ### Para retomar, en este orden
 
 1. Lee `RESTART.md`: contiene el estado operativo de la última sesión.
 2. Lee `spec/constitution/roadmap.md`: el encargo original está completo; lo que sigue sale de `Backlog / ideas` si se decide continuar.
-3. `npm install && npm test` — deben pasar los 510.
+3. `npm install && npm test` — deben pasar los 526.
 4. `npm start` y entra a `http://localhost:3000/` para ver el portal del estudiante, y a `/docente/` para el panel.
 
 ## Protocolo de restart entre sesiones

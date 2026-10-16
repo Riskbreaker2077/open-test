@@ -14,6 +14,10 @@ Nombre del estudiante en el header del examen y "Saltar" que conserva la respues
 
 Nota del estudiante (0,0–5,0, regla de tres) en la pantalla de resultado (`spec/features/051-*`). Commiteada en la rama, publicada como **1.7.2** (incluye la 1.7.1); el tag depende de poder empujarlo (ver bitácora).
 
+## 16/10/2026 — 052
+
+Editor de banco en dos paneles con edición completa de preguntas y grupos y «Agregar desde ZIP» a un banco existente (`spec/features/052-*`). Revisada por el usuario en su instalación; en `main`, sin versión publicada todavía (sería 1.8.0).
+
 ## Feature/tarea en curso
 
 - Ninguna. 048 y 049 completas y desplegadas.

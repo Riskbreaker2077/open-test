@@ -2,10 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { abrirBd, cerrarBd } from '../db.js';
 import {
+  actualizarGrupo,
   actualizarPreguntaManual,
+  agregarPaqueteABanco,
   agregarPreguntaManual,
   borrarBanco,
   crearBancoVacio,
+  eliminarGrupo,
   eliminarPregunta,
   guardarBanco,
   gruposDeBanco,
@@ -459,21 +462,6 @@ test('actualizarPreguntaManual devuelve 404 si la pregunta no existe', () => {
   });
 });
 
-test('actualizarPreguntaManual rechaza una pregunta miembro de un grupo', () => {
-  conBd((db) => {
-    const grupo = grupoContextoCompartido({ id: 'g1' });
-    const miembro = preguntaMiembroContextoCompartido('g1', { id: 'm1' });
-    guardarBanco(db, 'Con grupo', [miembro], [grupo]);
-    const [preguntaGuardada] = preguntasDeBanco(db, 1);
-
-    assert.throws(() => actualizarPreguntaManual(db, preguntaGuardada.id, preguntaManualValida()), (err) => {
-      assert.equal(err.estado, 409);
-      assert.match(err.message, /grupo/);
-      return true;
-    });
-  });
-});
-
 function usarEnUnaEvaluacion(db, bancoId, preguntaId) {
   db.prepare("INSERT INTO estudiantes (codigo, nombres, apellidos, curso) VALUES ('e1', 'Ana', 'Ruiz', '10A')").run();
   const sesion = crearSesion(db, { nombre: 'Prueba', banco_id: bancoId, cursos: ['10A'], n_preguntas: 1 });
@@ -522,5 +510,184 @@ test('eliminarPregunta rechaza una pregunta ya usada en una evaluación', () => 
       return true;
     });
     assert.equal(preguntasDeBanco(db, bancoId).length, 1);
+  });
+});
+
+// --- 052: edición completa, grupos y ZIP adicional --------------------------
+
+const textos = (bloques) => bloques.filter((b) => b.tipo === 'texto').map((b) => b.texto);
+
+test('actualizarPreguntaManual edita una miembro de contexto compartido con sus datos pedagógicos', () => {
+  conBd((db) => {
+    guardarBanco(db, 'Con grupo', [preguntaMiembroContextoCompartido('g1', { id: 'm1' })], [grupoContextoCompartido({ id: 'g1' })]);
+    const [miembro] = preguntasDeBanco(db, 1);
+
+    const editada = actualizarPreguntaManual(db, miembro.id, {
+      enunciado: [{ tipo: 'texto', texto: '¿Nuevo enunciado?' }],
+      opciones: [
+        { contenido: [{ tipo: 'texto', texto: 'Sí' }], es_correcta: true, justificacion: 'Porque sí.' },
+        { contenido: [{ tipo: 'texto', texto: 'No' }], es_correcta: false },
+      ],
+      competencia: 'Interpretación',
+      valor: 2,
+      grado: '11',
+    });
+
+    assert.deepEqual(textos(editada.enunciado), ['¿Nuevo enunciado?']);
+    assert.equal(editada.opciones.length, 2);
+    assert.equal(editada.opciones[0].es_correcta, 1);
+    assert.equal(editada.competencia, 'Interpretación');
+    assert.equal(editada.componente, 'Componente de prueba', 'lo que no viene no se toca');
+    assert.equal(editada.valor, 2);
+    assert.equal(editada.grado, '11');
+    assert.equal(editada.grupo_id, 'g1');
+  });
+});
+
+test('editar conserva las tablas y las imágenes que se devuelven', () => {
+  conBd((db) => {
+    const tabla = { tipo: 'tabla', encabezados: ['País', 'Año'], filas: [['Colombia', '1991']] };
+    const imagen = { tipo: 'imagen', archivo: 'mapa.png', descripcion_accesible: 'Mapa' };
+    guardarBanco(db, 'B', [preguntaDeEjemplo({ contexto: [tabla, imagen] })]);
+    const [p] = preguntasDeBanco(db, 1);
+
+    const editada = actualizarPreguntaManual(db, p.id, { ...p, enunciado: [{ tipo: 'texto', texto: 'Otro' }] });
+    assert.deepEqual(editada.contexto, [tabla, imagen]);
+  });
+});
+
+test('la validación completa junta todos los errores', () => {
+  conBd((db) => {
+    const { id } = crearBancoVacio(db, 'B');
+    assert.throws(() => agregarPreguntaManual(db, id, {
+      enunciado: [{ tipo: 'texto', texto: '  ' }],
+      contexto: [{ tipo: 'imagen', archivo: '../x.png' }, { tipo: 'tabla', encabezados: ['a', 'b'], filas: [['1']] }],
+      opciones: [{ contenido: [], es_correcta: false }],
+      valor: 0,
+    }), (err) => {
+      assert.equal(err.estado, 400);
+      const texto = err.errores.join(' | ');
+      assert.match(texto, /enunciado es obligatorio/);
+      assert.match(texto, /imagen 1/);
+      assert.match(texto, /tabla 2/);
+      assert.match(texto, /entre 2 y 8/);
+      assert.match(texto, /opción A no puede quedar vacía/);
+      assert.match(texto, /exactamente una/);
+      assert.match(texto, /valor/);
+      return true;
+    });
+  });
+});
+
+test('una miembro de emparejamiento se edita eligiendo la entrada correcta del banco', () => {
+  conBd((db) => {
+    const grupo = grupoBancoOpciones({ id: 'g-bo' });
+    guardarBanco(db, 'Inglés', [preguntaMiembroBancoOpciones('g-bo', grupo.banco, { respuesta_pool_id: 'p1' })], [grupo]);
+    const [m] = preguntasDeBanco(db, 1);
+
+    const editada = actualizarPreguntaManual(db, m.id, { enunciado: m.enunciado, respuesta_pool_id: 'p2' });
+    assert.equal(editada.respuesta_pool_id, 'p2');
+
+    assert.throws(() => actualizarPreguntaManual(db, m.id, { enunciado: m.enunciado, respuesta_pool_id: 'zzz' }),
+      (err) => err.errores.some((e) => /entrada del banco/.test(e)));
+  });
+});
+
+test('eliminar la última miembro de un contexto compartido borra el grupo', () => {
+  conBd((db) => {
+    guardarBanco(db, 'B', [preguntaMiembroContextoCompartido('g1', { id: 'm1' })], [grupoContextoCompartido({ id: 'g1' })]);
+    const [m] = preguntasDeBanco(db, 1);
+    eliminarPregunta(db, m.id);
+    assert.equal(gruposDeBanco(db, 1).length, 0);
+  });
+});
+
+test('las miembros de emparejamiento y de texto con blancos no se eliminan sueltas', () => {
+  conBd((db) => {
+    const bo = grupoBancoOpciones({ id: 'g-bo' });
+    const tb = grupoTextoConBlancos({ id: 'g-tb' });
+    guardarBanco(db, 'B', [
+      preguntaMiembroBancoOpciones('g-bo', bo.banco, { respuesta_pool_id: 'p1' }),
+      preguntaMiembroTextoConBlancos('g-tb', 1),
+    ], [bo, tb]);
+    for (const p of preguntasDeBanco(db, 1)) {
+      assert.throws(() => eliminarPregunta(db, p.id), (err) => err.estado === 409 && /grupo completo/.test(err.message));
+    }
+  });
+});
+
+test('actualizarGrupo corrige contexto, banco y metadata, y protege las entradas usadas como respuesta', () => {
+  conBd((db) => {
+    const grupo = grupoBancoOpciones({ id: 'g-bo' });
+    guardarBanco(db, 'B', [preguntaMiembroBancoOpciones('g-bo', grupo.banco, { respuesta_pool_id: 'p1' })], [grupo]);
+
+    const editado = actualizarGrupo(db, 'g-bo', {
+      contexto: [{ tipo: 'texto', texto: 'Empareja cada término.' }],
+      banco: [
+        { id: 'p1', contenido: [{ tipo: 'texto', texto: 'floema' }] },
+        { id: 'p9', contenido: [{ tipo: 'texto', texto: 'nuevo' }] },
+      ],
+      metadata_pedagogica: { competencia: 'Uso del lenguaje' },
+    });
+    assert.deepEqual(textos(editado.contexto), ['Empareja cada término.']);
+    assert.deepEqual(editado.banco.map((e) => e.id), ['p1', 'p9']);
+    assert.equal(editado.metadata_pedagogica.competencia, 'Uso del lenguaje');
+    assert.equal(editado.metadata_pedagogica.componente, 'Componente del grupo');
+
+    assert.throws(() => actualizarGrupo(db, 'g-bo', {
+      banco: [{ id: 'p2', contenido: [{ tipo: 'texto', texto: 'a' }] }, { id: 'p3', contenido: [{ tipo: 'texto', texto: 'b' }] }],
+    }), (err) => err.errores.some((e) => /"p1"/.test(e)));
+  });
+});
+
+test('eliminarGrupo borra el grupo con sus preguntas, salvo si alguna se usó', () => {
+  conBd((db) => {
+    const tb = grupoTextoConBlancos({ id: 'g-tb' });
+    guardarBanco(db, 'B', [preguntaMiembroTextoConBlancos('g-tb', 1)], [tb]);
+    const [m] = preguntasDeBanco(db, 1);
+
+    usarEnUnaEvaluacion(db, 1, m.id);
+    assert.throws(() => eliminarGrupo(db, 'g-tb'), (err) => err.estado === 409);
+    assert.throws(() => actualizarGrupo(db, 'g-tb', {}), (err) => err.estado === 409);
+
+    db.prepare('DELETE FROM intento_preguntas').run();
+    eliminarGrupo(db, 'g-tb');
+    assert.equal(preguntasDeBanco(db, 1).length, 0);
+    assert.equal(gruposDeBanco(db, 1).length, 0);
+  });
+});
+
+test('el mismo paquete con grupos se puede cargar dos veces: el segundo recibe ids de grupo nuevos', () => {
+  conBd((db) => {
+    const paquete = () => [[preguntaMiembroContextoCompartido('g1', { id: 'm1' })], [grupoContextoCompartido({ id: 'g1' })]];
+    guardarBanco(db, 'Primero', ...paquete());
+    const { bancoId } = guardarBanco(db, 'Segundo', ...paquete());
+    agregarPaqueteABanco(db, bancoId, ...paquete());
+
+    const grupos = gruposDeBanco(db, bancoId).map((g) => g.id).sort();
+    assert.deepEqual(grupos, ['g1-2', 'g1-3']);
+    for (const p of preguntasDeBanco(db, bancoId)) assert.ok(grupos.includes(p.grupo_id));
+  });
+});
+
+test('agregarPaqueteABanco añade al banco existente sin crear otro', () => {
+  conBd((db) => {
+    const { id } = crearBancoVacio(db, 'Sociales');
+    agregarPreguntaManual(db, id, preguntaManualValida());
+    agregarPaqueteABanco(db, id, preguntasDeEjemplo(3));
+
+    assert.equal(listarBancos(db).length, 1);
+    assert.equal(preguntasDeBanco(db, id).length, 4);
+    assert.throws(() => agregarPaqueteABanco(db, 999, preguntasDeEjemplo(1)), (err) => err.estado === 404);
+  });
+});
+
+test('preguntasDeBanco cuenta en cuántos intentos se usó cada pregunta', () => {
+  conBd((db) => {
+    const { id } = crearBancoVacio(db, 'Sociales');
+    const p = agregarPreguntaManual(db, id, preguntaManualValida());
+    assert.equal(preguntasDeBanco(db, id)[0].usos, 0);
+    usarEnUnaEvaluacion(db, id, p.id);
+    assert.equal(preguntasDeBanco(db, id)[0].usos, 1);
   });
 });

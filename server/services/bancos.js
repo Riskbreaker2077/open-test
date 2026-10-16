@@ -99,15 +99,30 @@ function conMetadataHeredada(pregunta, grupoPorId) {
 }
 
 /**
- * Guarda el paquete entero en una transacción: o entra todo, o nada.
- *
- * `preguntas` es el array del validador (puede contener preguntas standalone
- * y preguntas miembro de un grupo). `grupos` es opcional; si está presente,
- * se insertan primero los grupos para que las FK de las preguntas miembro
- * los encuentren.
+ * Los `id` de grupo son clave primaria en toda la base, no por banco: cargar
+ * dos veces el mismo ZIP (en el mismo banco o en otro) chocaría. Los que ya
+ * existen reciben un sufijo y sus miembros se reescriben para seguirlos.
  */
-export function guardarBanco(db, nombre, preguntas, grupos = []) {
-  const insertarBanco = db.prepare('INSERT INTO bancos (nombre, creado_en) VALUES (?, ?)');
+function conIdsDeGrupoLibres(db, preguntas, grupos) {
+  const existe = db.prepare('SELECT 1 FROM grupos WHERE id = ?');
+  const usados = new Set();
+  const renombre = new Map();
+  for (const grupo of grupos) {
+    let id = grupo.id;
+    for (let n = 2; existe.get(id) || usados.has(id); n += 1) id = `${grupo.id}-${n}`;
+    usados.add(id);
+    if (id !== grupo.id) renombre.set(grupo.id, id);
+  }
+  if (renombre.size === 0) return { preguntas, grupos };
+  return {
+    grupos: grupos.map((g) => (renombre.has(g.id) ? { ...g, id: renombre.get(g.id) } : g)),
+    preguntas: preguntas.map((p) => (renombre.has(p.grupo_id) ? { ...p, grupo_id: renombre.get(p.grupo_id) } : p)),
+  };
+}
+
+/** Inserta preguntas y grupos validados en un banco ya existente. Llamar dentro de una transacción. */
+function insertarContenido(db, bancoId, preguntasEntrada, gruposEntrada = []) {
+  const { preguntas, grupos } = conIdsDeGrupoLibres(db, preguntasEntrada, gruposEntrada);
   const insertarPregunta = db.prepare(`
     INSERT INTO preguntas (
       banco_id, contexto, enunciado,
@@ -129,54 +144,73 @@ export function guardarBanco(db, nombre, preguntas, grupos = []) {
     VALUES (?, ?, ?, ?, ?, ?)
   `);
 
-  return db.transaction(() => {
-    const bancoId = insertarBanco.run(nombre, new Date().toISOString()).lastInsertRowid;
+  for (const grupo of grupos) insertarGrupo(db, bancoId, grupo);
 
-    for (const grupo of grupos) insertarGrupo(db, bancoId, grupo);
+  const grupoPorId = new Map(grupos.map((g) => [g.id, g]));
 
-    const grupoPorId = new Map(grupos.map((g) => [g.id, g]));
+  for (const pregunta of preguntas) {
+    const completa = conMetadataHeredada(pregunta, grupoPorId);
+    const extras = datosCamposInformativos(completa);
+    const preguntaId = insertarPregunta.run(
+      bancoId,
+      serializarBloques(completa.contexto),
+      serializarBloques(completa.enunciado),
+      completa.competencia,
+      completa.componente,
+      completa.afirmacion,
+      completa.evidencia,
+      completa.estandar_asociado,
+      completa.que_evalua,
+      extras.grupo_id,
+      extras.tipo_item,
+      extras.respuesta_pool_id,
+      extras.numero_blanco,
+      extras.nivel_mcer,
+      extras.valor,
+      extras.grado,
+      extras.prueba,
+      extras.procedencia,
+      extras.verificado,
+      extras.fuentes,
+      extras.version_estandar,
+    ).lastInsertRowid;
 
-    for (const pregunta of preguntas) {
-      const completa = conMetadataHeredada(pregunta, grupoPorId);
-      const extras = datosCamposInformativos(completa);
-      const preguntaId = insertarPregunta.run(
-        bancoId,
-        serializarBloques(completa.contexto),
-        serializarBloques(completa.enunciado),
-        completa.competencia,
-        completa.componente,
-        completa.afirmacion,
-        completa.evidencia,
-        completa.estandar_asociado,
-        completa.que_evalua,
-        extras.grupo_id,
-        extras.tipo_item,
-        extras.respuesta_pool_id,
-        extras.numero_blanco,
-        extras.nivel_mcer,
-        extras.valor,
-        extras.grado,
-        extras.prueba,
-        extras.procedencia,
-        extras.verificado,
-        extras.fuentes,
-        extras.version_estandar,
-      ).lastInsertRowid;
-
-      for (const opcion of completa.opciones ?? []) {
-        insertarOpcion.run(
-          preguntaId,
-          serializarBloques(opcion.contenido),
-          opcion.es_correcta ? 1 : 0,
-          opcion.justificacion ?? '',
-          opcion.procedencia_justificacion ?? null,
-          opcion.justificacion_verificada ?? null,
-        );
-      }
+    for (const opcion of completa.opciones ?? []) {
+      insertarOpcion.run(
+        preguntaId,
+        serializarBloques(opcion.contenido),
+        opcion.es_correcta ? 1 : 0,
+        opcion.justificacion ?? '',
+        opcion.procedencia_justificacion ?? null,
+        opcion.justificacion_verificada ?? null,
+      );
     }
+  }
 
-    return { bancoId, preguntas: preguntas.length, grupos: grupos.length };
+  return { bancoId, preguntas: preguntas.length, grupos: grupos.length };
+}
+
+/**
+ * Guarda el paquete entero en una transacción: o entra todo, o nada.
+ *
+ * `preguntas` es el array del validador (puede contener preguntas standalone
+ * y preguntas miembro de un grupo). `grupos` es opcional; si está presente,
+ * se insertan primero los grupos para que las FK de las preguntas miembro
+ * los encuentren.
+ */
+export function guardarBanco(db, nombre, preguntas, grupos = []) {
+  return db.transaction(() => {
+    const bancoId = db
+      .prepare('INSERT INTO bancos (nombre, creado_en) VALUES (?, ?)')
+      .run(nombre, new Date().toISOString()).lastInsertRowid;
+    return insertarContenido(db, bancoId, preguntas, grupos);
   })();
+}
+
+/** Añade un paquete ya validado a un banco existente (052), sin crear uno nuevo. */
+export function agregarPaqueteABanco(db, bancoId, preguntas, grupos = []) {
+  bancoExistente(db, bancoId);
+  return db.transaction(() => insertarContenido(db, bancoId, preguntas, grupos))();
 }
 
 export function listarBancos(db) {
@@ -216,7 +250,8 @@ export function preguntasDeBanco(db, bancoId) {
              competencia, componente, afirmacion, evidencia, estandar_asociado, que_evalua,
              grupo_id, tipo_item, respuesta_pool_id, numero_blanco,
              nivel_mcer, valor, grado, prueba,
-             procedencia, verificado, fuentes, version_estandar
+             procedencia, verificado, fuentes, version_estandar,
+             (SELECT count(*) FROM intento_preguntas ip WHERE ip.pregunta_id = preguntas.id) AS usos
       FROM preguntas WHERE banco_id = ? ORDER BY id
     `)
     .all(bancoId);
@@ -330,16 +365,26 @@ export function borrarBanco(db, bancoId) {
   return banco;
 }
 
-// --- Ingreso manual de preguntas (028) -------------------------------------
-// Forma simple original de la feature 003: contexto opcional, imagen
-// opcional, enunciado y exactamente 4 opciones. Sin metadata pedagógica del
-// estándar ni grupos — eso sigue siendo exclusivo del ZIP (015/016/026).
+// --- Ingreso y edición de preguntas (028, ampliada en 052) ------------------
+// La 028 nació con la forma simple de la 003 (texto plano y 4 opciones). La
+// 052 deja corregir cualquier pregunta del banco entera: bloques del
+// estándar, de 2 a 8 opciones, datos pedagógicos y miembros de grupo. El
+// formato simple se sigue aceptando y se convierte al completo.
 
 const LETRAS_OPCION = ['A', 'B', 'C', 'D'];
 const N_OPCIONES_MANUAL = 4;
+const MIN_OPCIONES = 2;
+const MAX_OPCIONES = 8;
+const CAMPOS_TEXTO_OPCIONAL = ['grado', 'prueba', 'nivel_mcer'];
 
 function textoLimpio(valor) {
   return typeof valor === 'string' ? valor.trim() : '';
+}
+
+const letraDe = (i) => String.fromCharCode(65 + i);
+
+function errorDeValidacion(errores) {
+  return Object.assign(new Error('Hay errores en la pregunta.'), { estado: 400, errores });
 }
 
 /**
@@ -391,6 +436,141 @@ function bloquesDeContexto({ contexto, archivoImagen }) {
   return bloques;
 }
 
+/** El formato simple de la 028 trae strings donde el completo trae bloques. */
+function esFormatoSimple(datos) {
+  return typeof datos?.enunciado === 'string' || typeof datos?.contexto === 'string';
+}
+
+function aFormatoCompleto(datos) {
+  const enunciado = textoLimpio(datos.enunciado);
+  return {
+    contexto: bloquesDeContexto({
+      contexto: textoLimpio(datos.contexto),
+      archivoImagen: textoLimpio(datos.archivoImagen) || null,
+    }),
+    enunciado: enunciado ? [{ tipo: 'texto', texto: enunciado }] : [],
+    opciones: (Array.isArray(datos.opciones) ? datos.opciones : []).map((opcion) => ({
+      contenido: textoLimpio(opcion?.texto) ? [{ tipo: 'texto', texto: textoLimpio(opcion.texto) }] : [],
+      es_correcta: Boolean(opcion?.esCorrecta),
+      justificacion: opcion?.justificacion,
+    })),
+  };
+}
+
+/** Un nombre de archivo de imagen, nunca una ruta. */
+function archivoSeguro(nombre) {
+  const limpio = textoLimpio(nombre);
+  if (!limpio || /[/\\]/.test(limpio) || limpio.includes('..')) return null;
+  return limpio;
+}
+
+/**
+ * Revisa un array de bloques del estándar y devuelve su versión limpia. Los
+ * bloques de texto vacíos se descartan; las propiedades que no se editan
+ * aquí se conservan, para no perder nada de lo que trajo el ZIP.
+ */
+function validarBloques(bloques, donde, errores) {
+  if (bloques == null) return [];
+  if (!Array.isArray(bloques)) {
+    errores.push(`${donde}: el contenido no es válido.`);
+    return [];
+  }
+  const limpios = [];
+  bloques.forEach((bloque, i) => {
+    if (bloque?.tipo === 'texto') {
+      const texto = textoLimpio(bloque.texto);
+      if (texto) limpios.push({ ...bloque, texto });
+      return;
+    }
+    if (bloque?.tipo === 'imagen') {
+      const archivo = archivoSeguro(bloque.archivo);
+      if (!archivo) {
+        errores.push(`${donde}: falta elegir el archivo de la imagen ${i + 1}.`);
+        return;
+      }
+      const limpio = { ...bloque, archivo };
+      const descripcion = textoLimpio(bloque.descripcion_accesible);
+      if (descripcion) limpio.descripcion_accesible = descripcion;
+      else delete limpio.descripcion_accesible;
+      limpios.push(limpio);
+      return;
+    }
+    if (bloque?.tipo === 'tabla') {
+      const encabezados = Array.isArray(bloque.encabezados) ? bloque.encabezados.map((c) => String(c ?? '').trim()) : [];
+      const filas = Array.isArray(bloque.filas) ? bloque.filas : null;
+      const bien = encabezados.length > 0 && filas
+        && filas.every((fila) => Array.isArray(fila) && fila.length === encabezados.length);
+      if (!bien) {
+        errores.push(`${donde}: la tabla ${i + 1} está incompleta (cada fila debe tener tantas celdas como columnas).`);
+        return;
+      }
+      limpios.push({ ...bloque, encabezados, filas: filas.map((fila) => fila.map((c) => String(c ?? '').trim())) });
+      return;
+    }
+    errores.push(`${donde}: el bloque ${i + 1} es de un tipo que no se reconoce.`);
+  });
+  return limpios;
+}
+
+/**
+ * Valida una pregunta en formato completo. `bancoDelGrupo` solo llega para
+ * una miembro de emparejamiento: no tiene opciones propias, su respuesta es
+ * una entrada de ese banco. Los datos pedagógicos solo se tocan si vienen:
+ * el formato simple no los trae y no debe borrarlos.
+ */
+function validarPreguntaCompleta(entrada, { bancoDelGrupo = null } = {}) {
+  const datos = esFormatoSimple(entrada) ? aFormatoCompleto(entrada) : (entrada ?? {});
+  const errores = [];
+
+  const contexto = validarBloques(datos.contexto ?? [], 'Contexto', errores);
+  const enunciado = validarBloques(datos.enunciado ?? [], 'Enunciado', errores);
+  if (enunciado.length === 0) errores.push('El enunciado es obligatorio.');
+
+  const registro = { contexto, enunciado, opciones: [], campos: {} };
+
+  if (bancoDelGrupo) {
+    const respuesta = textoLimpio(datos.respuesta_pool_id);
+    if (!bancoDelGrupo.some((entradaBanco) => entradaBanco.id === respuesta)) {
+      errores.push('Elige cuál entrada del banco del grupo es la respuesta correcta.');
+    }
+    registro.campos.respuesta_pool_id = respuesta;
+  } else {
+    const opciones = Array.isArray(datos.opciones) ? datos.opciones : [];
+    if (opciones.length < MIN_OPCIONES || opciones.length > MAX_OPCIONES) {
+      errores.push(`Una pregunta lleva entre ${MIN_OPCIONES} y ${MAX_OPCIONES} opciones.`);
+    }
+    registro.opciones = opciones.map((opcion, i) => {
+      const donde = `Opción ${letraDe(i)}`;
+      const contenido = validarBloques(opcion?.contenido ?? [], donde, errores);
+      if (contenido.length === 0) errores.push(`La opción ${letraDe(i)} no puede quedar vacía.`);
+      return {
+        contenido,
+        es_correcta: Boolean(opcion?.es_correcta),
+        justificacion: textoLimpio(opcion?.justificacion),
+        procedencia_justificacion: typeof opcion?.procedencia_justificacion === 'string' ? opcion.procedencia_justificacion : null,
+        justificacion_verificada: Number.isInteger(opcion?.justificacion_verificada) ? opcion.justificacion_verificada : null,
+      };
+    });
+    if (opciones.length > 0 && registro.opciones.filter((o) => o.es_correcta).length !== 1) {
+      errores.push('Marca exactamente una opción como correcta.');
+    }
+  }
+
+  for (const campo of METADATA_POR_DEFECTO) {
+    if (campo in datos) registro.campos[campo] = textoLimpio(datos[campo]);
+  }
+  for (const campo of CAMPOS_TEXTO_OPCIONAL) {
+    if (campo in datos) registro.campos[campo] = textoLimpio(datos[campo]) || null;
+  }
+  if ('valor' in datos) {
+    const valor = Number(datos.valor);
+    if (!Number.isFinite(valor) || valor <= 0) errores.push('El valor debe ser un número mayor que cero.');
+    else registro.campos.valor = valor;
+  }
+
+  return { registro, errores };
+}
+
 function preguntaUnica(db, preguntaId) {
   const fila = db.prepare(`
     SELECT id, banco_id, contexto, enunciado,
@@ -432,102 +612,196 @@ function bancoExistente(db, bancoId) {
   if (!banco) throw Object.assign(new Error('Ese banco no existe.'), { estado: 404 });
 }
 
-function preguntaEditable(db, preguntaId) {
-  const pregunta = db.prepare('SELECT id, banco_id, grupo_id FROM preguntas WHERE id = ?').get(preguntaId);
-  if (!pregunta) throw Object.assign(new Error('Esa pregunta no existe.'), { estado: 404 });
+const MENSAJE_USADA =
+  'Esta pregunta ya se usó en una evaluación y no se puede editar ni eliminar: ' +
+  'sus respuestas deben seguir siendo auditables.';
 
-  if (pregunta.grupo_id) {
-    throw Object.assign(
-      new Error('Esta pregunta pertenece a un grupo del banco importado y no se puede editar desde aquí.'),
-      { estado: 409 },
-    );
-  }
+function preguntaEditable(db, preguntaId) {
+  const pregunta = db
+    .prepare('SELECT id, banco_id, grupo_id, tipo_item FROM preguntas WHERE id = ?')
+    .get(preguntaId);
+  if (!pregunta) throw Object.assign(new Error('Esa pregunta no existe.'), { estado: 404 });
 
   const usos = db
     .prepare('SELECT count(*) AS total FROM intento_preguntas WHERE pregunta_id = ?')
     .get(preguntaId).total;
-  if (usos > 0) {
-    throw Object.assign(
-      new Error(
-        'Esta pregunta ya se usó en una evaluación y no se puede editar ni eliminar: ' +
-          'sus respuestas deben seguir siendo auditables.',
-      ),
-      { estado: 409 },
-    );
-  }
+  if (usos > 0) throw Object.assign(new Error(MENSAJE_USADA), { estado: 409 });
 
   return pregunta;
+}
+
+function insertarOpciones(db, preguntaId, opciones) {
+  const insertar = db.prepare(`
+    INSERT INTO opciones (pregunta_id, texto, es_correcta, justificacion,
+      procedencia_justificacion, justificacion_verificada)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  for (const opcion of opciones) {
+    insertar.run(
+      preguntaId,
+      serializarBloques(opcion.contenido),
+      opcion.es_correcta ? 1 : 0,
+      opcion.justificacion,
+      opcion.procedencia_justificacion,
+      opcion.justificacion_verificada,
+    );
+  }
+}
+
+/** Escribe contenido, campos presentes y (si la pregunta las tiene) opciones. */
+function escribirPregunta(db, preguntaId, registro, { conOpciones }) {
+  const campos = Object.keys(registro.campos);
+  const asignaciones = ['contexto = ?', 'enunciado = ?', ...campos.map((campo) => `${campo} = ?`)];
+  db.prepare(`UPDATE preguntas SET ${asignaciones.join(', ')} WHERE id = ?`).run(
+    serializarBloques(registro.contexto),
+    serializarBloques(registro.enunciado),
+    ...campos.map((campo) => registro.campos[campo]),
+    preguntaId,
+  );
+  if (conOpciones) {
+    db.prepare('DELETE FROM opciones WHERE pregunta_id = ?').run(preguntaId);
+    insertarOpciones(db, preguntaId, registro.opciones);
+  }
 }
 
 /** Agrega una pregunta suelta (sin grupo) a un banco ya existente. */
 export function agregarPreguntaManual(db, bancoId, datos) {
   bancoExistente(db, bancoId);
 
-  const { registro, errores } = validarPreguntaManual(datos);
-  if (errores.length > 0) throw Object.assign(new Error('Hay errores en la pregunta.'), { estado: 400, errores });
-
-  const insertarPregunta = db.prepare(`
-    INSERT INTO preguntas (banco_id, contexto, enunciado) VALUES (?, ?, ?)
-  `);
-  const insertarOpcion = db.prepare(`
-    INSERT INTO opciones (pregunta_id, texto, es_correcta, justificacion) VALUES (?, ?, ?, ?)
-  `);
+  const { registro, errores } = validarPreguntaCompleta(datos);
+  if (errores.length > 0) throw errorDeValidacion(errores);
 
   const preguntaId = db.transaction(() => {
-    const id = insertarPregunta.run(
-      bancoId,
-      serializarBloques(bloquesDeContexto(registro)),
-      serializarBloques([{ tipo: 'texto', texto: registro.enunciado }]),
-    ).lastInsertRowid;
-
-    for (const opcion of registro.opciones) {
-      insertarOpcion.run(
-        id,
-        serializarBloques([{ tipo: 'texto', texto: opcion.texto }]),
-        opcion.esCorrecta ? 1 : 0,
-        opcion.justificacion,
-      );
-    }
+    const id = db
+      .prepare("INSERT INTO preguntas (banco_id, contexto, enunciado) VALUES (?, '[]', '[]')")
+      .run(bancoId).lastInsertRowid;
+    escribirPregunta(db, id, registro, { conOpciones: true });
     return id;
   })();
 
   return preguntaUnica(db, preguntaId);
 }
 
-/** Reemplaza contexto, enunciado y las 4 opciones de una pregunta suelta existente. */
+/** Reemplaza el contenido, las opciones y los datos pedagógicos de cualquier pregunta no usada. */
 export function actualizarPreguntaManual(db, preguntaId, datos) {
-  preguntaEditable(db, preguntaId);
+  const pregunta = preguntaEditable(db, preguntaId);
+  const esMatching = pregunta.tipo_item === 'miembro_banco_opciones';
+  const bancoDelGrupo = esMatching
+    ? JSON.parse(db.prepare('SELECT banco FROM grupos WHERE id = ?').get(pregunta.grupo_id)?.banco ?? '[]')
+    : null;
 
-  const { registro, errores } = validarPreguntaManual(datos);
-  if (errores.length > 0) throw Object.assign(new Error('Hay errores en la pregunta.'), { estado: 400, errores });
+  const { registro, errores } = validarPreguntaCompleta(datos, { bancoDelGrupo });
+  if (errores.length > 0) throw errorDeValidacion(errores);
 
-  db.transaction(() => {
-    db.prepare('UPDATE preguntas SET contexto = ?, enunciado = ? WHERE id = ?').run(
-      serializarBloques(bloquesDeContexto(registro)),
-      serializarBloques([{ tipo: 'texto', texto: registro.enunciado }]),
-      preguntaId,
-    );
-
-    db.prepare('DELETE FROM opciones WHERE pregunta_id = ?').run(preguntaId);
-    const insertarOpcion = db.prepare(`
-      INSERT INTO opciones (pregunta_id, texto, es_correcta, justificacion) VALUES (?, ?, ?, ?)
-    `);
-    for (const opcion of registro.opciones) {
-      insertarOpcion.run(
-        preguntaId,
-        serializarBloques([{ tipo: 'texto', texto: opcion.texto }]),
-        opcion.esCorrecta ? 1 : 0,
-        opcion.justificacion,
-      );
-    }
-  })();
-
+  db.transaction(() => escribirPregunta(db, preguntaId, registro, { conOpciones: !esMatching }))();
   return preguntaUnica(db, preguntaId);
 }
 
-/** Elimina una pregunta suelta (cascada a sus opciones por la FK). */
+// En emparejamiento y texto con blancos el grupo es una sola pieza: quitar
+// una miembro dejaría una entrada huérfana o un hueco sin pregunta en el pasaje.
+const GRUPOS_INDIVISIBLES = new Set(['banco_opciones', 'texto_con_blancos']);
+
+/** Elimina una pregunta (cascada a sus opciones); si deja vacío su grupo, también lo borra. */
 export function eliminarPregunta(db, preguntaId) {
   const pregunta = preguntaEditable(db, preguntaId);
-  db.prepare('DELETE FROM preguntas WHERE id = ?').run(preguntaId);
+  const grupo = pregunta.grupo_id
+    ? db.prepare('SELECT id, tipo FROM grupos WHERE id = ?').get(pregunta.grupo_id)
+    : null;
+  if (grupo && GRUPOS_INDIVISIBLES.has(grupo.tipo)) {
+    throw Object.assign(
+      new Error('Esta pregunta es parte de un grupo de emparejamiento o de texto con blancos: elimina el grupo completo.'),
+      { estado: 409 },
+    );
+  }
+
+  db.transaction(() => {
+    db.prepare('DELETE FROM preguntas WHERE id = ?').run(preguntaId);
+    if (grupo) {
+      const quedan = db.prepare('SELECT count(*) AS total FROM preguntas WHERE grupo_id = ?').get(grupo.id).total;
+      if (quedan === 0) db.prepare('DELETE FROM grupos WHERE id = ?').run(grupo.id);
+    }
+  })();
   return pregunta;
+}
+
+// --- Edición de grupos (052) ----------------------------------------------
+
+function grupoEditable(db, grupoId) {
+  const fila = db.prepare('SELECT * FROM grupos WHERE id = ?').get(grupoId);
+  if (!fila) throw Object.assign(new Error('Ese grupo no existe.'), { estado: 404 });
+
+  const usos = db.prepare(`
+    SELECT count(*) AS total FROM intento_preguntas ip
+    JOIN preguntas p ON p.id = ip.pregunta_id
+    WHERE p.grupo_id = ?
+  `).get(grupoId).total;
+  if (usos > 0) {
+    throw Object.assign(
+      new Error(
+        'Este grupo tiene preguntas que ya se usaron en una evaluación y no se puede editar ni eliminar: ' +
+          'sus respuestas deben seguir siendo auditables.',
+      ),
+      { estado: 409 },
+    );
+  }
+  return parsearGrupo(fila);
+}
+
+/** Corrige el contexto compartido, el banco de opciones y la metadata pedagógica de un grupo. */
+export function actualizarGrupo(db, grupoId, datos) {
+  const grupo = grupoEditable(db, grupoId);
+  const errores = [];
+
+  const contexto = validarBloques(datos?.contexto ?? [], 'Contexto del grupo', errores);
+
+  let banco = grupo.banco;
+  if (grupo.tipo === 'banco_opciones') {
+    const entradas = Array.isArray(datos?.banco) ? datos.banco : [];
+    if (entradas.length < MIN_OPCIONES) errores.push(`El banco de opciones lleva al menos ${MIN_OPCIONES} entradas.`);
+    const vistos = new Set();
+    banco = entradas.map((entrada, i) => {
+      const id = textoLimpio(entrada?.id) || `e${i + 1}`;
+      if (vistos.has(id)) errores.push(`La entrada "${id}" del banco está repetida.`);
+      vistos.add(id);
+      const contenido = validarBloques(entrada?.contenido ?? [], `Entrada ${i + 1} del banco`, errores);
+      if (contenido.length === 0) errores.push(`La entrada ${i + 1} del banco no puede quedar vacía.`);
+      return { ...entrada, id, contenido };
+    });
+    const respuestas = db
+      .prepare('SELECT DISTINCT respuesta_pool_id AS id FROM preguntas WHERE grupo_id = ? AND respuesta_pool_id IS NOT NULL')
+      .all(grupoId)
+      .map((fila) => fila.id);
+    for (const respuesta of respuestas) {
+      if (!vistos.has(respuesta)) {
+        errores.push(`No puedes quitar la entrada "${respuesta}": es la respuesta correcta de una pregunta del grupo.`);
+      }
+    }
+  }
+
+  const metadata = { ...grupo.metadata_pedagogica };
+  for (const campo of METADATA_POR_DEFECTO) {
+    if (datos?.metadata_pedagogica && campo in datos.metadata_pedagogica) {
+      metadata[campo] = textoLimpio(datos.metadata_pedagogica[campo]);
+    }
+  }
+
+  if (errores.length > 0) throw Object.assign(new Error('Hay errores en el grupo.'), { estado: 400, errores });
+
+  db.prepare('UPDATE grupos SET contexto = ?, banco = ?, metadata_pedagogica = ? WHERE id = ?').run(
+    serializarBloques(contexto),
+    JSON.stringify(banco),
+    JSON.stringify(metadata),
+    grupoId,
+  );
+  return parsearGrupo(db.prepare('SELECT * FROM grupos WHERE id = ?').get(grupoId));
+}
+
+/** Elimina un grupo con todas sus preguntas. */
+export function eliminarGrupo(db, grupoId) {
+  const grupo = grupoEditable(db, grupoId);
+  db.transaction(() => {
+    db.prepare('DELETE FROM preguntas WHERE grupo_id = ?').run(grupoId);
+    db.prepare('DELETE FROM grupos WHERE id = ?').run(grupoId);
+  })();
+  return grupo;
 }

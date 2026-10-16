@@ -313,6 +313,10 @@ test('nada de todo esto es alcanzable sin contraseña', async () => {
     ['/api/docente/bancos/1/preguntas', 'POST'],
     ['/api/docente/preguntas/1', 'PUT'],
     ['/api/docente/preguntas/1', 'DELETE'],
+    ['/api/docente/bancos/1/paquete/validar', 'POST'],
+    ['/api/docente/bancos/1/paquete/confirmar', 'POST'],
+    ['/api/docente/grupos/g1', 'PUT'],
+    ['/api/docente/grupos/g1', 'DELETE'],
     ['/api/docente/bancos/1/sesiones-cerradas', 'GET'],
     ['/api/docente/bancos/1/estadisticas', 'GET'],
     ['/api/docente/imagenes', 'GET'],
@@ -336,4 +340,35 @@ test('ninguna respuesta abierta al estudiante revela la correcta ni la justifica
     assert.doesNotMatch(texto, /justificacion/, `${ruta} filtra justificacion`);
     assert.doesNotMatch(texto, /Opción C/, `${ruta} filtra la respuesta correcta`);
   }
+});
+
+test('un ZIP adicional se valida y se añade al banco abierto, sin crear otro (052)', async () => {
+  const alta = await (await llamar('/api/docente/bancos', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ nombre: 'Sociales' }),
+  })).json();
+  const id = alta.banco.id;
+
+  const validado = await (await subirZip(`/api/docente/bancos/${id}/paquete/validar`, zipDe([preguntaDeEjemplo(), preguntaDeEjemplo()]))).json();
+  assert.equal(validado.ok, true);
+  assert.equal(validado.resumen.total, 2);
+  assert.equal((await (await llamar(`/api/docente/bancos/${id}`)).json()).banco.preguntas.length, 0, 'validar no escribe');
+
+  const confirmado = await (await subirZip(`/api/docente/bancos/${id}/paquete/confirmar`, zipDe([preguntaDeEjemplo(), preguntaDeEjemplo()]))).json();
+  assert.equal(confirmado.ok, true);
+
+  const { bancos } = await (await llamar('/api/docente/bancos')).json();
+  assert.equal(bancos.length, 1);
+  assert.equal(bancos[0].preguntas, 2);
+
+  const inexistente = await subirZip('/api/docente/bancos/999/paquete/confirmar', zipDe([preguntaDeEjemplo()]));
+  assert.equal(inexistente.status, 404);
+});
+
+test('PUT y DELETE de un grupo inexistente responden 404 (052)', async () => {
+  assert.equal((await llamar('/api/docente/grupos/nada', {
+    method: 'PUT', headers: { 'content-type': 'application/json' }, body: '{}',
+  })).status, 404);
+  assert.equal((await llamar('/api/docente/grupos/nada', { method: 'DELETE' })).status, 404);
 });

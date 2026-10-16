@@ -1,6 +1,6 @@
 # 028 · Ingreso manual de preguntas
 
-**Estado:** implementado ✅
+**Estado:** implementado ✅ (revisada por la 052: ahora se edita cualquier pregunta entera, también las de grupo, con bloques, de 2 a 8 opciones y datos pedagógicos)
 
 ## Qué hace
 

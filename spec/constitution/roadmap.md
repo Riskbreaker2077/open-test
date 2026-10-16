@@ -56,12 +56,13 @@ _Orden y estado de las features. Cada entrada apunta a su carpeta en `../feature
 50. **049 · [Papelera universal y renombrar evaluaciones](../features/049-papelera-universal-y-renombrar/spec.md)** — borrar una evaluación (con o sin intentos, salvo abierta/en curso/pausada) siempre la manda a la papelera; `PATCH /api/docente/sesiones/:id/nombre` renombra en cualquier estado. Revisa la 046. Sin migración.
 51. **050 · [Nombre en el examen y "Saltar" que no borra](../features/050-nombre-en-examen-y-saltar-sin-borrar/spec.md)** — el header del examen muestra el nombre del estudiante al centro; "Saltar" conserva la respuesta ya dada en vez de borrarla. Solo cliente.
 52. **051 · [Nota del estudiante en el resultado](../features/051-nota-del-estudiante/spec.md)** — al entregar, el estudiante ve su nota (regla de tres sobre 5,0, un decimal) además del puntaje. Sin migración ni cambio de contratos.
+53. **052 · [Editor de banco](../features/052-editor-de-banco/spec.md)** — el detalle de un banco pasa a cabecera compacta, lista de preguntas a la izquierda (Editar/Eliminar, grupos con sus miembros) y vista previa completa con ficha pedagógica a la derecha. Cualquier pregunta no usada se edita entera (bloques texto/imagen/tabla, 2–8 opciones, datos pedagógicos, miembros de grupo); los grupos se editan y se eliminan enteros; «+ Agregar desde ZIP» añade un paquete al banco abierto. Corrige el choque de ids de grupo al cargar dos veces el mismo ZIP. Revisa la 028. Sin migración.
 
 > **Revisión de arquitectura (24/08/2026).** El producto pasa a tener tres superficies separadas —portal del estudiante, pantalla de proyección y panel del docente con contraseña—, pueden coexistir varias sesiones abiertas y el temporizador pasa a ser un reloj global de sesión. Eso añade las features 011, 012 y 013, y revisa las specs de 001, 004, 006, 008 y 010. El orden de abajo es el de ejecución; los números son identidad, no secuencia.
 
 ## Siguiente 🔜
 
-El roadmap del encargo original quedó completo con la validación física del 14/09/2026; lo posterior (028–049) son mejoras pedidas tras usarlo en el aula. La verificación en dispositivo real de 039–042 y 045 se hizo el 30/09/2026 sin novedades, y la 048 se revisó pantalla por pantalla sobre la instalación real. No hay nada pendiente: lo que siga, si el usuario lo decide, sale de `Backlog / ideas`.
+El roadmap del encargo original quedó completo con la validación física del 14/09/2026; lo posterior (028–052) son mejoras pedidas tras usarlo en el aula. La verificación en dispositivo real de 039–042 y 045 se hizo el 30/09/2026 sin novedades, y la 048 se revisó pantalla por pantalla sobre la instalación real. No hay nada pendiente: lo que siga, si el usuario lo decide, sale de `Backlog / ideas`.
 
 ## Pendientes 📋
 
