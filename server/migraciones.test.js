@@ -415,3 +415,75 @@ test('la migración v6 rehace intentos sin perder el examen ya aplicado', () => 
     limpiar();
   }
 });
+
+/** Lo que añadió la migración v9 (054), para partir de una base anterior. */
+const SIN_054 = {
+  columnas: /,\n  -- Minutos que el docente otorga sobre el reloj \(054\),[\s\S]*?cerrada_en                  TEXT,\n/,
+  tabla: /-- Auditoría de la 054:[\s\S]*?CREATE TABLE IF NOT EXISTS minutos_otorgados \([\s\S]*?\n\);\n\n/,
+  motivo: /,\n                       'anulada_docente', 'cierre_docente'\)\),/,
+};
+
+test('la migración v9 añade minutos adicionales y el motivo de cierre sin perder intentos', () => {
+  const { ruta, limpiar } = carpetaTemporal();
+  try {
+    const esquema = readFileSync(new URL('./schema.sql', import.meta.url), 'utf8')
+      .replace(SIN_054.columnas, ',\n')
+      .replace(SIN_054.tabla, '')
+      .replace(SIN_054.motivo, ",\n                       'anulada_docente')),");
+    assert.doesNotMatch(
+      esquema,
+      /segundos_adicionales|minutos_otorgados|cierre_docente/,
+      'la base de partida no tiene lo nuevo',
+    );
+    const vieja = new Database(ruta);
+    vieja.exec(esquema);
+    vieja.prepare("INSERT INTO config VALUES ('esquema_version', '8')").run();
+    vieja.prepare('INSERT INTO estudiantes VALUES (?, ?, ?, ?)').run('2024001', 'Ana', 'Gómez', '10A');
+    vieja.prepare('INSERT INTO estudiantes VALUES (?, ?, ?, ?)').run('2024002', 'Luis', 'Pérez', '10A');
+    vieja.prepare('INSERT INTO estudiantes VALUES (?, ?, ?, ?)').run('2024003', 'Marta', 'Ruiz', '10A');
+    vieja.prepare("INSERT INTO bancos (nombre, creado_en) VALUES ('Ciencias', '2026-01-01')").run();
+    vieja.prepare(`
+      INSERT INTO sesiones (nombre, banco_id, cursos, estado, comenzada_en, creado_en)
+      VALUES ('Parcial', 1, '10A', 'cerrada', '2026-10-20T08:00:00.000Z', '2026-10-20')
+    `).run();
+    vieja.prepare(`
+      INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en,
+                            entregado_en, motivo_entrega, aciertos, puntaje)
+      VALUES (1, '2024001', 's', 't', '2026-10-20T08:01:00.000Z',
+              '2026-10-20T09:00:00.000Z', 'tiempo', 3, 3)
+    `).run();
+    vieja.close();
+
+    const db = abrirBd(ruta);
+    assert.equal(versionDe(db), ULTIMA_VERSION);
+    const sesion = db.prepare('SELECT * FROM sesiones').get();
+    assert.equal(sesion.segundos_adicionales, 0, 'migrar no otorga minutos');
+    assert.equal(sesion.cerrada_en, null, 'migrar no sella cierres del pasado');
+
+    // El intento sobrevive intacto al rebuild de la tabla.
+    const intento = db.prepare('SELECT * FROM intentos').get();
+    assert.equal(intento.motivo_entrega, 'tiempo');
+    assert.equal(intento.aciertos, 3);
+
+    // La auditoría nace vacía y el motivo nuevo lo acepta el CHECK.
+    assert.equal(db.prepare('SELECT count(*) AS t FROM minutos_otorgados').get().t, 0);
+    db.prepare(`
+      INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en, motivo_entrega)
+      VALUES (1, '2024002', 'u', 'u2', '2026-10-20T08:01:00.000Z', 'cierre_docente')
+    `).run();
+    assert.throws(
+      () =>
+        db
+          .prepare(`
+            INSERT INTO intentos (sesion_id, codigo_estudiante, semilla, token, iniciado_en, motivo_entrega)
+            VALUES (1, '2024003', 'v', 'v3', '2026-10-20T08:01:00.000Z', 'motivo_falso')
+          `)
+          .run(),
+      /CHECK/,
+    );
+    assert.deepEqual(db.pragma('foreign_key_check'), []);
+    cerrarBd(db);
+  } finally {
+    limpiar();
+  }
+});

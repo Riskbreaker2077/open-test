@@ -167,6 +167,10 @@ Si una tablet se bloqueó o un estudiante se retiró, use **Forzar entrega** jun
 
 **Anular la prueba de un estudiante** (por ejemplo, si lo encuentra copiando o con el celular): en la pantalla de proyección, haga **tres clics seguidos sobre su nombre** en el tablero de asistencia. Aparece un cuadro con su nombre completo; pulse **Anular la prueba**. Su prueba termina, queda en cero, no recibe retroalimentación y su cuadro se pone negro con ⊘. En la descarga de resultados sale con `anulado = SÍ`. Si se equivocó, repita los tres clics sobre el mismo nombre y pulse **Devolver la prueba**: recupera sus respuestas y su nota.
 
+**Minutos adicionales (el engranaje ⚙)**: en la hoja de **Evaluaciones**, cada fila en curso, en pausa o cerrada tiene un botón de engranaje. Escriba los minutos (entero, 1 o más) y el reloj de toda la sala se amplía: si seguía corriendo se suman a lo que queda; si ya se agotó, quedan exactamente esos minutos desde ese momento.
+
+Si la evaluación **ya se cerró** (venció el reloj o la cerró usted), darle minutos la **reabre**: los estudiantes que el cierre había entregado vuelven a presentar exactamente donde iban — dígales que entren de nuevo —; los que entregaron por su cuenta, los que usted entregó a propósito desde monitoreo y los anulados conservan su estado intacto. El tiempo no corre mientras la evaluación está cerrada. La pastilla de estado muestra cuántos minutos se han otorgado («En curso (+5 min)»).
+
 ## 6. Descargar resultados
 
 Después de cerrar, entre a **Descargar resultados**. Puede elegir todos los cursos o uno solo:

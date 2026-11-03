@@ -240,6 +240,68 @@ const MIGRACIONES = [
       anadirColumna(db, 'sesiones', 'en_papelera_en', 'TEXT');
     },
   },
+  {
+    version: 9,
+    descripcion: 'Minutos adicionales del docente sobre el reloj de la evaluación (054)',
+    aplicar(db) {
+      anadirColumna(db, 'sesiones', 'segundos_adicionales', 'INTEGER NOT NULL DEFAULT 0');
+      anadirColumna(db, 'sesiones', 'cerrada_en', 'TEXT');
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS minutos_otorgados (
+          id          INTEGER PRIMARY KEY AUTOINCREMENT,
+          sesion_id   INTEGER NOT NULL REFERENCES sesiones (id) ON DELETE CASCADE,
+          minutos     INTEGER NOT NULL CHECK (minutos > 0),
+          reabrio     INTEGER NOT NULL DEFAULT 0 CHECK (reabrio IN (0, 1)),
+          otorgado_en TEXT NOT NULL
+        );
+      `);
+
+      // `motivo_entrega` gana 'cierre_docente' para distinguir el cierre de
+      // sala hecho por el docente de la entrega individual
+      // (`forzada_docente`) y de la anulación (`anulada_docente`): al reabrir
+      // con minutos solo vuelven los entregados por el cierre. Ampliar un
+      // CHECK obliga a rehacer la tabla: SQLite no sabe modificarlo. Misma
+      // receta de la migración 6 (y de la 1 con `sesiones`); el runner deja
+      // las claves foráneas desactivadas y comprueba `foreign_key_check` al
+      // terminar. Los `id` se copian tal cual, así que `intento_preguntas` y
+      // `respuestas` siguen apuntando a los mismos intentos.
+      if (!/cierre_docente/.test(definicionDe(db, 'intentos') ?? '')) {
+        db.exec(`
+          CREATE TABLE intentos_nueva (
+            id                INTEGER PRIMARY KEY AUTOINCREMENT,
+            sesion_id         INTEGER NOT NULL REFERENCES sesiones (id) ON DELETE CASCADE,
+            codigo_estudiante TEXT NOT NULL REFERENCES estudiantes (codigo),
+            semilla           TEXT NOT NULL,
+            token             TEXT NOT NULL UNIQUE,
+            iniciado_en       TEXT NOT NULL,
+            entregado_en      TEXT,
+            motivo_entrega    TEXT CHECK (motivo_entrega IN
+                                ('manual', 'tiempo', 'ultima_pregunta', 'forzada_docente',
+                                 'anulada_docente', 'cierre_docente')),
+            aciertos          INTEGER,
+            puntaje           INTEGER,
+            pregunta_actual   INTEGER NOT NULL DEFAULT 1 CHECK (pregunta_actual > 0),
+            pregunta_mostrada_en TEXT,
+            anulado_en        TEXT,
+            UNIQUE (sesion_id, codigo_estudiante)
+          );
+
+          INSERT INTO intentos_nueva
+            (id, sesion_id, codigo_estudiante, semilla, token, iniciado_en,
+             entregado_en, motivo_entrega, aciertos, puntaje, pregunta_actual,
+             pregunta_mostrada_en, anulado_en)
+          SELECT id, sesion_id, codigo_estudiante, semilla, token, iniciado_en,
+                 entregado_en, motivo_entrega, aciertos, puntaje, pregunta_actual,
+                 pregunta_mostrada_en, anulado_en
+          FROM intentos;
+
+          DROP TABLE intentos;
+          ALTER TABLE intentos_nueva RENAME TO intentos;
+        `);
+        db.exec('CREATE INDEX IF NOT EXISTS idx_intentos_sesion ON intentos (sesion_id)');
+      }
+    },
+  },
 ];
 
 export const ULTIMA_VERSION = MIGRACIONES.at(-1)?.version ?? 0;

@@ -120,6 +120,12 @@ CREATE TABLE IF NOT EXISTS sesiones (
   comenzada_en                TEXT,
   pausada_en                  TEXT,
   segundos_pausados           INTEGER NOT NULL DEFAULT 0,
+  -- Minutos que el docente otorga sobre el reloj (054), acumulativos; nunca
+  -- se retoca duracion_minutos: la duración original queda como se configuró.
+  segundos_adicionales        INTEGER NOT NULL DEFAULT 0,
+  -- ISO 8601 del cierre (054): mientras está cerrada el reloj queda
+  -- congelado y al reabrir el tramo se devuelve igual que una pausa.
+  cerrada_en                  TEXT,
   creado_en                   TEXT NOT NULL,
   -- ISO 8601 de la primera descarga de resultados, escrita por el handler de
   -- exportación la primera vez que el docente baja cualquiera de los cuatro
@@ -149,6 +155,17 @@ CREATE TABLE IF NOT EXISTS envios_portal (
   destino            TEXT
 );
 
+-- Auditoría de la 054: cada otorgamiento de minutos del docente, con el flag
+-- de si reabrió una evaluación cerrada. No se consulta para calcular el reloj
+-- (eso lo lleva segundos_adicionales); es el registro histórico.
+CREATE TABLE IF NOT EXISTS minutos_otorgados (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  sesion_id   INTEGER NOT NULL REFERENCES sesiones (id) ON DELETE CASCADE,
+  minutos     INTEGER NOT NULL CHECK (minutos > 0),
+  reabrio     INTEGER NOT NULL DEFAULT 0 CHECK (reabrio IN (0, 1)),
+  otorgado_en TEXT NOT NULL
+);
+
 -- Pueden coexistir varias sesiones abiertas: 10A en Ciencias mientras 10B
 -- está en Matemáticas. El estudiante elige entre las de su curso.
 
@@ -162,7 +179,7 @@ CREATE TABLE IF NOT EXISTS intentos (
   entregado_en      TEXT,
   motivo_entrega    TEXT CHECK (motivo_entrega IN
                       ('manual', 'tiempo', 'ultima_pregunta', 'forzada_docente',
-                       'anulada_docente')),
+                       'anulada_docente', 'cierre_docente')),
   aciertos          INTEGER,
   puntaje           INTEGER,
   pregunta_actual   INTEGER NOT NULL DEFAULT 1 CHECK (pregunta_actual > 0),

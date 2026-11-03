@@ -271,12 +271,61 @@ function acciones(sesion) {
     );
   }
 
+  // El engranaje (054) va en toda fila que ya comenzó, sin importar el
+  // estado: dar minutos a una cerrada la reabre, que es justo el caso de uso.
+  if (sesion.estado !== 'borrador' && sesion.estado !== 'abierta') {
+    grupo.append(botonMinutosAdicionales(sesion));
+  }
+
   // El ícono de borrar va en toda fila, sin importar el estado: si no se
   // puede (evaluación abierta/en curso/pausada), el servidor lo rechaza y
   // el mensaje ("Cierra la evaluación antes de borrarla") ya lo explica.
   grupo.append(botonBorrar(sesion));
 
   return grupo;
+}
+
+/**
+ * Minutos adicionales sobre el reloj (054). Disponible también —y sobre
+ * todo— para una evaluación ya cerrada: darle minutos la reabre y solo
+ * vuelven a presentar los que el cierre había entregado; los que entregaron
+ * solos (o con anulación, o forzados desde monitoreo) conservan su nota.
+ */
+function botonMinutosAdicionales(sesion) {
+  return botonIcono('engranaje', 'Minutos adicionales', async () => {
+    const reabre = sesion.estado === 'cerrada';
+    const entrada = window.prompt(
+      reabre
+        ? `Minutos adicionales para "${sesion.nombre}". La evaluación está cerrada: al darle minutos se reabre. ` +
+          'Los que fueron entregados por el cierre vuelven a presentar; los que entregaron solos conservan su nota. ' +
+          '¿Cuántos minutos (entero, 1 o más)?'
+        : `Minutos adicionales para "${sesion.nombre}" (se suman a lo que queda). ` +
+          '¿Cuántos minutos (entero, 1 o más)?',
+      '5',
+    );
+    if (entrada === null) return;
+
+    const minutos = Number(entrada.trim());
+    if (!Number.isInteger(minutos) || minutos < 1) {
+      window.alert('Escribe un número entero de minutos (1 o más).');
+      return;
+    }
+
+    const respuesta = await api(`/api/docente/sesiones/${sesion.id}/minutos`, {
+      method: 'POST',
+      body: JSON.stringify({ minutos }),
+    });
+    if (!respuesta.ok) {
+      window.alert(respuesta.mensaje);
+      return;
+    }
+    if (reabre) {
+      window.alert(
+        `"${sesion.nombre}" reabierta con ${minutos} minuto(s). Diles a los estudiantes que vuelvan a entrar.`,
+      );
+    }
+    await recargar();
+  });
 }
 
 // Lo que identifica la fila (negrita, oscuro) + lo que solo la describe
@@ -325,7 +374,9 @@ function celdaEstado(sesion) {
   const td = document.createElement('td');
   const pastilla = document.createElement('span');
   pastilla.className = `pastilla pastilla--${PASTILLA_ESTADO[sesion.estado] ?? 'neutro'}`;
-  pastilla.textContent = ETIQUETAS[sesion.estado] ?? sesion.estado;
+  const minutosOtorgados = Math.round((sesion.segundos_adicionales ?? 0) / 60);
+  pastilla.textContent = (ETIQUETAS[sesion.estado] ?? sesion.estado) +
+    (minutosOtorgados > 0 ? ` (+${minutosOtorgados} min)` : '');
   td.append(pastilla);
   return td;
 }

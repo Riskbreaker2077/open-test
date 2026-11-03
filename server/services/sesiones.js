@@ -204,16 +204,26 @@ export function reanudarSesion(db, id, ahora = new Date()) {
   return obtenerSesion(db, id);
 }
 
-export function cerrarSesion(db, id, { motivo = 'forzada_docente', ahora = new Date() } = {}) {
+export function cerrarSesion(db, id, { motivo = 'cierre_docente', ahora = new Date() } = {}) {
   const sesion = obtenerSesion(db, id);
   if (sesion.estado === 'cerrada') return sesion;
   if (sesion.estado === 'borrador') {
     throw error('Esta evaluación todavía no se ha abierto.', 409);
   }
 
-  const entregadoEn = fechaIso(ahora);
+  const instante = ahora instanceof Date ? ahora : new Date(ahora);
+  const entregadoEn = fechaIso(instante);
   db.transaction(() => {
-    db.prepare("UPDATE sesiones SET estado = 'cerrada', pausada_en = NULL WHERE id = ?").run(id);
+    db.prepare(`
+      UPDATE sesiones SET estado = 'cerrada', pausada_en = NULL, cerrada_en = ? WHERE id = ?
+    `).run(entregadoEn, id);
+    // Cerrar desde una pausa debe conservar el reloj congelado, igual que
+    // reanudar lo conserva: sin este plegado, los segundos pausados se
+    // perderían y una reapertura correría de más (feature 054).
+    if (sesion.estado === 'pausada' && sesion.pausada_en) {
+      const pausa = Math.max(0, Math.floor((instante.getTime() - new Date(sesion.pausada_en).getTime()) / 1000));
+      db.prepare('UPDATE sesiones SET segundos_pausados = segundos_pausados + ? WHERE id = ?').run(pausa, id);
+    }
     const pendientes = db.prepare(`
       SELECT id FROM intentos WHERE sesion_id = ? AND entregado_en IS NULL
     `).all(id);
@@ -222,6 +232,78 @@ export function cerrarSesion(db, id, { motivo = 'forzada_docente', ahora = new D
     }
   })();
   return obtenerSesion(db, id);
+}
+
+/**
+ * Otorga minutos adicionales sobre el reloj de una evaluación ya comenzada
+ * (feature 054). En curso o en pausa con tiempo restante, suma N minutos a lo
+ * que queda; si el reloj ya se agotó —típicamente una evaluación cerrada por
+ * tiempo— quedan exactamente N minutos desde este instante.
+ *
+ * Reabrir una cerrada devuelve al examen los intentos que el cierre entregó
+ * automáticamente (`tiempo` y `cierre_docente`): su entrega y su nota se
+ * revocan y continúan la misma prueba. Los entregados a propósito —por ellos
+ * mismos, por el docente desde monitoreo o con una anulación— conservan su
+ * estado intacto.
+ *
+ * El reloj de una evaluación cerrada queda congelado desde `cerrada_en` (el
+ * tramo de cierre se devuelve a `segundos_pausados` al reabrir, igual que se
+ * devuelve una pausa): darle minutos a una sala cerrada con tiempo disponible
+ * entrega lo que había al cerrar más N, sin cobrar el tiempo de cerrada.
+ */
+export function darMinutosAdicionales(db, id, minutos, ahora = new Date()) {
+  const cantidad = Number(minutos);
+  if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 1440) {
+    throw error('Los minutos deben ser un número entero entre 1 y 1440.');
+  }
+
+  const sesion = obtenerSesion(db, id);
+  if (sesion.estado === 'borrador' || !sesion.comenzada_en) {
+    throw error(
+      'Solo una evaluación comenzada puede recibir minutos adicionales: ábrela y comiénzala primero.',
+      409,
+    );
+  }
+
+  const instante = ahora instanceof Date ? ahora : new Date(ahora);
+  const restantes = calcularRestantes(sesion, instante);
+  const reabrio = sesion.estado === 'cerrada';
+
+  // El tramo de cerrada no corre contra el reloj: se devuelve como pausa.
+  const tramoCerrada = reabrio && sesion.cerrada_en
+    ? Math.max(0, Math.floor((instante.getTime() - new Date(sesion.cerrada_en).getTime()) / 1000))
+    : 0;
+  // Con reloj vivo basta N×60; con reloj agotado hay que devolverle lo
+  // vencido antes de sumar los N, para que la cuenta final dé exactamente N.
+  const congelados = restantes + tramoCerrada;
+  const extra = cantidad * 60 + Math.max(0, -congelados);
+
+  db.transaction(() => {
+    if (reabrio) {
+      db.prepare(`
+        UPDATE sesiones
+        SET estado = 'en_curso', pausada_en = NULL, cerrada_en = NULL,
+            segundos_pausados = segundos_pausados + ?,
+            segundos_adicionales = segundos_adicionales + ?
+        WHERE id = ?
+      `).run(tramoCerrada, extra, id);
+      db.prepare(`
+        UPDATE intentos
+        SET entregado_en = NULL, motivo_entrega = NULL, aciertos = NULL, puntaje = NULL
+        WHERE sesion_id = ? AND entregado_en IS NOT NULL AND anulado_en IS NULL
+          AND motivo_entrega IN ('tiempo', 'cierre_docente')
+      `).run(id);
+    } else {
+      db.prepare('UPDATE sesiones SET segundos_adicionales = segundos_adicionales + ? WHERE id = ?')
+        .run(extra, id);
+    }
+    db.prepare(`
+      INSERT INTO minutos_otorgados (sesion_id, minutos, reabrio, otorgado_en)
+      VALUES (?, ?, ?, ?)
+    `).run(id, cantidad, reabrio ? 1 : 0, fechaIso(instante));
+  })();
+
+  return { sesion: obtenerSesion(db, id), reabrio };
 }
 
 export function actualizarNivelFeedback(db, id, nivel) {
@@ -254,7 +336,7 @@ export function renombrarSesion(db, id, nombre) {
 function calcularRestantes(sesion, referencia) {
   if (!sesion.comenzada_en) return sesion.duracion_minutos * 60;
   const transcurridos = Math.floor((referencia.getTime() - new Date(sesion.comenzada_en).getTime()) / 1000);
-  return sesion.duracion_minutos * 60 + sesion.segundos_pausados - transcurridos;
+  return sesion.duracion_minutos * 60 + sesion.segundos_adicionales + sesion.segundos_pausados - transcurridos;
 }
 
 /**

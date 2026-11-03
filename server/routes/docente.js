@@ -21,6 +21,7 @@ import {
   cerrarSesion,
   comenzarSesion,
   crearSesion,
+  darMinutosAdicionales,
   eliminarDePapelera,
   ESTADOS_VISIBLES,
   listarPapelera,
@@ -410,6 +411,12 @@ export function rutasDocente(db) {
 
   router.post('/sesiones/:id/cerrar', (req, res) => {
     responder(res, () => ({ sesion: cerrarSesion(db, Number(req.params.id)) }));
+  });
+
+  router.post('/sesiones/:id/minutos', (req, res) => {
+    responder(res, () => ({
+      sesion: darMinutosAdicionales(db, Number(req.params.id), req.body?.minutos).sesion,
+    }));
   });
 
   router.get('/sesiones/:id/monitoreo', (req, res) => {

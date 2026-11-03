@@ -2,6 +2,51 @@
 
 Historial acumulativo del trabajo entre sesiones. `RESTART.md` conserva únicamente el estado operativo más reciente.
 
+## 03/11/2026 — Feature 054 · Minutos adicionales sobre el reloj (engranaje ⚙)
+
+- Camilo pidió poder dar **minutos adicionales en cantidad libre** desde el
+  engranaje de cada fila de la hoja de evaluaciones, incluso cuando la prueba
+  ya terminó. Criterio fijado en una sola ronda de clarify: minutos para toda
+  la evaluación (no por estudiante), al reabrir solo vuelven los entregados
+  por el cierre (voluntarios, forzados individuales y anulados conservan su
+  estado) y el reloj vencido queda exactamente en los N minutos otorgados.
+- **Desarrollo por partes.** La primera implementación se hizo sobre un
+  checkout local desactualizado (base del 28/08, features hasta la 019); al
+  ir a empujar, `origin/main` estaba 69 commits adelante (v1.8.1, features
+  hasta la 053). El trabajo quedó respaldado en la rama local
+  `feature/minutos-adicionales-base-vieja` y se **portó a mano** sobre la
+  base actual: la capa de servicio casi 1:1 (la fórmula del reloj no había
+  cambiado), el spec renumerado a **054** (020 ya existía allá), la migración
+  renumerada a la **9** (siguiendo la receta del rebuild de la 6) y la UI
+  adaptada al panel nuevo (`botonIcono('engranaje')` del set Heroicons ya
+  existente, pastilla de estado con «(+N min)»).
+- **Reloj:** columna acumulativa `segundos_adicionales` en `calcularRestantes`
+  (nunca se retoca `duracion_minutos`). Fórmula única
+  `N×60 + max(0, −congelados)` para los tres casos: en curso (+N exacto), en
+  pausa (+N congelado) y vencida (exactamente N desde el otorgamiento).
+- **Hallazgo de diseño:** el tiempo no debe correr mientras la evaluación
+  está cerrada, igual que no corre en pausa. Columna `cerrada_en` sella el
+  cierre y el tramo se devuelve a `segundos_pausados` al reabrir; además
+  cerrar desde `pausada` ahora pliega la pausa que antes se perdía (una
+  reapertura habría corrido de más).
+- **Motivo nuevo `cierre_docente`:** distingue el cierre de sala del docente
+  de la entrega individual (`forzada_docente`) y de la anulación
+  (`anulada_docente`, 038). Al reabrir solo revoca intentos con motivo
+  `tiempo`/`cierre_docente` **y `anulado_en IS NULL`**: resucitar una
+  anulación desharía una decisión deliberada del docente.
+- **Ajustes del porte descubiertos en tests:** la 021 bloquea entregar con
+  preguntas pendientes (los tests de servicio ahora responden todo antes de
+  entregar, con un ayudante `responderTodo`), y el cierre manual del docente
+  pasó de `forzada_docente` a `cierre_docente` (test de `sesiones.test.js`
+  actualizado).
+- **Verificación:** 545/545 tests en verde (533 de la base + 12 nuevos) y
+  lint limpio (109 archivos). Smoke HTTP punta a punta y verificación de UI
+  en navegador: ver RESTART.md.
+- `GUIA-DOCENTE.md`: nueva sección «Minutos adicionales (el engranaje ⚙)» en
+  «Durante la evaluación».
+- Fuera de alcance (explicitado en la spec): minutos por estudiante, retirar
+  minutos otorgados y reabrir sin dar minutos.
+
 ## 26/08/2026 — Sistema de restart
 
 Se incorporó un mecanismo independiente de la herramienta usada por el agente. `RESTART.md`, en la raíz, queda como punto de entrada breve y reemplazable de cada sesión; esta bitácora conserva el contexto narrativo acumulado. También se añadió a `AGENTS.md` la obligación explícita de leer el restart al comenzar y actualizar ambos documentos al terminar.

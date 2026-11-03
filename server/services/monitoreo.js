@@ -54,6 +54,7 @@ export function estadoDeSesion(db, sesionId, ahora = new Date()) {
       estado: sesion.estado,
       nPreguntas: sesion.n_preguntas,
       duracionMinutos: sesion.duracion_minutos,
+      segundosAdicionales: sesion.segundos_adicionales,
       segundosMinimosPregunta: sesion.segundos_minimos_pregunta,
       nivelFeedback: sesion.nivel_feedback,
       segundosRestantes,

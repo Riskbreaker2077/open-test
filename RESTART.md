@@ -2,9 +2,21 @@
 
 ## Última actualización y rama activa
 
-- 29/09/2026 — `main` publicada como **1.7.0** (tag `v1.7.0`): rediseño del
-  panel del docente (048) y papelera universal + renombrar (049). El workflow
-  `instalador.yml` compila y commitea el instalador.
+- 03/11/2026 — `main`: **054 · Minutos adicionales** (engranaje ⚙ por fila). 545
+  tests en verde, lint limpio.
+
+## 03/11/2026 — 054
+
+Minutos adicionales sobre el reloj de la sala (`spec/features/054-*`): engranaje
+⚙ por fila en la hoja de evaluaciones, en curso, en pausa o cerrada. En curso
+suma exactamente N; vencida, quedan exactamente N desde el otorgamiento. Darle
+minutos a una cerrada la reabre: solo vuelven los entregados por el cierre
+(motivo nuevo `cierre_docente`); voluntarios, forzados y anulados conservan su
+estado. El reloj queda congelado durante el cierre (`cerrada_en`) y cerrar
+desde pausa pliega la pausa antes perdida. Auditoría en `minutos_otorgados`;
+migración 9 (rebuild de `intentos`). 545/545 tests, lint limpio, smoke HTTP y
+UI verificados en esta sesión. Pendiente de verificar en dispositivo real con
+una evaluación cerrada de verdad.
 
 ## 30/09/2026 — 050
 

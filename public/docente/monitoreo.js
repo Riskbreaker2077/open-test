@@ -125,7 +125,9 @@ function pintar(monitoreo) {
   elementos.estadoPastilla.className = `pastilla pastilla--${PASTILLA_SESION[sesion.estado] ?? 'neutro'}`;
   elementos.estadoPastilla.textContent = ETIQUETAS_SESION[sesion.estado] ?? sesion.estado;
   elementos.parametros.textContent = `${sesion.banco} · ${sesion.cursos.join(', ')} · ` +
-    `${sesion.nPreguntas} preguntas · ${sesion.duracionMinutos} minutos`;
+    `${sesion.nPreguntas} preguntas · ${sesion.duracionMinutos} minutos` +
+    (sesion.segundosAdicionales > 0
+      ? ` · +${Math.round(sesion.segundosAdicionales / 60)} min adicionales` : '');
   elementos.direccion.textContent = monitoreo.direccion;
   elementos.proyectar.href = `/proyeccion/?sesion=${sesion.id}`;
   elementos.convocados.textContent = contadores.convocados;

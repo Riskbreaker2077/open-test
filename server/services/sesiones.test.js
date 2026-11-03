@@ -249,7 +249,7 @@ test('cerrar entrega a todos los intentos pendientes y conserva los ya entregado
   const intentos = db.prepare('SELECT * FROM intentos ORDER BY codigo_estudiante').all();
   assert.equal(intentos[0].motivo_entrega, 'manual');
   assert.equal(intentos[0].entregado_en, '2026-01-02');
-  assert.equal(intentos[1].motivo_entrega, 'forzada_docente');
+  assert.equal(intentos[1].motivo_entrega, 'cierre_docente');
   assert.equal(intentos[1].entregado_en, '2026-08-26T12:00:00.000Z');
   assert.equal(intentos[1].aciertos, 0);
   assert.equal(intentos[1].puntaje, 0);

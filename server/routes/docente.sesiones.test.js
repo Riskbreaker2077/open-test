@@ -426,6 +426,7 @@ test('todas las rutas de evaluaciones exigen contraseña', async () => {
     ['/api/docente/qr.svg?texto=http%3A%2F%2Flocalhost', 'GET'],
     ['/api/docente/apagar', 'POST'],
     ['/api/docente/sesiones/1', 'DELETE'],
+    ['/api/docente/sesiones/1/minutos', 'POST'],
   ];
 
   for (const [ruta, metodo] of rutas) {
@@ -459,4 +460,30 @@ test('al entrar, el estudiante recibe su prueba ya materializada', async () => {
   const filas = db.prepare('SELECT * FROM intento_preguntas ORDER BY orden').all();
   assert.equal(filas.length, 20);
   assert.match(filas[0].orden_opciones, /^\d+,\d+,\d+,\d+$/);
+});
+
+test('otorga minutos adicionales sobre el reloj de una evaluación en curso (054)', async () => {
+  const { sesion } = await post('/api/docente/sesiones', NUEVA);
+  await post(`/api/docente/sesiones/${sesion.id}/abrir`);
+  await post(`/api/docente/sesiones/${sesion.id}/comenzar`);
+
+  const { ok, sesion: ampliada } = await post(`/api/docente/sesiones/${sesion.id}/minutos`, {
+    minutos: 5,
+  });
+  assert.equal(ok, true);
+  assert.equal(ampliada.segundos_adicionales, 300);
+  assert.equal(ampliada.estado, 'en_curso');
+});
+
+test('rechaza minutos inválidos y una evaluación que todavía no comenzó (054)', async () => {
+  const { sesion } = await post('/api/docente/sesiones', NUEVA);
+
+  const borrador = await post(`/api/docente/sesiones/${sesion.id}/minutos`, { minutos: 5 });
+  assert.equal(borrador.ok, false);
+
+  await post(`/api/docente/sesiones/${sesion.id}/abrir`);
+  await post(`/api/docente/sesiones/${sesion.id}/comenzar`);
+  const invalido = await post(`/api/docente/sesiones/${sesion.id}/minutos`, { minutos: 0 });
+  assert.equal(invalido.ok, false);
+  assert.match(invalido.mensaje, /entero/);
 });
